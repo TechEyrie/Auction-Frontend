@@ -1,13 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { css } from '../lib/css';
+import {
+  aladhanTimingsByCityUrl,
+  aladhanTomorrowDateParam,
+  nextPrayer,
+  qatarDateKey,
+} from '../lib/prayerTimes';
 import { whatsappChatUrl } from '../lib/siteContact';
 
 /** Doha — used for weather and prayer times on the public catalogue. */
 const DOHA = { lat: 25.2854, lon: 51.531, city: 'Doha', country: 'QA' };
 
-const PRAYER_ORDER = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'] as const;
+const ALADHAN_METHOD = 10;
 
 /** Placeholder social destinations until the client supplies official profiles. */
 const SOCIAL = [
@@ -35,32 +41,6 @@ function weatherLabel(code: number): string {
   if (code >= 80 && code <= 82) return 'Showers';
   if (code >= 95) return 'Thunderstorm';
   return 'Doha';
-}
-
-function parseHm(value: string): number {
-  const [h, m] = value.split(':').map(Number);
-  return (h ?? 0) * 60 + (m ?? 0);
-}
-
-function formatHm(value: string): string {
-  const [hRaw, mRaw] = value.split(':');
-  const h = Number(hRaw);
-  const m = Number(mRaw);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) return value;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
-function nextPrayer(timings: Record<string, string>, now = new Date()): PrayerState {
-  const minutesNow = now.getHours() * 60 + now.getMinutes();
-  for (const name of PRAYER_ORDER) {
-    const raw = timings[name];
-    if (!raw) continue;
-    const time = raw.split(' ')[0] ?? raw;
-    if (parseHm(time) > minutesNow) return { name, time: formatHm(time) };
-  }
-  const fajr = timings.Fajr?.split(' ')[0];
-  if (!fajr) return null;
-  return { name: 'Fajr', time: formatHm(fajr) };
 }
 
 function SocialIcon({ id }: { id: (typeof SOCIAL)[number]['id'] }) {
@@ -131,6 +111,12 @@ function SocialIcon({ id }: { id: (typeof SOCIAL)[number]['id'] }) {
 export default function LocalInfoBar() {
   const [weather, setWeather] = useState<WeatherState>(null);
   const [prayer, setPrayer] = useState<PrayerState>(null);
+  const [prayerFailed, setPrayerFailed] = useState(false);
+  const prayerCacheRef = useRef<{
+    dateKey: string;
+    today: Record<string, string>;
+    tomorrow: Record<string, string>;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,25 +142,65 @@ export default function LocalInfoBar() {
       }
     }
 
-    async function loadPrayer() {
+    function recomputePrayer() {
+      const cache = prayerCacheRef.current;
+      if (!cache) return;
+      const next = nextPrayer(cache.today, { tomorrowTimings: cache.tomorrow });
+      if (!cancelled && next) setPrayer(next);
+    }
+
+    async function loadPrayerTimings() {
+      const now = new Date();
+      const dateKey = qatarDateKey(now);
+      if (prayerCacheRef.current?.dateKey === dateKey) {
+        recomputePrayer();
+        return;
+      }
+
       try {
-        const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(DOHA.city)}&country=${encodeURIComponent(DOHA.country)}&method=10`;
-        const res = await fetch(url);
-        if (!res.ok) return;
-        const body = (await res.json()) as { data?: { timings?: Record<string, string> } };
-        const timings = body.data?.timings;
-        if (!timings) return;
-        const next = nextPrayer(timings);
-        if (!cancelled && next) setPrayer(next);
+        const tomorrowParam = aladhanTomorrowDateParam(now);
+        const todayUrl = aladhanTimingsByCityUrl(DOHA.city, DOHA.country, ALADHAN_METHOD);
+        const tomorrowUrl = aladhanTimingsByCityUrl(
+          DOHA.city,
+          DOHA.country,
+          ALADHAN_METHOD,
+          tomorrowParam,
+        );
+        const [todayRes, tomorrowRes] = await Promise.all([fetch(todayUrl), fetch(tomorrowUrl)]);
+        if (!todayRes.ok || !tomorrowRes.ok) throw new Error('Aladhan HTTP error');
+
+        const todayBody = (await todayRes.json()) as { data?: { timings?: Record<string, string> } };
+        const tomorrowBody = (await tomorrowRes.json()) as { data?: { timings?: Record<string, string> } };
+        const today = todayBody.data?.timings;
+        const tomorrow = tomorrowBody.data?.timings;
+        if (!today || !tomorrow) throw new Error('Aladhan missing timings');
+
+        prayerCacheRef.current = { dateKey, today, tomorrow };
+        if (cancelled) return;
+        setPrayerFailed(false);
+        recomputePrayer();
       } catch {
-        /* optional enrichment */
+        if (!cancelled) setPrayerFailed(true);
       }
     }
 
     void loadWeather();
-    void loadPrayer();
+    void loadPrayerTimings();
+    const tick = window.setInterval(() => {
+      void loadPrayerTimings();
+    }, 60_000);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        recomputePrayer();
+        void loadPrayerTimings();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
       cancelled = true;
+      window.clearInterval(tick);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);
 
@@ -233,7 +259,11 @@ export default function LocalInfoBar() {
           <div>
             <div style={css('font-size: 14px; font-weight: 800; color: #15191E; line-height: 1.15')}>Next Prayer</div>
             <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>
-              {prayer ? `${prayer.name} ${prayer.time}` : 'Loading…'}
+              {prayer
+                ? `${prayer.name} ${prayer.time}`
+                : prayerFailed
+                  ? 'Unavailable'
+                  : 'Loading…'}
             </div>
           </div>
         </div>
