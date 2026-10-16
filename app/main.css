@@ -8,6 +8,10 @@ a{color:#9A6B12;text-decoration:none}a:hover{color:#7D5610}
 .card{transition:transform .18s ease, box-shadow .18s ease}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 32px -18px rgba(21,25,30,.35)}
 .cat:hover{border-color:#9A6B12 !important;background:#FCF8EF !important}
+.local-info-bar__social:hover{color:#9A6B12 !important;background:#F6EEDC}
+.cat-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.cat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.cat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .foot a{color:#C9CFCB}.foot a:hover{color:#FFFFFF}
 input:focus,select:focus,button:focus-visible,a:focus-visible{outline:2px solid #9A6B12;outline-offset:2px}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,65,12,.45)}70%{box-shadow:0 0 0 8px rgba(194,65,12,0)}100%{box-shadow:0 0 0 0 rgba(194,65,12,0)}}

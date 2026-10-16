@@ -17,3 +17,53 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{out
 .mkt-state{margin:0 0 18px;padding:18px;border:1px dashed #DAD7D0;border-radius:12px;background:#FBFAF7;color:#5B636B}
 .mkt-state[data-state="error"]{border-style:solid;border-color:#E7C9C2;background:#FDF6F4;color:#8A2C11}
 .mkt-card-meta{margin:0;font-size:13px;color:#5B636B}
+.browse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.browse-skel{
+  background:#FFFFFF;
+  border:1px solid #E6E4DF;
+  border-radius:18px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.browse-skel__media{
+  height:170px;
+  background:linear-gradient(90deg,#F3F1EC 0%,#EBE8E1 45%,#F3F1EC 90%);
+  background-size:200% 100%;
+  animation:browse-shimmer 1.15s ease-in-out infinite;
+}
+.browse-skel__body{padding:16px 16px 18px;display:flex;flex-direction:column;gap:10px}
+.browse-skel__line{
+  height:12px;
+  border-radius:6px;
+  background:linear-gradient(90deg,#F3F1EC 0%,#EBE8E1 45%,#F3F1EC 90%);
+  background-size:200% 100%;
+  animation:browse-shimmer 1.15s ease-in-out infinite;
+}
+.browse-skel__line--title{height:16px;width:78%}
+.browse-skel__line--meta{width:62%}
+.browse-skel__line--meta2{width:48%}
+.browse-skel__line--price{height:18px;width:42%;margin-top:4px}
+.browse-skel__count{
+  height:18px;
+  width:140px;
+  border-radius:6px;
+  background:linear-gradient(90deg,#F3F1EC 0%,#EBE8E1 45%,#F3F1EC 90%);
+  background-size:200% 100%;
+  animation:browse-shimmer 1.15s ease-in-out infinite;
+}
+@keyframes browse-shimmer{
+  0%{background-position:100% 0}
+  100%{background-position:-100% 0}
+}
+.browse-status-pulse{display:inline-flex;align-items:center;gap:8px;color:#5B636B;font-size:14px;font-weight:600}
+.browse-status-pulse::before{
+  content:"";
+  width:8px;height:8px;border-radius:50%;
+  background:#9A6B12;
+  animation:browse-dot 1s ease-in-out infinite;
+}
+@keyframes browse-dot{
+  0%,100%{opacity:.35;transform:scale(.85)}
+  50%{opacity:1;transform:scale(1)}
+}

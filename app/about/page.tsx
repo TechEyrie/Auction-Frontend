@@ -4,6 +4,7 @@ import Link from 'next/link';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { css, PAGE_ROOT } from '../../lib/css';
+import { CAREERS_EMAIL } from '../../lib/siteContact';
 import './about.css';
 
 export default function AboutPage() {
@@ -104,7 +105,9 @@ export default function AboutPage() {
             <p style={css("margin: 10px 0 0; color: #5B636B; font-size: 17px; max-width: 54ch")}>We're always glad to hear from auctioneers, valuers, engineers, designers and customer-care people who care about getting the details right.</p>
             <p style={css("margin: 14px 0 0; font-size: 16px")}>
               {"Send your CV to "}
-              <Link href="/contact" style={css("font-weight: 700")}>[careers@yourdomain.com]</Link>
+              <a href={`mailto:${CAREERS_EMAIL}`} style={css("font-weight: 700; color: #9A6B12")}>
+                {CAREERS_EMAIL}
+              </a>
             </p>
           </div>
           <Link href="/contact" className="btn-primary" style={css("height: 52px; padding: 0 24px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; display: flex; align-items: center")}>Get in touch</Link>

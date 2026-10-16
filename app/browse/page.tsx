@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import AudiencePicker from '../../components/AudiencePicker';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
@@ -15,7 +15,6 @@ import {
   browseIsFiltered,
   browseQuery,
   coverImage,
-  EMPTY_BROWSE,
   LISTING_METHODS,
   listingCardPrice,
   listingCardTitle,
@@ -40,6 +39,8 @@ type ListingsResponse = {
   sort: string;
 };
 
+const SKELETON_COUNT = 12;
+
 function thumbUrl(listing: PublicListing): string | null {
   const url = coverImage(listing);
   return url ? `${API_BASE_URL}${url}` : null;
@@ -52,6 +53,30 @@ function postedLabel(iso: string | null): string {
   if (days === 1) return 'Yesterday';
   if (days < 30) return `${days} days ago`;
   return new Date(iso).toLocaleDateString();
+}
+
+function loadingStatusLabel(state: BrowseState): string {
+  if (state.q) return 'Searching listings…';
+  if (browseIsFiltered(state)) return 'Filtering listings…';
+  return 'Loading listings…';
+}
+
+function BrowseListingSkeletonGrid({ count = SKELETON_COUNT }: { count?: number }) {
+  return (
+    <div className="browse-grid" aria-hidden="true">
+      {Array.from({ length: count }, (_, index) => (
+        <article key={index} className="browse-skel">
+          <div className="browse-skel__media" />
+          <div className="browse-skel__body">
+            <div className="browse-skel__line browse-skel__line--title" />
+            <div className="browse-skel__line browse-skel__line--meta" />
+            <div className="browse-skel__line browse-skel__line--meta2" />
+            <div className="browse-skel__line browse-skel__line--price" />
+          </div>
+        </article>
+      ))}
+    </div>
+  );
 }
 
 function BrowseContent() {
@@ -79,12 +104,26 @@ function BrowseContent() {
   const locations = useAsync<{ locations: LocationOption[] }>(() => apiFetch<{ locations: LocationOption[] }>('/api/catalog/locations', { cache: 'no-store' }), []);
 
   const [searchText, setSearchText] = useState(state.q);
+  /** True from filter click until the matching listings request finishes — avoids stale cards during navigation. */
+  const [filterPending, setFilterPending] = useState(false);
+
+  useEffect(() => {
+    setSearchText(state.q);
+  }, [state.q]);
+
+  useEffect(() => {
+    if (!listings.loading) setFilterPending(false);
+  }, [listings.loading, query]);
 
   /** Every filter change is navigation: the URL is the state, so reload and Back/Forward work. */
   function update(change: Partial<BrowseState>): void {
     const next = applyBrowseChange(state, change);
     const qs = browseQuery(next);
-    router.push(qs ? `/browse?${qs}` : '/browse');
+    const href = qs ? `/browse?${qs}` : '/browse';
+    const currentHref = browseQuery(state) ? `/browse?${browseQuery(state)}` : '/browse';
+    if (href === currentHref) return;
+    setFilterPending(true);
+    router.push(href);
   }
 
   // Sub-categories hidden for now; restore when client wants depth.
@@ -98,6 +137,10 @@ function BrowseContent() {
     if (pages.length > 0 && typeof pages[pages.length - 1] === 'number' && candidate - (pages[pages.length - 1] as number) > 1) pages.push('…');
     pages.push(candidate);
   }
+
+  const isUpdating = listings.loading || filterPending;
+  const resultListings = isUpdating ? [] : (listings.data?.listings ?? []);
+  const showEmpty = !isUpdating && !listings.error && resultListings.length === 0;
 
   return (
     <div style={css(PAGE_ROOT)}>
@@ -259,17 +302,30 @@ function BrowseContent() {
           </Link>
         </aside>
 
-        <main style={css('flex: 999 1 560px; min-width: 0')}>
+        <main style={css('flex: 999 1 560px; min-width: 0')} aria-busy={isUpdating}>
           <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px')}>
-            <p style={css('margin: 0; color: #2A3036')} role="status">
-              <strong>{listings.data?.total ?? 0}</strong> {listings.data?.total === 1 ? 'listing' : 'listings'}
-              {browseIsFiltered(state) && <span className="mkt-hint"> · filtered</span>}
-            </p>
+            {isUpdating ? (
+              <p className="browse-status-pulse" role="status" aria-live="polite">
+                {loadingStatusLabel(state)}
+              </p>
+            ) : (
+              <p style={css('margin: 0; color: #2A3036')} role="status">
+                <strong>{listings.data?.total ?? 0}</strong> {listings.data?.total === 1 ? 'listing' : 'listings'}
+                {browseIsFiltered(state) && <span className="mkt-hint"> · filtered</span>}
+              </p>
+            )}
             <div style={css('display: flex; align-items: center; gap: 10px')}>
               <label htmlFor="sort" style={css('font-size: 14px; color: #5B636B')}>
                 Sort by
               </label>
-              <select id="sort" className="field" value={state.sort} onChange={(event) => update({ sort: event.target.value as BrowseState['sort'] })} style={css('width: auto; height: 42px; cursor: pointer')}>
+              <select
+                id="sort"
+                className="field"
+                value={state.sort}
+                disabled={isUpdating}
+                onChange={(event) => update({ sort: event.target.value as BrowseState['sort'] })}
+                style={css('width: auto; height: 42px; cursor: pointer')}
+              >
                 <option value="recent">Newest first</option>
                 <option value="title">Title (A–Z)</option>
                 <option value="featured">Featured first</option>
@@ -277,13 +333,7 @@ function BrowseContent() {
             </div>
           </div>
 
-          {listings.loading && (
-            <p role="status" className="mkt-state" data-state="loading">
-              Loading listings…
-            </p>
-          )}
-
-          {listings.error && (
+          {listings.error && !isUpdating && (
             <div role="alert" className="mkt-state" data-state="error">
               <p style={css('margin: 0 0 10px; font-weight: 600')}>{listings.error}</p>
               <button type="button" onClick={() => listings.reload()} className="btn-primary" style={css('height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
@@ -292,7 +342,7 @@ function BrowseContent() {
             </div>
           )}
 
-          {!listings.loading && !listings.error && (listings.data?.listings.length ?? 0) === 0 && (
+          {showEmpty && (
             <div style={css('background: #FFFFFF; border: 1px dashed #DAD7D0; border-radius: 18px; padding: 56px 24px; text-align: center')}>
               <h3 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>No listings match</h3>
               <p style={css('margin: 8px 0 20px; color: #5B636B')}>
@@ -306,56 +356,65 @@ function BrowseContent() {
             </div>
           )}
 
-          <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px')}>
-            {(listings.data?.listings ?? []).map((listing) => {
-              const image = thumbUrl(listing);
-              const title = listingCardTitle(listing);
-              const price = listingCardPrice(listing);
-              return (
-                <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                  <Link
-                    href={productPath(listing)}
-                    aria-label={title}
-                    style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}
-                  >
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={listing.media.find((entry) => entry.assetId === listing.coverAssetId)?.alt.en ?? listing.title.en ?? 'Listing image'}
-                        style={css('width: 100%; height: 100%; object-fit: cover')}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span className="mkt-hint">No image</span>
-                    )}
-                    <span style={css('position: absolute; left: 10px; top: 10px; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; font-size: 12px; font-weight: 600; color: #2A3036')}>
-                      {listing.listingMethod === 'auction' ? 'Auction listing' : listing.listingMethod === 'fixed_price' ? 'Fixed price' : 'Enquiry'}
-                    </span>
-                  </Link>
-                  <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
-                    <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
-                      <Link href={productPath(listing)} style={css('color: #15191E')}>
-                        {title}
-                      </Link>
-                    </h3>
-                    <p style={css('margin: 4px 0 0; font-size: 13px; color: #5B636B')}>
-                      {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
-                    </p>
-                    <p style={css('margin: 0; font-size: 13px; color: #5B636B')}>
-                      {listing.condition ? listing.condition.replace('_', ' ') : 'Condition not stated'} · {listing.category.key}
-                    </p>
-                    {price ? (
-                      <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                        {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+          {isUpdating ? (
+            <>
+              <span className="sr" role="status" aria-live="polite">
+                {loadingStatusLabel(state)}
+              </span>
+              <BrowseListingSkeletonGrid />
+            </>
+          ) : (
+            <div className="browse-grid">
+              {resultListings.map((listing) => {
+                const image = thumbUrl(listing);
+                const title = listingCardTitle(listing);
+                const price = listingCardPrice(listing);
+                return (
+                  <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
+                    <Link
+                      href={productPath(listing)}
+                      aria-label={title}
+                      style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}
+                    >
+                      {image ? (
+                        <img
+                          src={image}
+                          alt={listing.media.find((entry) => entry.assetId === listing.coverAssetId)?.alt.en ?? listing.title.en ?? 'Listing image'}
+                          style={css('width: 100%; height: 100%; object-fit: cover')}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="mkt-hint">No image</span>
+                      )}
+                      <span style={css('position: absolute; left: 10px; top: 10px; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; font-size: 12px; font-weight: 600; color: #2A3036')}>
+                        {listing.listingMethod === 'auction' ? 'Auction listing' : listing.listingMethod === 'fixed_price' ? 'Fixed price' : 'Enquiry'}
+                      </span>
+                    </Link>
+                    <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
+                      <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
+                        <Link href={productPath(listing)} style={css('color: #15191E')}>
+                          {title}
+                        </Link>
+                      </h3>
+                      <p style={css('margin: 4px 0 0; font-size: 13px; color: #5B636B')}>
+                        {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
                       </p>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                      <p style={css('margin: 0; font-size: 13px; color: #5B636B')}>
+                        {listing.condition ? listing.condition.replace('_', ' ') : 'Condition not stated'} · {listing.category.key}
+                      </p>
+                      {price ? (
+                        <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
+                          {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                        </p>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
 
-          {totalPages > 1 && (
+          {!isUpdating && totalPages > 1 && (
             <nav aria-label="Pagination" style={css('display: flex; justify-content: center; gap: 8px; margin-top: 36px; flex-wrap: wrap')}>
               <button
                 type="button"
@@ -408,9 +467,12 @@ export default function BrowsePage() {
       fallback={
         <div style={css(PAGE_ROOT)}>
           <SiteHeader active="buy" />
-          <p role="status" className="mkt-state" data-state="loading" style={css('max-width: 1240px; margin: 32px auto; padding: 18px')}>
-            Loading listings…
-          </p>
+          <div style={css('max-width: 1240px; margin: 0 auto; padding: 32px 24px 72px')}>
+            <p className="browse-status-pulse" role="status" style={css('margin: 0 0 18px')}>
+              Loading listings…
+            </p>
+            <BrowseListingSkeletonGrid />
+          </div>
           <SiteFooter />
         </div>
       }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useState } from 'react';
 import AudiencePicker from '../components/AudiencePicker';
+import LocalInfoBar from '../components/LocalInfoBar';
 import SiteFooter from '../components/SiteFooter';
 import SiteHeader from '../components/SiteHeader';
 import { API_BASE_URL, apiFetch } from '../lib/api';
@@ -110,7 +111,10 @@ export default function HomePage() {
   const heroListing = featured.data?.listings[0] ?? recent.data?.listings[0] ?? null;
   const heroImage = heroListing ? cardImage(heroListing) : { url: null, alt: '' };
   // Sub-categories hidden for now; restore when client wants depth.
-  const roots = (categories.data?.categories ?? []).filter((category) => category.parentKey === null).slice(0, 12);
+  // Property omitted so the six remaining roots stay on one desktop row.
+  const roots = (categories.data?.categories ?? [])
+    .filter((category) => category.parentKey === null && category.key !== 'property')
+    .slice(0, 6);
   const recentListings = (recent.data?.listings ?? []).slice(0, 8);
   const auctionCards = (auctionListings.data?.listings ?? []).slice(0, 4);
   const activeMode = MODES.find((entry) => entry.id === mode) ?? MODES[0]!;
@@ -265,7 +269,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="categories" style={css('max-width: 1240px; margin: 0 auto; padding: 72px 24px 24px')}>
+      <LocalInfoBar />
+
+      <section id="categories" style={css('max-width: 1240px; margin: 0 auto; padding: 48px 24px 24px')}>
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 28px')}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
@@ -287,7 +293,7 @@ export default function HomePage() {
           <p className="mkt-state">{categories.loading ? 'Loading categories…' : 'No categories are published yet.'}</p>
         )}
 
-        <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px')}>
+        <div className="cat-grid">
           {roots.map((category) => (
             <Fragment key={category.key}>
               <Link
