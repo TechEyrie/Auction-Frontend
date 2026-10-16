@@ -1,0 +1,18 @@
+body{margin:0;background:#FBFAF7}
+*{box-sizing:border-box}
+a{color:#9A6B12;text-decoration:none}a:hover{color:#7D5610}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.navlink{color:#2A3036;font-weight:500}.navlink:hover{color:#9A6B12}
+.btn-primary:hover{background:#7D5610 !important}
+.btn-ghost:hover{background:#F3F1EC !important}
+.card{transition:transform .18s ease, box-shadow .18s ease}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 32px -18px rgba(21,25,30,.35)}
+.foot a{color:#C9CFCB}.foot a:hover{color:#FFFFFF}
+.field{width:100%;height:48px;border:1px solid #DAD7D0;border-radius:10px;padding:0 12px;font:inherit;font-size:15px;color:#15191E;background:#FFFFFF}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid #9A6B12;outline-offset:2px}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,65,12,.45)}70%{box-shadow:0 0 0 8px rgba(194,65,12,0)}100%{box-shadow:0 0 0 0 rgba(194,65,12,0)}}
+.live-dot{animation:pulse 1.8s infinite}
+.mkt-hint{margin:0;color:#5B636B;font-size:13px}
+.mkt-state{margin:0;padding:18px;border:1px dashed #DAD7D0;border-radius:12px;background:#FBFAF7;color:#5B636B}
+.mkt-state[data-state="error"]{border-style:solid;border-color:#E7C9C2;background:#FDF6F4;color:#8A2C11}
+.mkt-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:#F2F8F2;border:1px solid #CBE0CB;color:#1F5B2B;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
