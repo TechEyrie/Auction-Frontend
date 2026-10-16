@@ -86,6 +86,62 @@ function liveTopBidLabel(
   return `No bids yet — opening at ${fmtMinor(startingBidMinor)}`;
 }
 
+function ProductPageSkeleton() {
+  return (
+    <div className="product-skeleton-page" aria-busy="true" role="status">
+      <span className="sr">Loading product</span>
+      <div className="product-breadcrumb">
+        <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 220px')} />
+      </div>
+      <div className="product-layout">
+        <div className="product-left">
+          <div className="product-gallery">
+            <div className="product-skeleton-shimmer product-skeleton-gallery" />
+            <div className="product-skeleton-thumb-row">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="product-skeleton-shimmer product-skeleton-thumb" />
+              ))}
+            </div>
+            <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 85%; margin-top: 4px')} />
+          </div>
+          <div className="product-tabs-panel">
+            <div className="product-tabs-list" style={css('padding: 12px 16px; gap: 12px')}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="product-skeleton-shimmer product-skeleton-line" style={css('width: 96px; height: 18px')} />
+              ))}
+            </div>
+            <div className="product-tabs-body" style={css('display: flex; flex-direction: column; gap: 12px')}>
+              <div className="product-skeleton-shimmer product-skeleton-line product-skeleton-line--lg" style={css('width: 100%')} />
+              <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 92%')} />
+              <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 78%')} />
+              <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 88%')} />
+            </div>
+          </div>
+        </div>
+        <aside className="product-sidebar" aria-hidden="true">
+          <div className="product-sidebar-card" style={css('gap: 14px')}>
+            <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 55%')} />
+            <div className="product-skeleton-shimmer product-skeleton-line product-skeleton-line--xl" style={css('width: 100%')} />
+            <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 70%')} />
+            <div className="product-skeleton-shimmer product-skeleton-block" />
+            <div className="product-skeleton-shimmer product-skeleton-btn" />
+          </div>
+          <div className="product-sidebar-card" style={css('gap: 12px')}>
+            <div style={css('display: flex; gap: 14px; align-items: center')}>
+              <div className="product-skeleton-shimmer" style={css('width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0')} />
+              <div style={css('flex: 1; display: flex; flex-direction: column; gap: 8px')}>
+                <div className="product-skeleton-shimmer product-skeleton-line product-skeleton-line--lg" style={css('width: 60%')} />
+                <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 40%')} />
+              </div>
+            </div>
+          </div>
+          <div className="product-skeleton-shimmer" style={css('height: 100px; border-radius: 20px')} />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 function postedLabel(iso: string | null): string {
   if (!iso) return 'Not published';
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -316,9 +372,7 @@ export default function ProductPage() {
     return (
       <div style={css(PAGE_ROOT)}>
         <SiteHeader active="buy" navCurrent={false} />
-        <p role="status" className="mkt-state" data-state="loading" style={css('max-width: 1240px; margin: 32px auto; padding: 18px')}>
-          Loading listing…
-        </p>
+        <ProductPageSkeleton />
         <SiteFooter />
       </div>
     );
@@ -421,8 +475,7 @@ export default function ProductPage() {
       <title>{`${data.title.en ?? data.title.ar ?? 'Listing'} — Araq & Kahraman Auctions`}</title>
       <SiteHeader active="buy" navCurrent={false} />
 
-      <div style={css('max-width: 1240px; margin: 0 auto; padding: 24px 24px 0')}>
-        <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; display: flex; flex-wrap: wrap; gap: 6px')}>
+      <nav className="product-breadcrumb" aria-label="Breadcrumb">
           <Link href="/">Home</Link>
           <span aria-hidden="true">/</span>
           <Link href="/browse">Browse</Link>
@@ -434,17 +487,16 @@ export default function ProductPage() {
           )}
           <span aria-hidden="true">/</span>
           <span>{data.title.en ?? data.listingReference}</span>
-        </nav>
-      </div>
+      </nav>
 
-      <div style={css('max-width: 1240px; margin: 0 auto; padding: 18px 24px 0; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start')}>
-        <section aria-label="Photos" style={css('flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 12px')}>
-          <div style={css('position: relative; height: clamp(300px, 42vw, 520px); border-radius: 20px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
+      <div className="product-layout">
+        <div className="product-left">
+        <section className="product-gallery" aria-label="Photos">
+          <div className="product-gallery-main">
             {shot ? (
               <img
                 src={`${API_BASE_URL}${shot.url}`}
                 alt={shot.alt.en ?? shot.alt.ar ?? (data.title.en ?? 'Listing photo')}
-                style={css('width: 100%; height: 100%; object-fit: contain')}
               />
             ) : (
               <span style={css('color: #5B636B')}>No image published for this listing</span>
@@ -456,29 +508,105 @@ export default function ProductPage() {
             )}
           </div>
           {media.length > 1 && (
-            <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px')}>
+            <div className="product-gallery-thumbs">
               {media.map((entry, index) => (
                 <button
                   key={entry.assetId}
                   type="button"
+                  className="product-gallery-thumb"
                   onClick={() => setShotIdx(index)}
                   aria-label={`Show photo ${index + 1}`}
                   aria-pressed={index === shotIdx}
-                  style={css(`height: 84px; border-radius: 12px; background: #F3F1EC; cursor: pointer; border: 2px solid ${index === shotIdx ? '#9A6B12' : 'transparent'}; padding: 0; overflow: hidden`)}
                 >
-                  <img src={`${API_BASE_URL}${entry.url}`} alt={entry.alt.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
+                  <img src={`${API_BASE_URL}${entry.url}`} alt={entry.alt.en ?? ''} loading="lazy" />
                 </button>
               ))}
             </div>
           )}
-          <p className="mkt-hint">
-            Images are served from the listing&apos;s own media route. Uploaded metadata is stripped by the server
-            before an image is stored.
-          </p>
         </section>
 
-        <aside aria-label="Listing summary" style={css('flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 16px')}>
-          <div style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 18px')}>
+        <section className="product-tabs-panel" aria-label="Listing details">
+          <div role="tablist" aria-label="Listing details" className="product-tabs-list">
+            {tabs.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === entry.id}
+                onClick={() => setTab(entry.id)}
+                style={css(`height: 56px; padding: 0 16px; border: 0; background: transparent; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; color: ${tab === entry.id ? '#15191E' : '#5B636B'}; box-shadow: inset 0 -3px 0 ${tab === entry.id ? '#9A6B12' : 'transparent'}`)}
+              >
+                {entry.label}
+              </button>
+            ))}
+          </div>
+          <div className="product-tabs-body">
+            {tab === 'description' && (
+              <div style={css('max-width: 72ch; color: #2A3036; display: flex; flex-direction: column; gap: 14px')}>
+                {(data.description.en ?? data.description.ar ?? '').split('\n').filter(Boolean).map((paragraph, index) => (
+                  <p key={index} style={css('margin: 0')}>
+                    {paragraph}
+                  </p>
+                ))}
+                {data.languageMode === 'both' && data.description.ar && (
+                  <p dir="rtl" style={css('margin: 0')}>
+                    {data.description.ar}
+                  </p>
+                )}
+                {!data.description.en && !data.description.ar && <p style={css('margin: 0')}>No description was published.</p>}
+              </div>
+            )}
+
+            {tab === 'specifications' && (
+              <>
+                {publicAttributes.length === 0 ? (
+                  <p className="mkt-hint">This category defines no additional published attributes for this listing.</p>
+                ) : (
+                  <dl style={css('margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 32px')}>
+                    {publicAttributes.map(([key, value]) => (
+                      <div key={key} style={css('display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid #EEECE7')}>
+                        <dt style={css('color: #5B636B')}>{attributeLabels.get(key) ?? key}</dt>
+                        <dd style={css('margin: 0; font-weight: 600; text-align: right')}>{attributeText(value)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                <p className="mkt-hint" style={css('margin-top: 14px')}>
+                  Only attributes marked for public display are sent to this page; staff-only fields stay on the server.
+                </p>
+              </>
+            )}
+
+            {tab === 'location' && (
+              <div style={css('display: flex; flex-direction: column; gap: 10px')}>
+                {data.location.publicPrecision === 'hidden' || !data.location.label ? (
+                  <p className="mkt-hint">This listing does not publish a location.</p>
+                ) : (
+                  <>
+                    <strong style={css('color: #15191E')}>
+                      {data.location.label}
+                      {data.location.areaKey && data.location.publicPrecision !== 'city' ? ` · ${data.location.areaKey}` : ''}
+                    </strong>
+                    <span className="mkt-hint">
+                      Published at {data.location.publicPrecision} precision. Exact addresses are only shared when the
+                      seller agreed to it.
+                    </span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          <p style={css('margin: 0; padding: 0 28px 20px; font-size: 14px; color: #5B636B')}>
+            Something wrong with this ad?{' '}
+            <Link href={`/contact?ref=${encodeURIComponent(data.listingReference)}`} style={css('font-weight: 600')}>
+              Report it
+            </Link>
+          </p>
+        </section>
+        </div>
+
+        <aside className="product-sidebar" aria-label="Listing summary">
+          <div className="product-sidebar-card product-sidebar-card--commerce">
             <div>
               <div style={css('font-size: 13px; color: #5B636B; font-weight: 600')}>
                 {METHOD_LABEL[data.listingMethod]}
@@ -499,67 +627,35 @@ export default function ProductPage() {
             </div>
 
             {isLiveAuction ? (
-              <div style={css('padding: 16px 18px; border-radius: 14px; background: #F6EEDC; color: #3D3420; display: flex; flex-direction: column; gap: 16px')}>
-                <style>{`
-                  .live-auction-bid-row {
-                    display: grid;
-                    gap: 10px;
-                    grid-template-columns: 1fr;
-                  }
-                  @media (min-width: 520px) {
-                    .live-auction-bid-row {
-                      grid-template-columns: 1fr auto;
-                      align-items: end;
-                    }
-                    .live-auction-bid-row button[type='submit'] {
-                      width: auto;
-                      white-space: nowrap;
-                    }
-                  }
-                  .live-auction-outline-btn {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    flex: 1 1 160px;
-                    min-height: 48px;
-                    padding: 0 18px;
-                    border: 1px solid #9A6B12;
-                    border-radius: 12px;
-                    font-weight: 700;
-                    color: #3D3420;
-                    background: rgba(255, 255, 255, 0.35);
-                    text-decoration: none;
-                    box-sizing: border-box;
-                  }
-                `}</style>
+              <div className="live-auction-panel">
                 <div>
                   <strong style={css('display: block; font-size: 15px')}>Live auction</strong>
                   <p className="mkt-hint" style={css('color: #3D3420; margin: 4px 0 0')}>
                     Times shown in Qatar (Asia/Qatar).
                   </p>
                 </div>
-                <div style={css('display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px')}>
-                  <div style={css('background: rgba(255,255,255,.55); border-radius: 12px; padding: 10px 12px')}>
-                    <div style={css('font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #5B636B')}>Starting price</div>
-                    <div style={css('font-weight: 700; font-size: 17px; margin-top: 4px')}>
+                <div className="live-auction-stat-grid">
+                  <div className="live-auction-stat">
+                    <div className="live-auction-stat-label">Starting price</div>
+                    <div className="live-auction-stat-value">
                       {typeof startingBidMinor === 'number' ? fmtMinor(startingBidMinor) : 'Loading…'}
                     </div>
                   </div>
-                  <div style={css('background: rgba(255,255,255,.55); border-radius: 12px; padding: 10px 12px')}>
-                    <div style={css('font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #5B636B')}>Current top bid</div>
-                    <div style={css('font-weight: 700; font-size: 17px; margin-top: 4px')}>
+                  <div className="live-auction-stat live-auction-stat--wide">
+                    <div className="live-auction-stat-label">Current top bid</div>
+                    <div className="live-auction-stat-value">
                       {liveTopBidLabel(startingBidMinor, currentAmountMinor, bidCount)}
                     </div>
                   </div>
-                  <div style={css('background: rgba(255,255,255,.55); border-radius: 12px; padding: 10px 12px')}>
-                    <div style={css('font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #5B636B')}>Starts</div>
-                    <div style={css('font-weight: 600; margin-top: 4px')}>
+                  <div className="live-auction-stat">
+                    <div className="live-auction-stat-label">Starts</div>
+                    <div className="live-auction-stat-value live-auction-stat-value--md">
                       {auctionStartsAt ? fmtBusinessDateTime(auctionStartsAt) : 'Loading…'}
                     </div>
                   </div>
-                  <div style={css('background: rgba(255,255,255,.55); border-radius: 12px; padding: 10px 12px')}>
-                    <div style={css('font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #5B636B')}>Ends</div>
-                    <div style={css('font-weight: 600; margin-top: 4px')}>
+                  <div className="live-auction-stat">
+                    <div className="live-auction-stat-label">Ends</div>
+                    <div className="live-auction-stat-value live-auction-stat-value--md">
                       {auctionEndsAt ? fmtBusinessDateTime(auctionEndsAt) : 'Loading…'}
                     </div>
                   </div>
@@ -746,7 +842,7 @@ export default function ProductPage() {
 
           </div>
 
-          <div style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 12px')}>
+          <div className="product-sidebar-card" style={css('padding: 20px; gap: 12px')}>
             <div style={css('display: flex; gap: 14px; align-items: center')}>
               <span aria-hidden="true" style={css("width: 52px; height: 52px; border-radius: 50%; background: #15191E; color: #D4A84B; display: flex; align-items: center; justify-content: center; font-family: 'Schibsted Grotesk', sans-serif; font-weight: 700; font-size: 18px")}>
                 {data.seller.displayName.slice(0, 2).toUpperCase()}
@@ -775,89 +871,8 @@ export default function ProductPage() {
         </aside>
       </div>
 
-      <section style={css('max-width: 1240px; margin: 0 auto; padding: 40px 24px 0')}>
-        <div style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; overflow: hidden')}>
-          <div role="tablist" aria-label="Listing details" style={css('display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #E6E4DF; padding: 0 16px')}>
-            {tabs.map((entry) => (
-              <button
-                key={entry.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === entry.id}
-                onClick={() => setTab(entry.id)}
-                style={css(`height: 56px; padding: 0 16px; border: 0; background: transparent; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; color: ${tab === entry.id ? '#15191E' : '#5B636B'}; box-shadow: inset 0 -3px 0 ${tab === entry.id ? '#9A6B12' : 'transparent'}`)}
-              >
-                {entry.label}
-              </button>
-            ))}
-          </div>
-          <div style={css('padding: 28px')}>
-            {tab === 'description' && (
-              <div style={css('max-width: 72ch; color: #2A3036; display: flex; flex-direction: column; gap: 14px')}>
-                {(data.description.en ?? data.description.ar ?? '').split('\n').filter(Boolean).map((paragraph, index) => (
-                  <p key={index} style={css('margin: 0')}>
-                    {paragraph}
-                  </p>
-                ))}
-                {data.languageMode === 'both' && data.description.ar && (
-                  <p dir="rtl" style={css('margin: 0')}>
-                    {data.description.ar}
-                  </p>
-                )}
-                {!data.description.en && !data.description.ar && <p style={css('margin: 0')}>No description was published.</p>}
-              </div>
-            )}
-
-            {tab === 'specifications' && (
-              <>
-                {publicAttributes.length === 0 ? (
-                  <p className="mkt-hint">This category defines no additional published attributes for this listing.</p>
-                ) : (
-                  <dl style={css('margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 32px')}>
-                    {publicAttributes.map(([key, value]) => (
-                      <div key={key} style={css('display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid #EEECE7')}>
-                        <dt style={css('color: #5B636B')}>{attributeLabels.get(key) ?? key}</dt>
-                        <dd style={css('margin: 0; font-weight: 600; text-align: right')}>{attributeText(value)}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
-                <p className="mkt-hint" style={css('margin-top: 14px')}>
-                  Only attributes marked for public display are sent to this page; staff-only fields stay on the server.
-                </p>
-              </>
-            )}
-
-            {tab === 'location' && (
-              <div style={css('display: flex; flex-direction: column; gap: 10px')}>
-                {data.location.publicPrecision === 'hidden' || !data.location.label ? (
-                  <p className="mkt-hint">This listing does not publish a location.</p>
-                ) : (
-                  <>
-                    <strong style={css('color: #15191E')}>
-                      {data.location.label}
-                      {data.location.areaKey && data.location.publicPrecision !== 'city' ? ` · ${data.location.areaKey}` : ''}
-                    </strong>
-                    <span className="mkt-hint">
-                      Published at {data.location.publicPrecision} precision. Exact addresses are only shared when the
-                      seller agreed to it.
-                    </span>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        <p style={css('margin: 14px 0 0; font-size: 14px; color: #5B636B')}>
-          Something wrong with this ad?{' '}
-          <Link href={`/contact?ref=${encodeURIComponent(data.listingReference)}`} style={css('font-weight: 600')}>
-            Report it
-          </Link>
-        </p>
-      </section>
-
       {relatedListings.length > 0 && (
-        <section style={css('max-width: 1240px; margin: 0 auto; padding: 48px 24px 80px')}>
+        <section className="product-related">
           <div style={css('display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 20px; flex-wrap: wrap')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 28px; letter-spacing: -0.02em; font-weight: 700")}>Related listings</h2>
             <Link href={`/browse?category=${encodeURIComponent(categoryKey)}`} style={css('font-weight: 600')}>
