@@ -532,7 +532,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <SiteFooter apps />
+      <SiteFooter />
     </div>
   );
 }

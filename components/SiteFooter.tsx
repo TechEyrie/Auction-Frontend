@@ -3,19 +3,16 @@ import { css } from '../lib/css';
 
 const COL = 'flex: 1 1 140px; display: flex; flex-direction: column; gap: 10px; font-size: 15px';
 const COL_HEAD = 'color: #FFFFFF; font-weight: 600; margin-bottom: 4px';
-const APP_LINK = 'height: 44px; padding: 0 16px; border: 1px solid #403A31; border-radius: 10px; display: flex; align-items: center; font-size: 14px; font-weight: 600';
 
 type Props = {
   /* /signin uses a reduced footer with no brand block or nav columns */
   minimal?: boolean;
-  /* only the homepage shows the iOS/Android app buttons */
-  apps?: boolean;
   /* /help and /about point these at their on-page sections */
   safetyHref?: string;
   careersHref?: string;
 };
 
-export default function SiteFooter({ minimal, apps, safetyHref = '/help', careersHref = '/about' }: Props) {
+export default function SiteFooter({ minimal, safetyHref = '/help', careersHref = '/about' }: Props) {
   if (minimal) {
     return (
       <footer className="foot" style={css('background: #15191E; color: #C9CFCB')}>
@@ -43,13 +40,7 @@ export default function SiteFooter({ minimal, apps, safetyHref = '/help', career
               <span style={css('display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.32em; color: #D4A84B')}>AUCTIONS</span>
             </div>
           </div>
-          <p style={css('margin: 10px 0 20px; max-width: 34ch; font-size: 15px')}>The simple way to buy, sell and bid on almost anything.</p>
-          {apps && (
-            <div style={css('display: flex; gap: 10px; flex-wrap: wrap')}>
-              <a href="#app" style={css(APP_LINK)}>Get the iOS app</a>
-              <a href="#app" style={css(APP_LINK)}>Get the Android app</a>
-            </div>
-          )}
+          <p style={css('margin: 10px 0 0; max-width: 34ch; font-size: 15px')}>The simple way to buy, sell and bid on almost anything.</p>
         </div>
         <nav aria-label="Marketplace" style={css(COL)}>
           <span style={css(COL_HEAD)}>Marketplace</span>

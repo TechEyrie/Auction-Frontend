@@ -485,10 +485,27 @@
   .local-info-bar__socials{
     grid-column:1 / -1;
     order:3;
-    justify-content:flex-start;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
     flex:none;
+    width:100%;
+    gap:10px;
   }
-  .local-info-bar__socials-label{display:none}
+  .local-info-bar__socials nav{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+  }
+  .local-info-bar__socials-label{
+    display:block;
+    text-align:center;
+    width:100%;
+  }
   .local-info-bar__prayer{justify-content:flex-end}
 }
 
