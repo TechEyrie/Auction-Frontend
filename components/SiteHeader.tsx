@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { css } from '../lib/css';
 import { browseHrefForPlace, placeLabel, QATAR_PLACES } from '../lib/qatarPlaces';
 import { useSession } from '../lib/session';
@@ -13,21 +13,217 @@ const UI_CITY_STORAGE_KEY = 'araq-ui-city';
 const DEFAULT_CITY = 'Doha';
 const HEADER_FLOAT_SCROLL_THRESHOLD = 16;
 
+const HOVER_CLOSE_DELAY_MS = 150;
+
+type MenuLinkId =
+  | 'liveAuctions'
+  | 'auctionListings'
+  | 'howBidding'
+  | 'browseAccessories'
+  | 'allCategories'
+  | 'forMen'
+  | 'forWomen'
+  | 'contactToSell'
+  | 'aboutUs'
+  | 'auctionProcess'
+  | 'helpCentre'
+  | 'contact'
+  | 'allListings'
+  | 'fixedPrice'
+  | 'auctions'
+  | 'categories';
+
+type MenuIconName =
+  | 'live'
+  | 'list'
+  | 'gavel'
+  | 'search'
+  | 'grid'
+  | 'user'
+  | 'users'
+  | 'mail'
+  | 'info'
+  | 'steps'
+  | 'help'
+  | 'tag'
+  | 'folder';
+
+type MenuLink = {
+  id: MenuLinkId;
+  href: string;
+  icon: MenuIconName;
+};
+
+/** Compile-time check that every menu link id has EN/AR title + description keys. */
+function menuKeys(id: MenuLinkId): { title: MessageKey; desc: MessageKey } {
+  const title: `nav.menu.${MenuLinkId}.title` = `nav.menu.${id}.title`;
+  const desc: `nav.menu.${MenuLinkId}.desc` = `nav.menu.${id}.desc`;
+  return { title, desc };
+}
+
 type NavItem = {
   id: string;
   labelKey: MessageKey;
-  href: string;
   dot?: boolean;
+  links: MenuLink[];
 };
 
 function buildNav(home?: boolean): NavItem[] {
+  const how = home ? '#how' : '/#how';
   return [
-    { id: 'auction', labelKey: 'nav.auction', href: '/auctions', dot: true },
-    { id: 'accessories', labelKey: 'nav.accessories', href: '/browse?q=accessories' },
-    { id: 'sell', labelKey: 'nav.sell', href: '/contact' },
-    { id: 'how', labelKey: 'nav.how', href: home ? '#how' : '/#how' },
-    { id: 'shop', labelKey: 'nav.shop', href: '/browse' },
+    {
+      id: 'auction',
+      labelKey: 'nav.auction',
+      dot: true,
+      links: [
+        { id: 'liveAuctions', href: '/auctions', icon: 'live' },
+        { id: 'auctionListings', href: '/browse?method=auction', icon: 'list' },
+        { id: 'howBidding', href: how, icon: 'gavel' },
+      ],
+    },
+    {
+      id: 'accessories',
+      labelKey: 'nav.accessories',
+      links: [
+        { id: 'browseAccessories', href: '/browse?q=accessories', icon: 'search' },
+        { id: 'allCategories', href: '/categories', icon: 'grid' },
+        { id: 'forMen', href: '/browse?audience=men', icon: 'user' },
+        { id: 'forWomen', href: '/browse?audience=women', icon: 'users' },
+      ],
+    },
+    {
+      id: 'sell',
+      labelKey: 'nav.sell',
+      links: [
+        { id: 'contactToSell', href: '/contact', icon: 'mail' },
+        { id: 'aboutUs', href: '/about', icon: 'info' },
+      ],
+    },
+    {
+      id: 'how',
+      labelKey: 'nav.how',
+      links: [
+        { id: 'auctionProcess', href: how, icon: 'steps' },
+        { id: 'helpCentre', href: '/help', icon: 'help' },
+        { id: 'contact', href: '/contact', icon: 'mail' },
+      ],
+    },
+    {
+      id: 'shop',
+      labelKey: 'nav.shop',
+      links: [
+        { id: 'allListings', href: '/browse', icon: 'list' },
+        { id: 'fixedPrice', href: '/browse?method=fixed_price', icon: 'tag' },
+        { id: 'auctions', href: '/browse?method=auction', icon: 'live' },
+        { id: 'categories', href: '/categories', icon: 'folder' },
+      ],
+    },
   ];
+}
+
+function MenuIcon({ name }: { name: MenuIconName }) {
+  const common = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.75,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+    className: 'site-header__menu-icon-svg',
+  };
+  switch (name) {
+    case 'live':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="2.5" />
+          <path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" />
+        </svg>
+      );
+    case 'list':
+      return (
+        <svg {...common}>
+          <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+        </svg>
+      );
+    case 'gavel':
+      return (
+        <svg {...common}>
+          <path d="M14 4l6 6M11 7l6 6M5 19l7-7M3 21h9M13.5 2.5l-5 5 6 6 5-5" />
+        </svg>
+      );
+    case 'search':
+      return (
+        <svg {...common}>
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.5-3.5" />
+        </svg>
+      );
+    case 'grid':
+      return (
+        <svg {...common}>
+          <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+          <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+          <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+          <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" />
+        </svg>
+      );
+    case 'user':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+        </svg>
+      );
+    case 'users':
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8.5" r="3.5" />
+          <path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.2a6.5 6.5 0 0 1 4 5.8" />
+        </svg>
+      );
+    case 'mail':
+      return (
+        <svg {...common}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3.5 6.5l8.5 6.5 8.5-6.5" />
+        </svg>
+      );
+    case 'info':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5M12 8h.01" />
+        </svg>
+      );
+    case 'steps':
+      return (
+        <svg {...common}>
+          <path d="M4 18h5v-5h5V8h6M4 18v2M9 13v2M14 8v2" />
+        </svg>
+      );
+    case 'help':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01" />
+        </svg>
+      );
+    case 'tag':
+      return (
+        <svg {...common}>
+          <path d="M3 12V4h8l10 10-8 8L3 12zM7.5 8h.01" />
+        </svg>
+      );
+    case 'folder':
+      return (
+        <svg {...common}>
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+        </svg>
+      );
+  }
 }
 
 const ACTIVE_ALIASES: Record<string, string[]> = {
@@ -96,6 +292,14 @@ function ChevronIcon() {
   );
 }
 
+function NavChevron() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="site-header__chevron">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function SiteHeader({
   active,
   navCurrent = true,
@@ -114,6 +318,66 @@ export default function SiteHeader({
   const menuId = useId();
   const cityMenuId = useId();
   const cityRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const [openNav, setOpenNav] = useState<string | null>(null);
+  const [navAlign, setNavAlign] = useState<'start' | 'end'>('start');
+  const [drawerSection, setDrawerSection] = useState<string | null>(null);
+  const openedBy = useRef<'hover' | 'click' | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const focusFirst = useRef(false);
+
+  function clearCloseTimer(): void {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  }
+
+  function closeNav(): void {
+    clearCloseTimer();
+    openedBy.current = null;
+    setOpenNav(null);
+  }
+
+  useEffect(() => clearCloseTimer, []);
+
+  // Pick left/right alignment from available space so panels never clip off-screen.
+  useLayoutEffect(() => {
+    if (!openNav || !navRef.current) return;
+    const wrap = navRef.current.querySelector<HTMLElement>(`[data-nav-id="${openNav}"]`);
+    const menu = wrap?.querySelector<HTMLElement>('.site-header__menu');
+    if (!wrap || !menu) return;
+    const margin = 8;
+    const rect = wrap.getBoundingClientRect();
+    const width = menu.offsetWidth;
+    const rtl = document.documentElement.dir === 'rtl';
+    const startEdgeFits = rtl ? rect.right - width >= margin : rect.left + width <= window.innerWidth - margin;
+    setNavAlign(startEdgeFits ? 'start' : 'end');
+    if (focusFirst.current) {
+      focusFirst.current = false;
+      menu.querySelector<HTMLElement>('a')?.focus();
+    }
+  }, [openNav]);
+
+  useEffect(() => {
+    if (!openNav) return;
+    const onPointer = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) closeNav();
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      const wrap = navRef.current?.querySelector<HTMLElement>(`[data-nav-id="${openNav}"]`);
+      const hadFocus = wrap?.contains(document.activeElement) ?? false;
+      closeNav();
+      if (hadFocus) wrap?.querySelector<HTMLElement>('.site-header__trigger')?.focus();
+    };
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [openNav]);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(UI_CITY_STORAGE_KEY);
@@ -180,39 +444,185 @@ export default function SiteHeader({
   useEffect(() => {
     setMenuOpen(false);
     setCityMenu(null);
+    closeNav();
   }, [active, home]);
 
-  function navClass(itemId: string, hasDot?: boolean): string {
-    const on = isNavActive(itemId, active);
-    return ['site-header__link', hasDot ? 'site-header__link--live' : '', on ? 'is-active' : ''].filter(Boolean).join(' ');
+  useEffect(() => {
+    if (!menuOpen) setDrawerSection(null);
+  }, [menuOpen]);
+
+  function triggerClass(item: NavItem): string {
+    const on = isNavActive(item.id, active);
+    return [
+      'site-header__trigger',
+      item.dot ? 'site-header__link--live' : '',
+      on ? 'is-active' : '',
+      openNav === item.id ? 'is-open' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
   }
 
-  function renderNavItem(item: NavItem, onNavigate?: () => void) {
-    const on = isNavActive(item.id, active);
-    const cur = on && navCurrent ? ('page' as const) : undefined;
-    const children = (
+  function renderMenuLink(link: MenuLink, onNavigate: () => void) {
+    const keys = menuKeys(link.id);
+    const body = (
       <>
-        {item.dot ? <span className="live-dot site-header__live-dot" aria-hidden="true" /> : null}
-        {t(item.labelKey)}
+        <span className="site-header__menu-icon" aria-hidden="true">
+          <MenuIcon name={link.icon} />
+        </span>
+        <span className="site-header__menu-text">
+          <span className="site-header__menu-title">{t(keys.title)}</span>
+          <span className="site-header__menu-desc">{t(keys.desc)}</span>
+        </span>
       </>
     );
-    if (item.href.startsWith('#')) {
+    if (link.href.startsWith('#')) {
       return (
-        <a
-          key={item.id}
-          className={navClass(item.id, item.dot)}
-          href={item.href}
-          aria-current={cur}
-          onClick={onNavigate}
-        >
-          {children}
+        <a key={link.id} className="site-header__menu-link" href={link.href} onClick={onNavigate}>
+          {body}
         </a>
       );
     }
     return (
-      <Link key={item.id} className={navClass(item.id, item.dot)} href={item.href} aria-current={cur} onClick={onNavigate}>
-        {children}
+      <Link key={link.id} className="site-header__menu-link" href={link.href} onClick={onNavigate}>
+        {body}
       </Link>
+    );
+  }
+
+  function renderTriggerLabel(item: NavItem) {
+    return (
+      <>
+        {item.dot ? <span className="live-dot site-header__live-dot" aria-hidden="true" /> : null}
+        {t(item.labelKey)}
+        <NavChevron />
+      </>
+    );
+  }
+
+  function handleTriggerClick(item: NavItem, event: React.MouseEvent<HTMLButtonElement>): void {
+    clearCloseTimer();
+    if (openNav === item.id) {
+      // A click right after hover-open keeps the menu open (pinned) instead of flashing closed.
+      if (openedBy.current === 'hover') {
+        openedBy.current = 'click';
+        return;
+      }
+      closeNav();
+      return;
+    }
+    openedBy.current = 'click';
+    // detail === 0 means keyboard activation (Enter/Space): move focus into the panel.
+    focusFirst.current = event.detail === 0;
+    setOpenNav(item.id);
+  }
+
+  function handleTriggerKeyDown(item: NavItem, event: React.KeyboardEvent<HTMLButtonElement>): void {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      clearCloseTimer();
+      openedBy.current = 'click';
+      focusFirst.current = true;
+      if (openNav === item.id) {
+        const menu = event.currentTarget.parentElement?.querySelector<HTMLElement>('.site-header__menu a');
+        menu?.focus();
+        focusFirst.current = false;
+      } else {
+        setOpenNav(item.id);
+      }
+    }
+  }
+
+  function handleItemPointerEnter(item: NavItem, event: React.PointerEvent): void {
+    if (event.pointerType !== 'mouse') return;
+    clearCloseTimer();
+    if (openNav !== item.id) {
+      openedBy.current = 'hover';
+      setOpenNav(item.id);
+    }
+  }
+
+  function handleItemPointerLeave(event: React.PointerEvent): void {
+    if (event.pointerType !== 'mouse') return;
+    clearCloseTimer();
+    closeTimer.current = setTimeout(closeNav, HOVER_CLOSE_DELAY_MS);
+  }
+
+  function handleItemBlur(event: React.FocusEvent<HTMLDivElement>): void {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      clearCloseTimer();
+      setOpenNav(null);
+    }
+  }
+
+  function renderDesktopNavItem(item: NavItem) {
+    const on = isNavActive(item.id, active);
+    const open = openNav === item.id;
+    const panelId = `${menuId}-nav-${item.id}`;
+    return (
+      <div
+        key={item.id}
+        className="site-header__nav-item"
+        data-nav-id={item.id}
+        onPointerEnter={(event) => handleItemPointerEnter(item, event)}
+        onPointerLeave={handleItemPointerLeave}
+        onBlur={handleItemBlur}
+      >
+        <button
+          type="button"
+          className={triggerClass(item)}
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-controls={open ? panelId : undefined}
+          aria-current={on && navCurrent ? 'true' : undefined}
+          onClick={(event) => handleTriggerClick(item, event)}
+          onKeyDown={(event) => handleTriggerKeyDown(item, event)}
+        >
+          {renderTriggerLabel(item)}
+        </button>
+        {open ? (
+          <div
+            id={panelId}
+            className={navAlign === 'end' ? 'site-header__menu site-header__menu--end' : 'site-header__menu'}
+            role="group"
+            aria-label={t(item.labelKey)}
+          >
+            {item.links.map((link) => renderMenuLink(link, closeNav))}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  function renderDrawerNavItem(item: NavItem) {
+    const on = isNavActive(item.id, active);
+    const open = drawerSection === item.id;
+    const panelId = `${menuId}-drawer-${item.id}`;
+    return (
+      <div key={item.id} className="site-header__drawer-section">
+        <button
+          type="button"
+          className={[
+            'site-header__trigger',
+            'site-header__trigger--drawer',
+            item.dot ? 'site-header__link--live' : '',
+            on ? 'is-active' : '',
+            open ? 'is-open' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setDrawerSection(open ? null : item.id)}
+        >
+          {renderTriggerLabel(item)}
+        </button>
+        {open ? (
+          <div id={panelId} className="site-header__drawer-sub">
+            {item.links.map((link) => renderMenuLink(link, () => setMenuOpen(false)))}
+          </div>
+        ) : null}
+      </div>
     );
   }
 
@@ -361,8 +771,8 @@ export default function SiteHeader({
       <div className="site-header__inner">
         <BrandMark home={home} homeLabel={t('header.brandHome')} />
 
-        <nav aria-label={t('header.mainNav')} className="site-header__nav site-header__nav--desktop">
-          {items.map((item) => renderNavItem(item))}
+        <nav ref={navRef} aria-label={t('header.mainNav')} className="site-header__nav site-header__nav--desktop">
+          {items.map((item) => renderDesktopNavItem(item))}
         </nav>
 
         <div className="site-header__actions">
@@ -406,7 +816,7 @@ export default function SiteHeader({
               </button>
             </div>
             <nav aria-label={t('header.mobileNav')} className="site-header__drawer-nav">
-              {items.map((item) => renderNavItem(item, () => setMenuOpen(false)))}
+              {items.map((item) => renderDrawerNavItem(item))}
             </nav>
             <div className="site-header__drawer-utilities">
               {renderLocationControl('drawer')}

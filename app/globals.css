@@ -318,6 +318,98 @@
 }
 .site-header__link--live{display:inline-flex;align-items:center;gap:8px}
 .site-header__live-dot{width:8px;height:8px;border-radius:50%;background:#C2410C;flex:0 0 auto}
+/* —— Nav dropdowns (Marhaba-style pattern, brand gold) —— */
+.site-header__nav-item{position:relative;display:flex;align-items:center}
+.site-header__trigger{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border:0;
+  background:transparent;
+  font:inherit;
+  color:#2A3036;
+  font-weight:500;
+  padding:6px 0;
+  letter-spacing:.01em;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.site-header__trigger:hover,
+.site-header__trigger.is-open{color:#9A6B12}
+.site-header__trigger.is-active{color:#9A6B12;font-weight:600}
+.site-header__trigger:focus-visible{
+  outline:2px solid #9A6B12;
+  outline-offset:3px;
+  border-radius:4px;
+}
+.site-header__chevron{flex:0 0 auto;transition:transform .15s ease}
+.site-header__trigger.is-open .site-header__chevron{transform:rotate(180deg)}
+.site-header__menu{
+  position:absolute;
+  top:calc(100% + 12px);
+  inset-inline-start:0;
+  min-width:300px;
+  max-width:min(340px,calc(100vw - 16px));
+  padding:8px;
+  background:#FFFFFF;
+  border:1px solid #E6E4DF;
+  border-radius:12px;
+  box-shadow:0 12px 32px rgba(21,25,30,.14);
+  z-index:60;
+  animation:site-menu-in .14s ease;
+}
+.site-header__menu--end{inset-inline-start:auto;inset-inline-end:0}
+/* invisible bridge so the pointer can travel from trigger to panel without closing it */
+.site-header__menu::before{content:"";position:absolute;inset-inline:0;top:-14px;height:14px}
+.site-header__menu-link{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:10px;
+  border-radius:8px;
+  color:#15191E;
+  text-decoration:none;
+  white-space:normal;
+}
+.site-header__menu-link:hover,
+.site-header__menu-link:focus-visible{background:#F3F1EC;outline:none}
+.site-header__menu-link:focus-visible{box-shadow:inset 0 0 0 2px #9A6B12}
+.site-header__menu-icon{
+  flex:0 0 auto;
+  width:34px;
+  height:34px;
+  border-radius:8px;
+  background:#FBFAF7;
+  color:#9A6B12;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.site-header__menu-link:hover .site-header__menu-icon{background:#FFFFFF}
+.site-header__menu-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.site-header__menu-title{font-size:14px;font-weight:700;line-height:1.3;color:#15191E}
+.site-header__menu-desc{font-size:12.5px;font-weight:400;line-height:1.35;color:#6B7280}
+@keyframes site-menu-in{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media (prefers-reduced-motion:reduce){
+  .site-header__menu{animation:none}
+  .site-header__chevron{transition:none}
+}
+.site-header__drawer-section{display:flex;flex-direction:column}
+.site-header__trigger--drawer{
+  width:100%;
+  padding:14px 12px;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:600;
+  text-align:start;
+}
+.site-header__trigger--drawer.is-active{background:#F6EEDC}
+.site-header__trigger--drawer .site-header__live-dot{margin-inline-end:8px}
+.site-header__trigger--drawer .site-header__chevron{margin-inline-start:auto}
+.site-header__drawer-sub{display:flex;flex-direction:column;gap:2px;padding:4px 0 8px;margin-inline-start:6px}
 .site-header__actions{display:flex;align-items:center;gap:10px;margin-inline-start:auto;flex:0 0 auto}
 .site-header__actions-desktop{display:flex;align-items:center;gap:8px}
 .site-header__actions-mobile{display:none}
@@ -518,10 +610,9 @@
 @media (min-width:901px){
   .site-header__inner{
     display:grid;
-    /* Equal side tracks so the nav stays optically centered like the reference. */
-    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    grid-template-columns:auto minmax(0,1fr) auto;
     align-items:center;
-    gap:12px clamp(16px,2vw,28px);
+    gap:12px clamp(12px,1.5vw,28px);
   }
   .site-header__brand{
     flex:none;
@@ -530,17 +621,22 @@
   }
   .site-header__nav--desktop{
     flex:none;
-    justify-self:center;
-    width:max-content;
+    justify-self:stretch;
+    width:auto;
+    min-width:0;
     max-width:100%;
+    justify-content:center;
     gap:4px clamp(16px,1.8vw,32px);
     font-size:13px;
   }
   .site-header__actions{
     justify-self:end;
-    margin-left:0;
+    margin-inline-start:0;
+    flex-shrink:0;
     flex-wrap:nowrap;
     min-width:0;
+    position:relative;
+    z-index:1;
   }
   .site-header__utilities--desktop{
     display:flex;
@@ -558,17 +654,23 @@
     white-space:nowrap;
   }
 }
-@media (min-width:901px) and (max-width:1200px){
+@media (min-width:901px) and (max-width:1399px){
+  .site-header__inner{gap:10px clamp(8px,1.2vw,20px)}
+  .site-header__nav--desktop{
+    gap:4px clamp(8px,1vw,18px);
+    font-size:clamp(12.5px,0.85vw,13px);
+  }
   .site-header__pill{
     height:34px;
     padding:0 8px;
     font-size:12px;
     gap:4px;
   }
-  .site-header__lang{padding:0 8px 0 8px}
+  .site-header__lang{padding:0 8px}
+  .site-header__lang-primary{font-size:12px}
   .site-header__location{
     padding:0 8px;
-    max-width:min(150px,20vw);
+    max-width:min(140px,18vw);
   }
   .site-header__utilities--desktop{gap:6px}
   .site-header__actions{gap:8px}
@@ -578,6 +680,12 @@
     font-size:13px;
   }
   .site-header__icon-btn{width:36px;height:36px}
+}
+@media (min-width:901px) and (max-width:1280px){
+  .site-header__brand-sub{display:none}
+  .site-header__brand-name{font-size:15px}
+  .site-header__logo{width:40px;height:40px}
+  .site-header__location{max-width:min(120px,16vw)}
 }
 .site-header__menu-btn{
   display:none;
