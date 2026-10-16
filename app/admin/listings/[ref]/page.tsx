@@ -42,7 +42,13 @@ import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Panel, PrimaryB
 import '../listings.css';
 
 type CategoryOption = { key: string; name: string; parentKey: string | null; depth: number; listingMethods: ListingMethod[]; active?: boolean };
-type LocationOption = { key: string; label: string; cityKey: string; active?: boolean };
+type LocationOption = {
+  key: string;
+  cityKey: string;
+  active?: boolean;
+  label?: string;
+  labels?: { en?: string; ar?: string | null };
+};
 type SellerOption = { sellerReference: string; displayName: string; status: string; verification: { state: string } };
 type SchemaResponse = { schema: { version: number; fields: AttributeField[] } | null; schemaChanged: boolean };
 type Asset = {
@@ -709,7 +715,7 @@ export default function AdminListingWizardPage() {
                   <option value="">No public location</option>
                   {locations.map((location) => (
                     <option key={location.key} value={location.key}>
-                      {location.label}
+                      {location.label?.trim() || location.labels?.en?.trim() || location.key}
                       {location.active === false ? ' (inactive)' : ''}
                     </option>
                   ))}

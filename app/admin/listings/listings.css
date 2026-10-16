@@ -24,7 +24,7 @@
 
 /* Media step */
 .lw-media-step{display:flex;flex-direction:column;gap:20px;width:100%;min-width:0}
-.lw-upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;min-height:120px;padding:24px 20px;border:2px dashed #D4A84B;border-radius:16px;background:#FCF8EF;color:#15191E;text-align:center;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.lw-upload-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:100%;min-height:120px;padding:24px 20px;border:2px dashed #D4A84B;border-radius:16px;background:#FCF8EF;color:#15191E;text-align:center;cursor:pointer;transition:border-color .15s ease,background .15s ease}
 .lw-upload-zone:hover,.lw-upload-zone:focus-visible{border-color:#9A6B12;background:#F8F2E6;outline:none}
 .lw-upload-zone__title{margin:0;font-family:'Schibsted Grotesk',sans-serif;font-size:17px;font-weight:700;color:#15191E}
 .lw-upload-zone__hint{margin:0;font-size:14px;color:#5B636B;max-width:52ch}

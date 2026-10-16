@@ -62,12 +62,16 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .adm-table .adm-link-btn{border:0;background:transparent;padding:0;font:inherit;font-weight:600;font-size:14px;color:#9A6B12;cursor:pointer}
 .adm-table .adm-link-btn:hover{color:#7D5610;text-decoration:underline}
 .adm-modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(21,25,30,.45);display:flex;align-items:flex-start;justify-content:center;padding:clamp(16px,4vh,48px) 16px;overflow-y:auto}
-.adm-modal-panel{width:100%;max-height:min(90vh,880px);display:flex;flex-direction:column;background:#FFFFFF;border:1px solid #E6E4DF;border-radius:16px;box-shadow:0 24px 48px rgba(21,25,30,.12)}
+.adm-modal-panel{width:100%;max-height:min(92vh,960px);display:flex;flex-direction:column;background:#FFFFFF;border:1px solid #E6E4DF;border-radius:16px;box-shadow:0 24px 48px rgba(21,25,30,.12)}
 .adm-modal-panel--sm{max-width:440px}
 .adm-modal-panel--md{max-width:640px}
 .adm-modal-panel--lg{max-width:min(920px,96vw)}
+.adm-modal-panel--xl{max-width:min(1120px,98vw);max-height:min(94vh,980px)}
 .adm-form--modal .adm-grid{gap:12px 16px}
 .adm-form--modal .adm-grid--2{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.adm-form--modal .adm-section{display:grid;gap:12px;padding:16px;border:1px solid #EEECE7;border-radius:14px;background:#FBFAF7}
+.adm-form--modal .adm-section h3{margin:0;font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5B636B}
+.adm-form--modal .adm-section-hint{margin:0;font-size:13px;color:#5B636B}
 @media (max-width:640px){.adm-form--modal .adm-grid--2{grid-template-columns:1fr}}
 .adm-modal-head{padding:20px 22px 0;flex-shrink:0}
 .adm-modal-head h2{margin:0;font-family:'Schibsted Grotesk',sans-serif;font-size:22px;font-weight:700;color:#15191E}

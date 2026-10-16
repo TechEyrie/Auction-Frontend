@@ -47,30 +47,47 @@ export function Modal({
   subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   labelledBy?: string;
 }) {
   const autoId = useId();
   const titleId = labelledBy ?? `adm-modal-title-${autoId}`;
   const panelRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const wasOpenRef = useRef(false);
 
+  // Only move focus when the dialog opens. Re-focusing on every parent re-render
+  // (unstable onClose / child setState) steals caret from inputs after each keystroke.
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      wasOpenRef.current = false;
+      return;
+    }
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
+    const justOpened = !wasOpenRef.current;
+    wasOpenRef.current = true;
     const prev = document.activeElement;
-    panelRef.current?.focus();
+    if (justOpened) panelRef.current?.focus();
     return () => {
       document.removeEventListener('keydown', onKey);
-      if (prev instanceof HTMLElement) prev.focus();
+      if (justOpened && prev instanceof HTMLElement) prev.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
-  const sizeClass = size === 'sm' ? 'adm-modal-panel--sm' : size === 'lg' ? 'adm-modal-panel--lg' : 'adm-modal-panel--md';
+  const sizeClass =
+    size === 'sm'
+      ? 'adm-modal-panel--sm'
+      : size === 'xl'
+        ? 'adm-modal-panel--xl'
+        : size === 'lg'
+          ? 'adm-modal-panel--lg'
+          : 'adm-modal-panel--md';
 
   return (
     <div

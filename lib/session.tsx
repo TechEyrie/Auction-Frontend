@@ -15,6 +15,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -78,7 +79,11 @@ export type SessionValue = {
 
 const SessionContext = createContext<SessionValue | null>(null);
 
-/** Read the double-submit token straight from the readable CSRF cookie. */
+/**
+ * Same-origin only: the CSRF cookie is on the API host. On a split Vercel→API
+ * deploy, `document.cookie` cannot see it — the JSON `csrfToken` from
+ * `/api/auth/session` is the source of truth.
+ */
 function readCsrfCookie(): string | null {
   if (typeof document === 'undefined') return null;
   for (const part of document.cookie.split(';')) {
@@ -95,19 +100,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [mfaEnabled, setMfaEnabled] = useState(false);
   const [capabilities, setCapabilities] = useState<string[]>([]);
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const csrfTokenRef = useRef(csrfToken);
+  csrfTokenRef.current = csrfToken;
 
   const apply = useCallback((body: SessionResponse) => {
     setUser(body.user);
     setMfaRequired(body.mfaRequired);
     setMfaEnabled(body.mfaEnabled === true);
     setCapabilities(body.capabilities ?? []);
-    setCsrfToken(body.csrfToken ?? readCsrfCookie());
+    // Prefer the body token: cross-origin cookies are not visible to document.cookie.
+    setCsrfToken(body.csrfToken || readCsrfCookie());
     setStatus(body.user ? 'authenticated' : 'anonymous');
   }, []);
 
   const refresh = useCallback(async () => {
     const body = await apiFetch<SessionResponse>('/api/auth/session', { cache: 'no-store' });
     apply(body);
+    return body;
   }, [apply]);
 
   useEffect(() => {
@@ -119,12 +128,38 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setMfaRequired(false);
         setMfaEnabled(false);
         setCapabilities([]);
+        setCsrfToken(null);
         setStatus('anonymous');
       }
     });
     return () => {
       cancelled = true;
     };
+  }, [refresh]);
+
+  /**
+   * Mutations need the double-submit header. Bootstrap (or re-bootstrap) the
+   * session CSRF token first — a cold register click before GET /session finishes
+   * previously sent no header and looked like a CSRF failure.
+   */
+  const ensureCsrfHeaders = useCallback(async (): Promise<Record<string, string>> => {
+    let token = csrfTokenRef.current;
+    if (!token) {
+      try {
+        const body = await refresh();
+        token = body.csrfToken || csrfTokenRef.current;
+      } catch {
+        throw new Error(
+          'Could not reach the API to start a secure session. Check that the site can talk to the backend, then try again.',
+        );
+      }
+    }
+    if (!token) {
+      throw new Error(
+        'Secure session token is missing. Refresh the page. If this continues on the live site, the API cookie settings (SameSite) or CORS origin list need updating.',
+      );
+    }
+    return { 'x-csrf-token': token };
   }, [refresh]);
 
   // CORS alone is not CSRF protection: every mutation echoes the double-submit token.
@@ -144,24 +179,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         return apiFetch<{ secret: string; otpauthUrl: string }>('/api/auth/mfa/enroll', {
           method: 'POST',
           json: { currentPassword },
-          headers: mutatingHeaders(),
+          headers: await ensureCsrfHeaders(),
         });
       },
       async confirmMfa(code: string) {
         const result = await apiFetch<{ recoveryCodes: string[] }>('/api/auth/mfa/enroll/confirm', {
           method: 'POST',
           json: { code },
-          headers: mutatingHeaders(),
+          headers: await ensureCsrfHeaders(),
         });
         await refresh();
         return result.recoveryCodes;
       },
-      refresh,
+      refresh: async () => {
+        await refresh();
+      },
       authHeaders: mutatingHeaders,
       async login(input) {
         const result = await apiFetch<{ user: SessionUser; mfaRequired: boolean; returnTo: string }>(
           '/api/auth/login',
-          { method: 'POST', json: input, headers: mutatingHeaders() },
+          { method: 'POST', json: input, headers: await ensureCsrfHeaders() },
         );
         await refresh();
         return { returnTo: result.returnTo, mfaRequired: result.mfaRequired };
@@ -170,7 +207,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         const result = await apiFetch<{ user: SessionUser; returnTo: string }>('/api/auth/register', {
           method: 'POST',
           json: input,
-          headers: mutatingHeaders(),
+          headers: await ensureCsrfHeaders(),
         });
         await refresh();
         return { returnTo: result.returnTo };
@@ -179,7 +216,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         await apiFetch<{ ok: boolean }>('/api/auth/logout', {
           method: 'POST',
           json: {},
-          headers: mutatingHeaders(),
+          headers: await ensureCsrfHeaders(),
         });
         await refresh();
       },
@@ -187,20 +224,20 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         await apiFetch<{ ok: boolean }>('/api/auth/mfa/challenge', {
           method: 'POST',
           json: { code },
-          headers: mutatingHeaders(),
+          headers: await ensureCsrfHeaders(),
         });
         await refresh();
       },
       async useRecoveryCode(code) {
         const result = await apiFetch<{ ok: boolean; remainingRecoveryCodes: number }>(
           '/api/auth/mfa/recovery',
-          { method: 'POST', json: { code }, headers: mutatingHeaders() },
+          { method: 'POST', json: { code }, headers: await ensureCsrfHeaders() },
         );
         await refresh();
         return result.remainingRecoveryCodes;
       },
     };
-  }, [status, user, mfaRequired, mfaEnabled, capabilities, refresh, mutatingHeaders]);
+  }, [status, user, mfaRequired, mfaEnabled, capabilities, refresh, mutatingHeaders, ensureCsrfHeaders]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
