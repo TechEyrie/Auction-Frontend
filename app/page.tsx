@@ -49,33 +49,22 @@ const ICON: Record<string, string> = {
 type Category = { key: string; name: string; parentKey: string | null; listingMethods: ListingMethod[] };
 type ListingsResponse = { listings: PublicListing[]; total: number };
 
-const MODES = [
+const AUCTION_STEPS = [
   {
-    id: 'buy',
-    label: 'Buy',
-    steps: [
-      ['Browse published listings', 'Filter by category, city, condition or listing method.'],
-      ['Enquire through the marketplace', 'Our team passes your question on and arranges a viewing.'],
-      ['Inspect, then settle', 'Nothing is bought or reserved through this website yet.'],
-    ],
+    title: 'Register Your Account',
+    description: 'Create your account and complete your quick verification',
   },
   {
-    id: 'sell',
-    label: 'Sell',
-    steps: [
-      ['Talk to our team', 'Items are consigned with the marketplace; there is no self-service posting.'],
-      ['We photograph and describe it', 'Listing content is written by staff, with your approval.'],
-      ['Decide how it sells', 'Fixed price or auction, once those business rules are signed off.'],
-    ],
+    title: 'Browse Available Auctions',
+    description: 'Place bids, receive alerts and stay in control',
   },
   {
-    id: 'bid',
-    label: 'Bid',
-    steps: [
-      ['Find a live auction', 'Open Auctions or a listing with Bid now when staff have opened bidding.'],
-      ['Place a bid', 'The server accepts or rejects each amount — there is no auto-bid.'],
-      ['Win and pay', 'Winning bids become orders; pay through the approved gateway when offered.'],
-    ],
+    title: 'Place Your Bid',
+    description: 'Bid on your favorite items and monitor real-time auction updates.',
+  },
+  {
+    title: 'Win and Checkout',
+    description: 'If you win, proceed to checkout and complete the payment securely.',
   },
 ];
 
@@ -94,7 +83,7 @@ function postedLabel(iso: string | null): string {
 
 export default function HomePage() {
   const router = useRouter();
-  const [mode, setMode] = useState('buy');
+  const [auctionStep, setAuctionStep] = useState(0);
   const [search, setSearch] = useState('');
   const [heroCategory, setHeroCategory] = useState('');
   const [heroAudience, setHeroAudience] = useState<'' | 'men' | 'women'>('');
@@ -118,10 +107,6 @@ export default function HomePage() {
     .slice(0, 6);
   const recentListings = (recent.data?.listings ?? []).slice(0, 8);
   const auctionCards = (auctionListings.data?.listings ?? []).slice(0, 4);
-  const activeMode = MODES.find((entry) => entry.id === mode) ?? MODES[0]!;
-
-  const seg = (selected: boolean) =>
-    selected ? { bg: '#FFFFFF', fg: '#15191E' } : { bg: 'transparent', fg: '#4B535A' };
 
   return (
     <div style={css(PAGE_ROOT)}>
@@ -374,44 +359,57 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="how" className="home-section">
-        <div style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 24px; padding: clamp(24px, 4vw, 48px)')}>
-          <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 32px')}>
-            <div>
-              <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
-                How it works
-              </h2>
-              <p style={css('margin: 6px 0 0; color: #5B636B')}>What you can and cannot do here today.</p>
-            </div>
-            <div role="tablist" aria-label="I want to" style={css('display: flex; gap: 6px; padding: 5px; background: #F3F1EC; border-radius: 12px')}>
-              {MODES.map((entry) => {
-                const style = seg(mode === entry.id);
+      <section id="how" className="home-section how-auction">
+        <header className="how-auction__header">
+          <h2 className="how-auction__title">How Our Auction Works</h2>
+          <p className="how-auction__subtitle">
+            Learn how to participate and win in our online auction process step by step.
+          </p>
+        </header>
+        <div className="how-auction__body">
+          <div className="how-auction__media">
+            <img
+              src="/how_our_auctions_work.jpg"
+              alt="Live auction hall with bidders and an auctioneer on stage"
+              width={720}
+              height={720}
+              loading="lazy"
+            />
+          </div>
+          <div className="how-auction__steps-wrap">
+            <ol className="how-auction__steps" aria-label="Auction process steps">
+              {AUCTION_STEPS.map((step, index) => {
+                const active = auctionStep === index;
                 return (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={mode === entry.id}
-                    onClick={() => setMode(entry.id)}
-                    style={css(`height: 40px; padding: 0 20px; border: 0; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; background: ${style.bg}; color: ${style.fg}`)}
-                  >
-                    {entry.label}
-                  </button>
+                  <li key={step.title}>
+                    <button
+                      type="button"
+                      className={active ? 'how-auction__step is-active' : 'how-auction__step'}
+                      aria-current={active ? 'step' : undefined}
+                      onClick={() => setAuctionStep(index)}
+                    >
+                      <span className="how-auction__step-num" aria-hidden="true">
+                        {index + 1}
+                      </span>
+                      <span className="how-auction__step-copy">
+                        <span className="how-auction__step-title">{step.title}</span>
+                        <span className="how-auction__step-desc">{step.description}</span>
+                      </span>
+                    </button>
+                  </li>
                 );
               })}
+            </ol>
+            <div className="how-auction__rail" aria-hidden="true">
+              <span className="how-auction__rail-line" />
+              {AUCTION_STEPS.map((step, index) => (
+                <span
+                  key={step.title}
+                  className={auctionStep === index ? 'how-auction__rail-dot is-active' : 'how-auction__rail-dot'}
+                />
+              ))}
             </div>
           </div>
-          <ol style={css('list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px')}>
-            {activeMode.steps.map((step, index) => (
-              <li key={step[0]} style={css('display: flex; flex-direction: column; gap: 10px')}>
-                <span style={css("width: 40px; height: 40px; border-radius: 50%; background: #9A6B12; color: #FFFFFF; font-family: 'Schibsted Grotesk', sans-serif; font-weight: 700; display: flex; align-items: center; justify-content: center")}>
-                  {index + 1}
-                </span>
-                <h3 style={css('margin: 6px 0 0; font-size: 19px; font-weight: 600')}>{step[0]}</h3>
-                <p style={css('margin: 0; color: #5B636B')}>{step[1]}</p>
-              </li>
-            ))}
-          </ol>
         </div>
       </section>
 

@@ -171,3 +171,171 @@ input:focus,select:focus,textarea:focus{outline:none}
 .mkt-hint{margin:0;color:#5B636B;font-size:13px}
 .mkt-state{margin:0 0 18px;padding:18px;border:1px dashed #DAD7D0;border-radius:12px;background:#FBFAF7;color:#5B636B}
 .mkt-state[data-state="error"]{border-style:solid;border-color:#E7C9C2;background:#FDF6F4;color:#8A2C11}
+
+/* —— How Our Auction Works —— */
+.how-auction{padding-top:72px;padding-bottom:40px}
+.how-auction__header{text-align:center;max-width:640px;margin:0 auto 40px}
+.how-auction__title{
+  margin:0;
+  font-family:'Schibsted Grotesk',sans-serif;
+  font-size:clamp(28px,4vw,40px);
+  font-weight:700;
+  letter-spacing:-.02em;
+  color:#15191E;
+  line-height:1.15;
+}
+.how-auction__subtitle{
+  margin:12px auto 0;
+  font-size:16px;
+  line-height:1.55;
+  color:#8A9198;
+  max-width:46ch;
+}
+.how-auction__body{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+  gap:36px 48px;
+  align-items:stretch;
+}
+.how-auction__media{
+  min-width:0;
+  border-radius:18px;
+  overflow:hidden;
+  background:#EDEAE4;
+  aspect-ratio:1 / 1;
+}
+.how-auction__media img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.how-auction__steps-wrap{
+  position:relative;
+  display:flex;
+  gap:18px;
+  min-width:0;
+  align-self:stretch;
+}
+.how-auction__steps{
+  list-style:none;
+  margin:0;
+  padding:0;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-width:0;
+}
+.how-auction__steps > li{margin:0;flex:1 1 0;display:flex}
+.how-auction__step{
+  width:100%;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:18px 20px;
+  border:1px solid #E8E6E1;
+  border-radius:14px;
+  background:#FFFFFF;
+  text-align:left;
+  cursor:pointer;
+  font:inherit;
+  color:inherit;
+  transition:background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease;
+}
+.how-auction__step:hover{border-color:#D9D5CE}
+.how-auction__step:focus{outline:none}
+.how-auction__step:focus-visible{outline:2px solid #9A6B12;outline-offset:2px}
+.how-auction__step.is-active{
+  border-color:transparent;
+  background:linear-gradient(90deg,#6E4C0D 0%,#9A6B12 55%,#B8872A 100%);
+  color:#FFFFFF;
+  box-shadow:0 12px 28px -18px rgba(154,107,18,.5);
+}
+.how-auction__step-num{
+  flex:0 0 auto;
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Schibsted Grotesk',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  background:#ECEAE5;
+  color:#8A9198;
+}
+.how-auction__step.is-active .how-auction__step-num{
+  background:#7D5610;
+  color:#FFFFFF;
+}
+.how-auction__step-copy{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  text-align:right;
+}
+.how-auction__step-title{
+  font-size:16px;
+  font-weight:700;
+  line-height:1.3;
+  color:#15191E;
+}
+.how-auction__step-desc{
+  font-size:13px;
+  line-height:1.45;
+  color:#8A9198;
+}
+.how-auction__step.is-active .how-auction__step-title,
+.how-auction__step.is-active .how-auction__step-desc{color:#FFFFFF}
+.how-auction__rail{
+  position:relative;
+  flex:0 0 18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-around;
+  align-items:center;
+  align-self:stretch;
+  padding:4px 0;
+}
+.how-auction__rail-line{
+  position:absolute;
+  top:12%;
+  bottom:12%;
+  left:50%;
+  width:2px;
+  transform:translateX(-50%);
+  background:#E8D5A8;
+  border-radius:2px;
+}
+.how-auction__rail-dot{
+  position:relative;
+  z-index:1;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  border:2px solid #9A6B12;
+  background:#FFFFFF;
+  box-sizing:border-box;
+}
+.how-auction__rail-dot.is-active{
+  background:#9A6B12;
+  box-shadow:0 0 0 3px rgba(154,107,18,.2);
+}
+@media (max-width:900px){
+  .how-auction__body{grid-template-columns:1fr;gap:28px}
+  .how-auction__media{aspect-ratio:16 / 11;max-height:420px}
+}
+@media (max-width:560px){
+  .how-auction{padding-top:40px;padding-bottom:20px}
+  .how-auction__header{margin-bottom:28px}
+  .how-auction__subtitle{font-size:15px}
+  .how-auction__steps-wrap{gap:12px}
+  .how-auction__step{padding:16px 14px;gap:12px}
+  .how-auction__step-title{font-size:15px}
+  .how-auction__step-desc{font-size:12px}
+  .how-auction__rail{flex:0 0 14px}
+}

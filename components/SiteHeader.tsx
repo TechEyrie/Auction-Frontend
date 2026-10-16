@@ -27,10 +27,7 @@ function BrandMark({ home }: { home?: boolean }) {
     <>
       <img src="/logo.png" alt="" width={44} height={44} className="site-header__logo" />
       <span className="site-header__brand-text">
-        <span className="site-header__brand-name">
-          <span className="site-header__brand-full">ARAQ &amp; KAHRAMAN</span>
-          <span className="site-header__brand-short">ARAQ</span>
-        </span>
+        <span className="site-header__brand-name">ARAQ &amp; KAHRAMAN</span>
         <span className="site-header__brand-sub">AUCTIONS</span>
       </span>
     </>

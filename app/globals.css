@@ -241,19 +241,20 @@
   gap:10px;
   color:#15191E;
   text-decoration:none;
-  min-width:0;
-  flex:0 1 auto;
+  flex:0 0 auto;
+  max-width:none;
+  overflow:visible;
 }
 .site-header__logo{width:44px;height:44px;object-fit:contain;display:block;flex:0 0 auto}
-.site-header__brand-text{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.site-header__brand-text{display:flex;flex-direction:column;line-height:1.05;overflow:visible}
 .site-header__brand-name{
   font-family:'Schibsted Grotesk',sans-serif;
   font-weight:800;
   font-size:17px;
   letter-spacing:.01em;
   white-space:nowrap;
+  overflow:visible;
 }
-.site-header__brand-short{display:none}
 .site-header__brand-sub{
   font-size:10px;
   font-weight:600;
@@ -340,9 +341,10 @@
   .site-header__actions-desktop{display:none}
   .site-header__menu-btn{display:inline-flex}
   .site-header__signin-mobile{display:inline-flex}
-  .site-header__brand-name{font-size:15px}
-  .site-header__brand-sub{letter-spacing:.22em;font-size:9px}
-  .site-header__logo{width:40px;height:40px}
+  .site-header__brand{gap:8px}
+  .site-header__brand-name{font-size:14px}
+  .site-header__brand-sub{letter-spacing:.18em;font-size:9px}
+  .site-header__logo{width:38px;height:38px}
   .site-header__overlay.is-open{
     display:block;
     position:fixed;
@@ -422,13 +424,14 @@
     max-width:none;
   }
 }
-@media (max-width:420px){
-  .site-header__inner{padding:10px 12px;gap:8px}
-  .site-header__brand-full{display:none}
-  .site-header__brand-short{display:inline}
-  .site-header__brand-name{font-size:15px;letter-spacing:.02em}
-  .site-header__brand-sub{font-size:9px;letter-spacing:.22em}
-  .site-header__signin-mobile{padding:0 10px;height:38px;font-size:13px}
+@media (max-width:480px){
+  .site-header__inner{padding:10px 12px;gap:6px}
+  .site-header__logo{width:34px;height:34px}
+  .site-header__brand{gap:7px}
+  .site-header__brand-name{font-size:12px;letter-spacing:0}
+  .site-header__brand-sub{font-size:8px;letter-spacing:.14em}
+  /* Sign-in lives in the drawer on the narrowest phones so the full brand fits. */
+  .site-header__signin-mobile{display:none}
   .site-header__menu-btn{width:40px;height:40px}
 }
 @keyframes site-drawer-in{
