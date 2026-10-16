@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Fragment, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Fragment, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { ApiRequestError } from '../../lib/api';
@@ -43,6 +43,11 @@ export default function SignInPage() {
   const router = useRouter();
   const session = useSession();
   const [mode, setMode] = useState('in');
+
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('mode');
+    if (fromUrl === 'up' || fromUrl === 'in') setMode(fromUrl);
+  }, []);
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [busy, setBusy] = useState(false);
