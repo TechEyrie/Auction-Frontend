@@ -180,14 +180,9 @@ export default function LocalInfoBar() {
 
   return (
     <section aria-label="Doha weather, social links and next prayer" className="local-info-bar" style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
-      <div
-        className="local-info-bar__inner"
-        style={css(
-          'max-width: 1240px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 28px',
-        )}
-      >
-        <div style={css('display: flex; align-items: center; gap: 10px; min-width: 140px')}>
-          <span style={css('color: #9A6B12; display: flex')} aria-hidden="true">
+      <div className="local-info-bar__inner">
+        <div className="local-info-bar__weather">
+          <span style={css('color: #9A6B12; display: flex; flex-shrink: 0')} aria-hidden="true">
             {weather?.isDay === false ? (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M14.5 3.1A8.5 8.5 0 1 0 20.9 14 7 7 0 0 1 14.5 3.1z" />
@@ -200,16 +195,18 @@ export default function LocalInfoBar() {
             )}
           </span>
           <div>
-            <div style={css('font-size: 20px; font-weight: 800; color: #15191E; line-height: 1.1')}>
+            <div style={css('font-size: 18px; font-weight: 800; color: #15191E; line-height: 1.1')}>
               {weather ? `${weather.tempC}°C` : '—°C'}
             </div>
-            <div style={css('font-size: 13px; color: #5B636B; margin-top: 2px')}>{weather?.label ?? 'Doha weather'}</div>
+            <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>{weather?.label ?? 'Doha weather'}</div>
           </div>
         </div>
 
-        <div style={css('display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 14px; flex: 1 1 280px')}>
-          <span style={css('font-size: 14px; font-weight: 600; color: #2A3036')}>Follow us on</span>
-          <nav aria-label="Social media" style={css('display: flex; flex-wrap: wrap; align-items: center; gap: 10px')}>
+        <div className="local-info-bar__socials">
+          <span className="local-info-bar__socials-label" style={css('font-size: 14px; font-weight: 600; color: #2A3036')}>
+            Follow us on
+          </span>
+          <nav aria-label="Social media" style={css('display: flex; flex-wrap: wrap; align-items: center; gap: 8px')}>
             {SOCIAL.map((entry) => (
               <a
                 key={entry.id}
@@ -218,7 +215,7 @@ export default function LocalInfoBar() {
                 rel="noopener noreferrer"
                 aria-label={entry.label}
                 className="local-info-bar__social"
-                style={css('width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; color: #C45A12; border-radius: 6px')}
+                style={css('width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: #C45A12; border-radius: 8px')}
               >
                 <SocialIcon id={entry.id} />
               </a>
@@ -226,16 +223,16 @@ export default function LocalInfoBar() {
           </nav>
         </div>
 
-        <div style={css('display: flex; align-items: center; gap: 10px; min-width: 150px; justify-content: flex-end')}>
-          <span style={css('color: #2A3036; display: flex')} aria-hidden="true">
+        <div className="local-info-bar__prayer">
+          <span style={css('color: #2A3036; display: flex; flex-shrink: 0')} aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
               <circle cx="12" cy="12" r="8.5" />
               <path d="M12 7.5V12l3 2" />
             </svg>
           </span>
-          <div style={css('text-align: left')}>
-            <div style={css('font-size: 15px; font-weight: 800; color: #15191E; line-height: 1.15')}>Next Prayer</div>
-            <div style={css('font-size: 13px; color: #5B636B; margin-top: 2px')}>
+          <div>
+            <div style={css('font-size: 14px; font-weight: 800; color: #15191E; line-height: 1.15')}>Next Prayer</div>
+            <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>
               {prayer ? `${prayer.name} ${prayer.time}` : 'Loading…'}
             </div>
           </div>

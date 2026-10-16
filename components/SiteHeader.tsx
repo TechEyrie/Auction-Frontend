@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useId, useState } from 'react';
 import { css } from '../lib/css';
 import { useSession } from '../lib/session';
 
@@ -12,30 +13,41 @@ const NAV = [
   { id: 'buy', label: 'Buy', href: '/browse' },
 ];
 
-const LANG_BTN =
-  'height: 44px; padding: 0 14px; border: 1px solid #E6E4DF; background: #FFFFFF; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 600; color: #2A3036; cursor: pointer';
-const SIGN_IN =
-  'height: 44px; padding: 0 16px; border-radius: 10px; display: flex; align-items: center; font-weight: 600; font-size: 15px; color: #15191E';
-const DOT_LINK = 'display: flex; align-items: center; gap: 8px';
-const ACTIVE = 'color: #9A6B12; font-weight: 700';
-
 type Props = {
-  /* id of the nav item to highlight; omit when the page has no highlighted item */
   active?: string;
-  /* Product pages tint the section link without claiming it as the current page */
   navCurrent?: boolean;
-  /* the homepage's nav ends with "How it works" and links back to #top */
   home?: boolean;
-  /*
-   * Interface translation is not implemented. The button is only rendered when a page actually
-   * supplies a toggle, so no page shows a language control that does nothing (Phase 05 removed
-   * the cosmetic toggle from the pages it rebuilt; the remaining pages are unchanged for now).
-   */
   langLabel?: string;
   toggleLang?: () => void;
-  /* Sign-in is hidden on /signin */
   showSignIn?: boolean;
 };
+
+function BrandMark({ home }: { home?: boolean }) {
+  const inner = (
+    <>
+      <img src="/logo.png" alt="" width={44} height={44} className="site-header__logo" />
+      <span className="site-header__brand-text">
+        <span className="site-header__brand-name">
+          <span className="site-header__brand-full">ARAQ &amp; KAHRAMAN</span>
+          <span className="site-header__brand-short">ARAQ</span>
+        </span>
+        <span className="site-header__brand-sub">AUCTIONS</span>
+      </span>
+    </>
+  );
+  if (home) {
+    return (
+      <a href="#top" aria-label="Araq & Kahraman Auctions home" className="site-header__brand">
+        {inner}
+      </a>
+    );
+  }
+  return (
+    <Link href="/" aria-label="Araq & Kahraman Auctions home" className="site-header__brand">
+      {inner}
+    </Link>
+  );
+}
 
 export default function SiteHeader({
   active,
@@ -51,66 +63,136 @@ export default function SiteHeader({
 
   const session = useSession();
   const signedInName = session.user?.fullName ?? null;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [active, home]);
+
+  function navClass(itemId: string, hasDot?: boolean): string {
+    const on = itemId === active;
+    return ['site-header__link', hasDot ? 'site-header__link--live' : '', on ? 'is-active' : ''].filter(Boolean).join(' ');
+  }
+
+  function renderNavItem(item: (typeof items)[number], onNavigate?: () => void) {
+    const on = item.id === active;
+    const cur = on && navCurrent ? ('page' as const) : undefined;
+    const children = (
+      <>
+        {item.dot ? <span className="live-dot site-header__live-dot" aria-hidden="true" /> : null}
+        {item.label}
+      </>
+    );
+    if (item.href.startsWith('#')) {
+      return (
+        <a
+          key={item.id}
+          className={navClass(item.id, item.dot)}
+          href={item.href}
+          aria-current={cur}
+          onClick={onNavigate}
+        >
+          {children}
+        </a>
+      );
+    }
+    return (
+      <Link key={item.id} className={navClass(item.id, item.dot)} href={item.href} aria-current={cur} onClick={onNavigate}>
+        {children}
+      </Link>
+    );
+  }
+
+  const accountLinks = showSignIn ? (
+    signedInName ? (
+      <>
+        <Link href="/account" className="site-header__action" onClick={() => setMenuOpen(false)}>
+          Account
+        </Link>
+        {session.capabilities.length > 0 ? (
+          <Link href="/admin" className="site-header__action" onClick={() => setMenuOpen(false)}>
+            Admin
+          </Link>
+        ) : null}
+        <span className="site-header__user">{signedInName}</span>
+      </>
+    ) : (
+      <Link href="/signin" className="site-header__action site-header__action--primary" onClick={() => setMenuOpen(false)}>
+        Sign in
+      </Link>
+    )
+  ) : null;
 
   return (
-    <header style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF; position: relative; z-index: 2')}>
-      <div style={css('max-width: 1240px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px')}>
-        {home ? (
-          <a href="#top" aria-label="Araq & Kahraman Auctions home" style={css('display: flex; align-items: center; gap: 12px; color: #15191E')}>
-            <img src="/logo.png" alt="" width={52} height={52} style={css('width: 52px; height: 52px; object-fit: contain; display: block')} />
-            <span style={css('display: flex; flex-direction: column; line-height: 1.05')}>
-              <span style={css("font-family: 'Schibsted Grotesk', sans-serif; font-weight: 800; font-size: 19px; letter-spacing: 0.01em")}>ARAQ &amp; KAHRAMAN</span>
-              <span style={css('font-size: 11px; font-weight: 600; letter-spacing: 0.32em; color: #9A6B12')}>AUCTIONS</span>
-            </span>
-          </a>
-        ) : (
-          <Link href="/" aria-label="Araq & Kahraman Auctions home" style={css('display: flex; align-items: center; gap: 12px; color: #15191E')}>
-            <img src="/logo.png" alt="" width={52} height={52} style={css('width: 52px; height: 52px; object-fit: contain; display: block')} />
-            <span style={css('display: flex; flex-direction: column; line-height: 1.05')}>
-              <span style={css("font-family: 'Schibsted Grotesk', sans-serif; font-weight: 800; font-size: 19px; letter-spacing: 0.01em")}>ARAQ &amp; KAHRAMAN</span>
-              <span style={css('font-size: 11px; font-weight: 600; letter-spacing: 0.32em; color: #9A6B12')}>AUCTIONS</span>
-            </span>
-          </Link>
-        )}
-        <nav aria-label="Main" style={css('display: flex; flex-wrap: wrap; align-items: center; gap: 4px 22px; flex: 1 1 auto; font-size: 15px')}>
-          {items.map((item) => {
-            const on = item.id === active;
-            const style = css(item.dot ? (on ? `${DOT_LINK}; ${ACTIVE}` : DOT_LINK) : on ? ACTIVE : '');
-            const children = (
-              <>
-                {item.dot && <span className="live-dot" style={css('width: 8px; height: 8px; border-radius: 50%; background: #C2410C')}></span>}
-                {item.label}
-              </>
-            );
-            const cur = on && navCurrent ? 'page' : undefined;
-            return item.href.startsWith('#') ? (
-              <a key={item.id} className="navlink" href={item.href} style={style} aria-current={cur}>{children}</a>
-            ) : (
-              <Link key={item.id} className="navlink" href={item.href} style={style} aria-current={cur}>{children}</Link>
-            );
-          })}
+    <header className="site-header">
+      <div className="site-header__inner">
+        <BrandMark home={home} />
+
+        <nav aria-label="Main" className="site-header__nav site-header__nav--desktop">
+          {items.map((item) => renderNavItem(item))}
         </nav>
-        <div style={css('display: flex; align-items: center; gap: 10px; flex-wrap: wrap')}>
-          {toggleLang && langLabel && (
-            <button type="button" onClick={toggleLang} aria-label="Switch language" className="btn-ghost" style={css(LANG_BTN)}>{langLabel}</button>
-          )}
-          {/* The session decides this, not the page: a signed-in visitor never sees "Sign in". */}
-          {showSignIn &&
-            (signedInName ? (
-              <>
-                <Link href="/account" className="btn-ghost" style={css(SIGN_IN)}>Account</Link>
-                {session.capabilities.length > 0 ? (
-                  <Link href="/admin" className="btn-ghost" style={css(SIGN_IN)}>Admin</Link>
-                ) : null}
-                <span style={css('font-size: 14px; color: #5B636B')}>{signedInName}</span>
-              </>
-            ) : (
-              // While the session is still being checked the header keeps its default, so the
-              // static markup matches the signed-out design instead of flashing an empty slot.
-              <Link href="/signin" className="btn-ghost" style={css(SIGN_IN)}>Sign in</Link>
-            ))}
+
+        <div className="site-header__actions">
+          {toggleLang && langLabel ? (
+            <button type="button" onClick={toggleLang} aria-label="Switch language" className="site-header__action site-header__lang">
+              {langLabel}
+            </button>
+          ) : null}
+          <div className="site-header__actions-desktop">{accountLinks}</div>
+          {!signedInName && showSignIn ? (
+            <Link href="/signin" className="site-header__action site-header__action--primary site-header__signin-mobile">
+              Sign in
+            </Link>
+          ) : null}
+          <button
+            type="button"
+            className="site-header__menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className={menuOpen ? 'site-header__burger is-open' : 'site-header__burger'} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </button>
         </div>
       </div>
+
+      {menuOpen ? (
+        <div className="site-header__overlay is-open">
+          <button type="button" className="site-header__backdrop" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
+          <div id={menuId} className="site-header__drawer" role="dialog" aria-modal="true" aria-label="Site menu">
+            <div className="site-header__drawer-head">
+              <span style={css('font-weight: 800; font-size: 15px; color: #15191E')}>Menu</span>
+              <button type="button" className="site-header__drawer-close" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <nav aria-label="Mobile" className="site-header__drawer-nav">
+              {items.map((item) => renderNavItem(item, () => setMenuOpen(false)))}
+            </nav>
+            <div className="site-header__drawer-foot">{accountLinks}</div>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

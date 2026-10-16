@@ -106,6 +106,7 @@ function BrowseContent() {
   const [searchText, setSearchText] = useState(state.q);
   /** True from filter click until the matching listings request finishes — avoids stale cards during navigation. */
   const [filterPending, setFilterPending] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     setSearchText(state.q);
@@ -193,8 +194,23 @@ function BrowseContent() {
         </div>
       </section>
 
-      <div style={css('max-width: 1240px; margin: 0 auto; padding: 32px 24px 72px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start')}>
-        <aside aria-label="Filters" style={css('flex: 1 1 260px; min-width: 0; max-width: 100%; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 26px')}>
+      <div className="browse-layout" style={css('max-width: 1240px; margin: 0 auto; padding: 32px 24px 72px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start')}>
+        <div className="browse-filters-toggle-wrap">
+          <button
+            type="button"
+            className="browse-filters-toggle"
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((open) => !open)}
+          >
+            {filtersOpen ? 'Hide filters' : 'Show filters'}
+            {browseIsFiltered(state) ? ' · active' : ''}
+          </button>
+        </div>
+        <aside
+          aria-label="Filters"
+          className={filtersOpen ? 'browse-filters is-open' : 'browse-filters'}
+          style={css('flex: 1 1 260px; min-width: 0; max-width: 100%; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 26px')}
+        >
           <div style={css('display: flex; justify-content: space-between; align-items: center')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 20px; font-weight: 700")}>Filters</h2>
             <button type="button" onClick={() => router.push('/browse')} style={css('height: 36px; padding: 0 10px; border: 0; background: transparent; color: #9A6B12; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}>

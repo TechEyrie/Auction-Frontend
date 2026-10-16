@@ -34,7 +34,7 @@ export default function SiteFooter({ minimal, apps, safetyHref = '/help', career
 
   return (
     <footer className="foot" style={css('background: #15191E; color: #C9CFCB')}>
-      <div style={css('max-width: 1240px; margin: 0 auto; padding: 56px 24px 32px; display: flex; flex-wrap: wrap; gap: 40px 64px')}>
+      <div className="site-footer__grid" style={css('max-width: 1240px; margin: 0 auto; padding: 56px 24px 32px; display: flex; flex-wrap: wrap; gap: 40px 64px')}>
         <div style={css('flex: 2 1 260px; min-width: 0')}>
           <div style={css('display: flex; align-items: center; gap: 14px')}>
             <img src="/logo.png" alt="" width={64} height={64} style={css('width: 64px; height: 64px; object-fit: contain; display: block')} />

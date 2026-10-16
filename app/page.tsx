@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useState } from 'react';
 import AudiencePicker from '../components/AudiencePicker';
+import CategoryMenu from '../components/CategoryMenu';
 import LocalInfoBar from '../components/LocalInfoBar';
 import SiteFooter from '../components/SiteFooter';
 import SiteHeader from '../components/SiteHeader';
@@ -128,21 +129,22 @@ export default function HomePage() {
       <SiteHeader home />
 
       <section id="top" style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
-        <div style={css('max-width: 1240px; margin: 0 auto; padding: 72px 24px 64px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center')}>
+        <div className="home-hero">
           <div style={css('flex: 999 1 560px; min-width: 0')}>
-            <p style={css('margin: 0 0 18px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #F6EEDC; color: #9A6B12; font-size: 14px; font-weight: 600')}>
+            <p style={css('margin: 0 0 14px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #F6EEDC; color: #9A6B12; font-size: 13px; font-weight: 600')}>
               A curated marketplace, managed by our team
             </p>
-            <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.5rem, 5vw, 4.1rem); line-height: 1.04; letter-spacing: -0.035em; font-weight: 700; max-width: 14ch")}>
+            <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2rem, 8vw, 4.1rem); line-height: 1.05; letter-spacing: -0.035em; font-weight: 700; max-width: 14ch")}>
               {'Browse, enquire, '}
               <span style={css('color: #9A6B12')}>and settle safely.</span>
             </h1>
-            <p style={css('margin: 20px 0 32px; font-size: 19px; color: #5B636B; max-width: 46ch')}>
+            <p style={css('margin: 16px 0 24px; font-size: clamp(15px, 3.6vw, 19px); color: #5B636B; max-width: 46ch')}>
               Every listing here is published by our inventory team. Live auctions show a Bid now link; fixed-price
               checkout and deposits are not offered on this site yet.
             </p>
             <form
               role="search"
+              className="mkt-search"
               onSubmit={(event) => {
                 event.preventDefault();
                 const params = new URLSearchParams();
@@ -151,13 +153,12 @@ export default function HomePage() {
                 if (heroCategory) params.set('category', heroCategory);
                 router.push(params.toString() ? `/browse?${params.toString()}` : '/browse');
               }}
-              style={css('display: flex; flex-wrap: wrap; gap: 8px; padding: 8px; background: #FFFFFF; border: 1px solid #DAD7D0; border-radius: 16px; box-shadow: 0 18px 40px -28px rgba(21,25,30,.45); max-width: 680px')}
             >
               <label htmlFor="q" className="sr">
                 What are you looking for?
               </label>
-              <div style={css('flex: 3 1 240px; display: flex; align-items: center; gap: 10px; padding: 0 12px; min-width: 0')}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B636B" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <div className="mkt-search__query">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9198" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                   <path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z M20 20l-4-4"></path>
                 </svg>
                 <input
@@ -166,26 +167,15 @@ export default function HomePage() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search published listings…"
-                  style={css('flex: 1; min-width: 0; height: 48px; border: 0; font: inherit; font-size: 16px; color: #15191E; background: transparent; outline-offset: 6px')}
+                  autoComplete="off"
                 />
               </div>
-              <label htmlFor="cat" className="sr">
-                Category
-              </label>
-              <select
-                id="cat"
+              <CategoryMenu
                 value={heroCategory}
-                onChange={(event) => setHeroCategory(event.target.value)}
-                style={css('flex: 1 1 150px; height: 52px; border: 0; border-left: 1px solid #E6E4DF; padding: 0 12px; font: inherit; font-size: 15px; color: #2A3036; background: transparent; cursor: pointer')}
-              >
-                <option value="">All categories</option>
-                {roots.map((category) => (
-                  <option key={category.key} value={category.key}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              <button type="submit" className="btn-primary" style={css('flex: 0 0 auto; height: 52px; padding: 0 26px; border: 0; border-radius: 11px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer')}>
+                onChange={setHeroCategory}
+                options={roots.map((category) => ({ key: category.key, name: category.name }))}
+              />
+              <button type="submit" className="mkt-search__submit">
                 Search
               </button>
             </form>
@@ -271,7 +261,7 @@ export default function HomePage() {
 
       <LocalInfoBar />
 
-      <section id="categories" style={css('max-width: 1240px; margin: 0 auto; padding: 48px 24px 24px')}>
+      <section id="categories" className="home-section">
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 28px')}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
@@ -318,7 +308,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="auctions" style={css('max-width: 1240px; margin: 0 auto; padding: 64px 24px 24px')}>
+      <section id="auctions" className="home-section">
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 24px')}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
@@ -384,7 +374,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="how" style={css('max-width: 1240px; margin: 0 auto; padding: 72px 24px 24px')}>
+      <section id="how" className="home-section">
         <div style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 24px; padding: clamp(24px, 4vw, 48px)')}>
           <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 32px')}>
             <div>
@@ -425,7 +415,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="listings" style={css('max-width: 1240px; margin: 0 auto; padding: 72px 24px 24px')}>
+      <section id="listings" className="home-section">
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px')}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
@@ -480,7 +470,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="sell" style={css('max-width: 1240px; margin: 0 auto; padding: 72px 24px 24px')}>
+      <section id="sell" className="home-section">
         <div style={css('background: #9A6B12; color: #FFFFFF; border-radius: 24px; padding: clamp(28px, 5vw, 56px); display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: space-between')}>
           <div style={css('flex: 1 1 420px; min-width: 0')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -0.025em; font-weight: 700; line-height: 1.1")}>

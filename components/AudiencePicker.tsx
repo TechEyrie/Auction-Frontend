@@ -38,7 +38,7 @@ export default function AudiencePicker({ value, onChange, variant = 'hero' }: Pr
             onClick={() => onChange(option.value)}
             style={css(
               hero
-                ? `flex: 1 1 120px; min-height: 52px; padding: 0 20px; border-radius: 12px; border: 2px solid ${selected ? '#9A6B12' : 'transparent'}; background: ${selected ? '#15191E' : '#FFFFFF'}; color: ${selected ? '#FBFAF7' : '#15191E'}; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: ${selected ? '0 10px 28px -18px rgba(21,25,30,.55)' : 'none'}`
+                ? `flex: 1 1 0; min-width: 0; min-height: 48px; padding: 0 12px; border-radius: 12px; border: 2px solid ${selected ? '#9A6B12' : 'transparent'}; background: ${selected ? '#15191E' : '#FFFFFF'}; color: ${selected ? '#FBFAF7' : '#15191E'}; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: ${selected ? '0 10px 28px -18px rgba(21,25,30,.55)' : 'none'}`
                 : `height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid ${selected ? '#9A6B12' : '#E6E4DF'}; background: ${selected ? '#F6EEDC' : '#FFFFFF'}; color: ${selected ? '#7D5610' : '#2A3036'}; font: inherit; font-size: 14px; font-weight: ${selected ? 700 : 600}; cursor: pointer`,
             )}
           >
