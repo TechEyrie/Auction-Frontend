@@ -201,9 +201,9 @@ export default function HomePage() {
             </div>
             {heroListing ? (
               <>
-                <div style={css('height: 200px; border-radius: 14px; background: #2B2620; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
+                <div className="home-hero-listing-media">
                   {heroImage.url ? (
-                    <img src={heroImage.url} alt={heroImage.alt} style={css('width: 100%; height: 100%; object-fit: cover')} />
+                    <img src={heroImage.url} alt={heroImage.alt} />
                   ) : (
                     <span style={css('color: #AEB5B0; font-size: 14px')}>No image published</span>
                   )}
@@ -214,7 +214,7 @@ export default function HomePage() {
                       {listingCardTitle(heroListing)}
                     </Link>
                   </h2>
-                  <p style={css('margin: 0; font-size: 14px; color: #AEB5B0')}>
+                  <p className="home-hero-listing-meta">
                     {METHOD_LABEL[heroListing.listingMethod]}
                     {heroListing.condition ? ` · ${heroListing.condition.replace('_', ' ')}` : ''} ·{' '}
                     {heroListing.location.label ?? 'Location not published'}
