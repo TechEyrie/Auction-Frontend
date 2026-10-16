@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, Fragment, useEffect, useMemo, useState } from 'react';
+import CheckoutDetailsFields, { type CheckoutDetails } from '../../../components/CheckoutDetailsFields';
 import SiteFooter from '../../../components/SiteFooter';
 import SiteHeader from '../../../components/SiteHeader';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
@@ -185,7 +186,8 @@ export default function ProductPage() {
   const [buyOpen, setBuyOpen] = useState(false);
   const [buyBusy, setBuyBusy] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
-  const [buyForm, setBuyForm] = useState({ fullName: '', phone: '', city: '', address: '' });
+  const [buyForm, setBuyForm] = useState<CheckoutDetails>({ fullName: '', phone: '', city: '', address: '' });
+  const [buyPrefilled, setBuyPrefilled] = useState(false);
 
   const listing = useAsync<{ listing: PublicListing }>(
     () => apiFetch<{ listing: PublicListing }>(`/api/listings/${encodeURIComponent(id)}`, { cache: 'no-store' }),
@@ -281,6 +283,16 @@ export default function ProductPage() {
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
   }, [bidCooldownUntil]);
+
+  useEffect(() => {
+    if (!buyOpen || buyPrefilled || session.status !== 'authenticated' || !session.user) return;
+    setBuyForm((prev) => ({
+      ...prev,
+      fullName: prev.fullName || session.user!.fullName || '',
+      phone: prev.phone || session.user!.phone || '',
+    }));
+    setBuyPrefilled(true);
+  }, [buyOpen, buyPrefilled, session.status, session.user]);
 
   const placeBid = async (event: FormEvent) => {
     event.preventDefault();
@@ -786,19 +798,12 @@ export default function ProductPage() {
                         Buy now
                       </button>
                     ) : (
-                      <form onSubmit={(event) => void submitBuy(event)} style={css('display: grid; gap: 10px')}>
-                        <p style={css('margin: 0; font-weight: 600')}>Checkout details</p>
-                        {(['fullName', 'phone', 'city', 'address'] as const).map((field) => (
-                          <label key={field} style={css('display: grid; gap: 4px; font-size: 14px')}>
-                            <span style={css('text-transform: capitalize')}>{field === 'fullName' ? 'Full name' : field}</span>
-                            <input
-                              className="field"
-                              required
-                              value={buyForm[field]}
-                              onChange={(event) => setBuyForm({ ...buyForm, [field]: event.target.value })}
-                            />
-                          </label>
-                        ))}
+                      <form onSubmit={(event) => void submitBuy(event)} style={css('display: grid; gap: 12px')}>
+                        <div style={css('display: grid; gap: 4px')}>
+                          <p style={css('margin: 0; font-weight: 700')}>Checkout details</p>
+                          <p style={css('margin: 0; font-size: 13px; color: #5B636B')}>Your name is filled from your profile. Choose a Qatar city or area, then add your address.</p>
+                        </div>
+                        <CheckoutDetailsFields value={buyForm} onChange={setBuyForm} idPrefix="buy" />
                         <button type="submit" disabled={buyBusy} style={css('height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}>
                           {buyBusy ? 'Creating order…' : 'Continue to payment'}
                         </button>

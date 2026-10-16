@@ -9,6 +9,7 @@ import { apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { fmtMinor } from '../../lib/format';
 import { productPath } from '../../lib/listings';
+import { orderSourceLabel, paymentStateLabel } from '../../lib/qatarPlaces';
 import { useSession } from '../../lib/session';
 import { useAsync } from '../../lib/useAsync';
 
@@ -17,8 +18,10 @@ type Account = {
   bids: { lotReference: string; amountMinor: number; sequence: number; acceptedAt: string }[];
   orders: {
     orderReference: string;
-    lotReference: string;
+    source?: string;
+    lotReference: string | null;
     listingReference: string;
+    listingTitle?: string;
     winningPriceMinor: number;
     paymentState: string;
     currency: string;
@@ -107,7 +110,7 @@ export default function AccountPage() {
           ) : null}
         </div>
 
-        {session.status === 'loading' || (!account.data && !account.error) ? <p>Loading your profile, bids and orders…</p> : null}
+        {session.status === 'loading' || (!account.data && !account.error) ? <p>Loading your profile, bids and purchases…</p> : null}
         {account.error ? (
           <p role="alert">
             {account.error}{' '}
@@ -123,7 +126,6 @@ export default function AccountPage() {
               <h2 style={css('margin: 0; font-size: 18px')}>Profile</h2>
               <p style={css('margin: 0')}>{account.data.profile.fullName}</p>
               <p style={css('margin: 0; color: #5B636B')}>{account.data.profile.email ?? 'No email on file'} · {account.data.profile.phone ?? 'No phone on file'}</p>
-              <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>Account id {account.data.profile.publicReference}</p>
               <p style={css('margin: 0')}>Accepted terms version: {account.data.profile.termsVersion ?? 'none yet'}</p>
               {terms.data ? (
                 <button type="button" onClick={() => void accept(terms.data!.version)} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
@@ -136,6 +138,59 @@ export default function AccountPage() {
             </section>
 
             <section style={css('display: grid; gap: 10px')}>
+              <h2 style={css('margin: 0')}>Your purchases</h2>
+              <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
+                Auction wins and buy-now items you reserved. Open checkout to finish payment, or reopen a paid purchase.
+              </p>
+              {account.data.orders.length === 0 ? (
+                <p style={css('margin: 0; padding: 16px; border-radius: 14px; border: 1px dashed #DAD7D0; background: #FBFAF7; color: #5B636B')}>
+                  No purchases yet. <Link href="/browse">Browse listings</Link> or <Link href="/auctions">live auctions</Link>.
+                </p>
+              ) : (
+                <ul style={css('list-style: none; margin: 0; padding: 0; display: grid; gap: 10px')}>
+                  {account.data.orders.map((order) => {
+                    const title = order.listingTitle?.trim() || 'Purchased item';
+                    const needsPay = order.paymentState === 'awaiting_payment' || order.paymentState === 'failed';
+                    return (
+                      <li
+                        key={order.orderReference}
+                        style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 16px 18px; display: grid; gap: 10px')}
+                      >
+                        <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: start')}>
+                          <div style={css('display: grid; gap: 4px; min-width: 0')}>
+                            <span style={css('font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #9A6B12')}>
+                              {orderSourceLabel(order.source)}
+                            </span>
+                            <Link
+                              href={productPath({ listingReference: order.listingReference })}
+                              style={css("font-family: 'Schibsted Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: #15191E")}
+                            >
+                              {title}
+                            </Link>
+                            <span style={css('color: #5B636B; font-size: 14px')}>
+                              {fmtMinor(order.winningPriceMinor)} · {paymentStateLabel(order.paymentState)}
+                            </span>
+                            <span style={css('color: #5B636B; font-size: 13px')}>{new Date(order.createdAt).toLocaleString()}</span>
+                          </div>
+                          <Link
+                            href={`/account/orders/${encodeURIComponent(order.orderReference)}`}
+                            style={css(
+                              needsPay
+                                ? 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; white-space: nowrap'
+                                : 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #DAD7D0; background: #FFFFFF; color: #15191E; font-weight: 700; white-space: nowrap',
+                            )}
+                          >
+                            {needsPay ? 'Complete payment' : 'View purchase'}
+                          </Link>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
+            <section style={css('display: grid; gap: 10px')}>
               <h2 style={css('margin: 0')}>Your bids</h2>
               {account.data.bids.length === 0 ? (
                 <p>No bids yet. <Link href="/auctions">See auction listings</Link></p>
@@ -144,42 +199,16 @@ export default function AccountPage() {
                   {account.data.bids.map((bid) => {
                     const listingReference = bidListingByAuctionId[bid.lotReference];
                     const bidHref = listingReference ? productPath({ listingReference }) : '/auctions';
-                    const bidLabel = listingReference ? `Ad ${listingReference}` : 'Live auction';
                     return (
-                    <li key={`${bid.lotReference}-${bid.sequence}`} style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 12px; padding: 12px 14px')}>
-                      <Link href={bidHref} style={css('font-weight: 700')}>{bidLabel}</Link>
-                      {' · '}{fmtMinor(bid.amountMinor)}{' · '}bid #{bid.sequence}
-                      <div style={css('color: #5B636B; font-size: 13px; margin-top: 4px')}>{new Date(bid.acceptedAt).toLocaleString()}</div>
-                    </li>
+                      <li key={`${bid.lotReference}-${bid.sequence}`} style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 12px; padding: 12px 14px')}>
+                        <Link href={bidHref} style={css('font-weight: 700')}>
+                          {listingReference ? 'Open listing' : 'Live auction'}
+                        </Link>
+                        {' · '}{fmtMinor(bid.amountMinor)}{' · '}bid #{bid.sequence}
+                        <div style={css('color: #5B636B; font-size: 13px; margin-top: 4px')}>{new Date(bid.acceptedAt).toLocaleString()}</div>
+                      </li>
                     );
                   })}
-                </ul>
-              )}
-            </section>
-
-            <section style={css('display: grid; gap: 10px')}>
-              <h2 style={css('margin: 0')}>Wins and payments</h2>
-              <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
-                Fixed-price “buy now” is not available. Wins only appear here after you win a live auction.
-              </p>
-              {account.data.orders.length === 0 ? (
-                <p>No winning orders yet.</p>
-              ) : (
-                <ul style={css('list-style: none; margin: 0; padding: 0; display: grid; gap: 8px')}>
-                  {account.data.orders.map((order) => (
-                    <li key={order.orderReference} style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px')}>
-                      <div>
-                        <Link href={`/account/orders/${encodeURIComponent(order.orderReference)}`} style={css('font-weight: 700')}>{order.orderReference}</Link>
-                        {' · '}{fmtMinor(order.winningPriceMinor)}{' · '}{order.paymentState.replaceAll('_', ' ')}
-                      </div>
-                      <div style={css('font-size: 14px')}>
-                        <Link href={productPath({ listingReference: order.listingReference })} style={css('font-weight: 600')}>
-                          Winning auction · Ad {order.listingReference}
-                        </Link>
-                      </div>
-                      <div style={css('color: #5B636B; font-size: 13px')}>{new Date(order.createdAt).toLocaleString()}</div>
-                    </li>
-                  ))}
                 </ul>
               )}
             </section>
