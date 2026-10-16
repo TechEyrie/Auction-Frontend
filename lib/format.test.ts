@@ -11,13 +11,13 @@ import {
 } from './format.ts';
 
 test('fmt', () => {
-  assert.equal(fmt(182000), '182,000 QAR');
-  assert.equal(fmt(150), '150 QAR');
+  assert.equal(fmt(182000), '182,000 QR');
+  assert.equal(fmt(150), '150 QR');
 });
 
 test('fmtMinor', () => {
-  assert.equal(fmtMinor(10000), '100.00 QAR');
-  assert.equal(fmtMinor(150), '1.50 QAR');
+  assert.equal(fmtMinor(10000), '100.00 QR');
+  assert.equal(fmtMinor(150), '1.50 QR');
 });
 
 test('fmtBusinessDateTime uses Qatar zone', () => {

@@ -499,6 +499,31 @@ export function coverImage(listing: { coverAssetId: string | null; media: Array<
   return cover?.url ?? listing.media[0]?.url ?? null;
 }
 
+/** Public listing cards always show the title in caps. */
+export function listingCardTitle(listing: { title: LocalizedText; listingReference?: string }): string {
+  const raw = listing.title.en ?? listing.title.ar ?? listing.listingReference ?? 'Untitled listing';
+  return raw.toUpperCase();
+}
+
+/**
+ * Amount shown on catalogue cards. Auctions use starting bid only (never current bid);
+ * fixed-price listings use the published price.
+ */
+export function listingCardPrice(listing: {
+  listingMethod: ListingMethod;
+  priceMinor: number | null;
+  startingBidMinor?: number | null;
+}): { minor: number; kind: 'starting' | 'price' } | null {
+  if (listing.listingMethod === 'auction') {
+    if (typeof listing.startingBidMinor === 'number') return { minor: listing.startingBidMinor, kind: 'starting' };
+    return null;
+  }
+  if (listing.listingMethod === 'fixed_price' && typeof listing.priceMinor === 'number') {
+    return { minor: listing.priceMinor, kind: 'price' };
+  }
+  return null;
+}
+
 /** Human label for a method/condition pair without inventing a price or a bid. */
 export function listingBadgeText(listing: { listingMethod: ListingMethod; condition: Condition | null }): string {
   const method = METHOD_LABEL[listing.listingMethod];

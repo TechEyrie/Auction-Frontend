@@ -7,7 +7,7 @@ import { API_BASE_URL, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
 import { fmtMinor } from '../../lib/format';
-import { METHOD_LABEL, productPath, type PublicListing } from '../../lib/listings';
+import { listingCardPrice, listingCardTitle, METHOD_LABEL, productPath, type PublicListing } from '../../lib/listings';
 import { useLive } from '../../lib/live';
 import './auctions.css';
 
@@ -100,10 +100,11 @@ export default function AuctionsPage() {
           {(listings.data?.listings ?? []).map((listing) => {
             const cover = listing.media.find((entry) => entry.assetId === listing.coverAssetId) ?? listing.media[0] ?? null;
             const live = listing.liveLotReference;
-            const currentMinor = listing.currentAmountMinor ?? listing.startingBidMinor;
+            const title = listingCardTitle(listing);
+            const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={listing.title.en ?? listing.listingReference} style={css('position: relative; height: 180px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
+                <Link href={productPath(listing)} aria-label={title} style={css('position: relative; height: 180px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
                   {cover ? (
                     <img src={`${API_BASE_URL}${cover.url}`} alt={cover.alt.en ?? listing.title.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
                   ) : (
@@ -116,9 +117,9 @@ export default function AuctionsPage() {
                   ) : null}
                 </Link>
                 <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1')}>
-                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35')}>
+                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
                     <Link href={productPath(listing)} style={css('color: #15191E')}>
-                      {listing.title.en ?? listing.title.ar ?? 'Untitled listing'}
+                      {title}
                     </Link>
                   </h3>
                   <p className="mkt-hint">
@@ -128,9 +129,9 @@ export default function AuctionsPage() {
                   <p className="mkt-hint">
                     {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
                   </p>
-                  {typeof currentMinor === 'number' ? (
-                    <p className="mkt-hint" style={css('font-weight: 600; color: #15191E')}>
-                      Current: {fmtMinor(currentMinor)}
+                  {price ? (
+                    <p style={css('margin: 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
+                      {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
                     </p>
                   ) : null}
                   {live ? (

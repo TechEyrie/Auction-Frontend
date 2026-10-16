@@ -1,10 +1,10 @@
 export function fmt(n: number): string {
-  return n.toLocaleString('en-US') + ' QAR';
+  return n.toLocaleString('en-US') + ' QR';
 }
 
-/** Money on the wire is integer minor units (100 = 1.00 QAR). */
+/** Money on the wire is integer minor units (100 = 1.00 QR). */
 export function fmtMinor(minor: number): string {
-  return `${(minor / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QAR`;
+  return `${(minor / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} QR`;
 }
 
 /** Convert a QAR amount typed in the UI to integer minor units for the API. */

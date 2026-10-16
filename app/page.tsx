@@ -11,7 +11,14 @@ import { css, PAGE_ROOT } from '../lib/css';
 import { useAsync } from '../lib/useAsync';
 import { useLive } from '../lib/live';
 import { fmtMinor } from '../lib/format';
-import { METHOD_LABEL, productPath, type ListingMethod, type PublicListing } from '../lib/listings';
+import {
+  listingCardPrice,
+  listingCardTitle,
+  METHOD_LABEL,
+  productPath,
+  type ListingMethod,
+  type PublicListing,
+} from '../lib/listings';
 import './main.css';
 
 /**
@@ -222,9 +229,9 @@ export default function HomePage() {
                   )}
                 </div>
                 <div>
-                  <h2 style={css("margin: 0 0 4px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.01em")}>
+                  <h2 style={css("margin: 0 0 4px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase")}>
                     <Link href={productPath(heroListing)} style={css('color: #FFFFFF')}>
-                      {heroListing.title.en ?? heroListing.title.ar ?? 'Untitled listing'}
+                      {listingCardTitle(heroListing)}
                     </Link>
                   </h2>
                   <p style={css('margin: 0; font-size: 14px; color: #AEB5B0')}>
@@ -232,6 +239,15 @@ export default function HomePage() {
                     {heroListing.condition ? ` · ${heroListing.condition.replace('_', ' ')}` : ''} ·{' '}
                     {heroListing.location.label ?? 'Location not published'}
                   </p>
+                  {(() => {
+                    const price = listingCardPrice(heroListing);
+                    if (!price) return null;
+                    return (
+                      <p style={css('margin: 10px 0 0; font-size: 20px; font-weight: 800; color: #F6B48A; letter-spacing: -0.01em')}>
+                        {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                      </p>
+                    );
+                  })()}
                 </div>
                 <Link href={productPath(heroListing)} style={css('height: 50px; border-radius: 12px; background: #FFFFFF; color: #15191E; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center')}>
                   View this listing
@@ -324,10 +340,11 @@ export default function HomePage() {
           {auctionCards.map((listing) => {
             const image = cardImage(listing);
             const live = listing.liveLotReference;
-            const currentMinor = listing.currentAmountMinor ?? listing.startingBidMinor;
+            const title = listingCardTitle(listing);
+            const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={listing.title.en ?? listing.listingReference} style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
+                <Link href={productPath(listing)} aria-label={title} style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
                   {image.url ? <img src={image.url} alt={image.alt} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" /> : <span className="mkt-hint">No image</span>}
                   {live ? (
                     <span style={css('position: absolute; top: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 700')}>
@@ -336,17 +353,17 @@ export default function HomePage() {
                   ) : null}
                 </Link>
                 <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1')}>
-                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35')}>
+                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
                     <Link href={productPath(listing)} style={css('color: #15191E')}>
-                      {listing.title.en ?? listing.title.ar ?? 'Untitled listing'}
+                      {title}
                     </Link>
                   </h3>
                   <p className="mkt-hint">
                     {listing.category.key} · {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
                   </p>
-                  {typeof currentMinor === 'number' ? (
-                    <p className="mkt-hint" style={css('font-weight: 600; color: #15191E')}>
-                      Current: {fmtMinor(currentMinor)}
+                  {price ? (
+                    <p style={css('margin: 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
+                      {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
                     </p>
                   ) : null}
                   {live ? (
@@ -427,21 +444,28 @@ export default function HomePage() {
         <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
           {recentListings.map((listing) => {
             const image = cardImage(listing);
+            const title = listingCardTitle(listing);
+            const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={listing.title.en ?? listing.listingReference} style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
+                <Link href={productPath(listing)} aria-label={title} style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
                   {image.url ? <img src={image.url} alt={image.alt} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" /> : <span className="mkt-hint">No image</span>}
                 </Link>
                 <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
-                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35')}>
+                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
                     <Link href={productPath(listing)} style={css('color: #15191E')}>
-                      {listing.title.en ?? listing.title.ar ?? 'Untitled listing'}
+                      {title}
                     </Link>
                   </h3>
                   <p className="mkt-hint">
                     {METHOD_LABEL[listing.listingMethod]}
                     {listing.condition ? ` · ${listing.condition.replace('_', ' ')}` : ''} · {listing.location.label ?? 'Location not published'}
                   </p>
+                  {price ? (
+                    <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
+                      {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                    </p>
+                  ) : null}
                   <p className="mkt-hint">{postedLabel(listing.publishedAt)}</p>
                 </div>
               </article>

@@ -17,6 +17,8 @@ import {
   coverImage,
   EMPTY_BROWSE,
   LISTING_METHODS,
+  listingCardPrice,
+  listingCardTitle,
   METHOD_LABEL,
   parseBrowseState,
   productPath,
@@ -307,11 +309,13 @@ function BrowseContent() {
           <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px')}>
             {(listings.data?.listings ?? []).map((listing) => {
               const image = thumbUrl(listing);
+              const title = listingCardTitle(listing);
+              const price = listingCardPrice(listing);
               return (
                 <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
                   <Link
                     href={productPath(listing)}
-                    aria-label={listing.title.en ?? listing.listingReference}
+                    aria-label={title}
                     style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}
                   >
                     {image ? (
@@ -329,9 +333,9 @@ function BrowseContent() {
                     </span>
                   </Link>
                   <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
-                    <h3 style={css('margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35')}>
+                    <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
                       <Link href={productPath(listing)} style={css('color: #15191E')}>
-                        {listing.title.en ?? listing.title.ar ?? 'Untitled listing'}
+                        {title}
                       </Link>
                     </h3>
                     <p style={css('margin: 4px 0 0; font-size: 13px; color: #5B636B')}>
@@ -340,8 +344,10 @@ function BrowseContent() {
                     <p style={css('margin: 0; font-size: 13px; color: #5B636B')}>
                       {listing.condition ? listing.condition.replace('_', ' ') : 'Condition not stated'} · {listing.category.key}
                     </p>
-                    {listing.listingMethod === 'fixed_price' && typeof listing.priceMinor === 'number' ? (
-                      <p style={css('margin: 0; font-size: 15px; font-weight: 700; color: #15191E')}>{fmtMinor(listing.priceMinor)}</p>
+                    {price ? (
+                      <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
+                        {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                      </p>
                     ) : null}
                   </div>
                 </article>

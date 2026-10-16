@@ -11,7 +11,15 @@ import { css, PAGE_ROOT } from '../../../lib/css';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtBusinessDateTime, fmtMinor, qarToMinor, relativeTimeLabel } from '../../../lib/format';
 import { useSession } from '../../../lib/session';
-import { AUDIENCE_LABEL, METHOD_LABEL, productPath, type AttributeField, type PublicListing } from '../../../lib/listings';
+import {
+  AUDIENCE_LABEL,
+  listingCardPrice,
+  listingCardTitle,
+  METHOD_LABEL,
+  productPath,
+  type AttributeField,
+  type PublicListing,
+} from '../../../lib/listings';
 import { useLive } from '../../../lib/live';
 import '../product.css';
 
@@ -860,6 +868,8 @@ export default function ProductPage() {
           <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px')}>
             {relatedListings.map((entry) => {
               const cover = entry.media.find((item) => item.assetId === entry.coverAssetId) ?? entry.media[0] ?? null;
+              const title = listingCardTitle(entry);
+              const price = listingCardPrice(entry);
               return (
                 <Fragment key={entry.listingReference}>
                   <article className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden')}>
@@ -871,14 +881,19 @@ export default function ProductPage() {
                       )}
                     </Link>
                     <div style={css('padding: 14px 16px 16px')}>
-                      <h3 style={css('margin: 0; font-size: 15px; font-weight: 600')}>
+                      <h3 style={css('margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase')}>
                         <Link href={productPath(entry)} style={css('color: #15191E')}>
-                          {entry.title.en ?? entry.title.ar ?? entry.listingReference}
+                          {title}
                         </Link>
                       </h3>
                       <p className="mkt-hint" style={css('margin-top: 6px')}>
                         {METHOD_LABEL[entry.listingMethod]} · {entry.location.label ?? 'Location not published'}
                       </p>
+                      {price ? (
+                        <p style={css('margin: 8px 0 0; font-size: 17px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
+                          {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                        </p>
+                      ) : null}
                     </div>
                   </article>
                 </Fragment>
