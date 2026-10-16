@@ -483,7 +483,7 @@ export default function HomePage() {
             <div>
               <h3 style={css('margin: 0; font-size: 17px; font-weight: 600')}>Staff-published listings</h3>
               <p style={css('margin: 4px 0 0; color: #5B636B; font-size: 15px')}>
-                Nothing appears here unless an operator published it against a real seller and category.
+                Nothing appears here unless an operator published it against a real category.
               </p>
             </div>
           </div>

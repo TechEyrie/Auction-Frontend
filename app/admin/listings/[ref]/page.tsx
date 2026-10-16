@@ -174,7 +174,7 @@ export default function AdminListingWizardPage() {
 
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [locations, setLocations] = useState<LocationOption[]>([]);
-  const [sellers, setSellers] = useState<SellerOption[]>([]);
+  const [sellers, setSellers] = useState<SellerOption[]>([]); // seller picker commented out; fetch kept for restore
 
   const formRef = useRef<FormState | null>(null);
   formRef.current = form;
@@ -493,6 +493,7 @@ export default function AdminListingWizardPage() {
   }
 
   const statusTone = listing.status === 'published' ? 'good' : listing.status === 'archived' ? 'warn' : 'neutral';
+  void sellers; // seller picker commented out; state/fetch kept for easy restore
 
   return (
     <div className="lw-wizard" style={css('display: flex; flex-direction: column; gap: 16px')}>
@@ -571,6 +572,7 @@ export default function AdminListingWizardPage() {
         {step === 'basics' && (
           <div className="adm-form lw-step-panel">
             <div className="adm-grid adm-grid--2">
+              {/* Seller picker hidden for now — existing sellerReference is kept on the listing.
               <div>
                 <Label htmlFor="w-seller">Seller</Label>
                 <select
@@ -593,6 +595,7 @@ export default function AdminListingWizardPage() {
                 <Hint>Sellers are offline records created by staff — a listing never creates an account.</Hint>
                 <FieldError>{fieldError(fieldErrors, 'sellerReference')}</FieldError>
               </div>
+              */}
               <div>
                 <Label htmlFor="w-category">Category</Label>
                 <select id="w-category" className="field" value={form.categoryKey} disabled={!mayManage} onChange={(event) => void chooseCategory(event.target.value)}>
@@ -1142,7 +1145,7 @@ export default function AdminListingWizardPage() {
               <div>
                 <div className="lbl">References</div>
                 <p className="adm-hint">
-                  seller {form.sellerReference} · category {form.categoryKey} ·{' '}
+                  category {form.categoryKey} ·{' '}
                   {form.locationKey ? `location ${form.locationKey}` : 'no public location'}
                 </p>
               </div>

@@ -131,6 +131,7 @@ function ProductFormFields({
   locations: LocationOption[];
   disabled?: boolean;
 }) {
+  void sellers; // seller picker commented out; prop kept for easy restore
   const category = categories.find((entry) => entry.key === form.categoryKey);
   const methods = category?.listingMethods.length ? category.listingMethods : LISTING_METHODS;
   const conditions = conditionOptionsFor(form.listingMethod);
@@ -139,6 +140,7 @@ function ProductFormFields({
   return (
     <div className="adm-form adm-form--modal">
       <div className="adm-grid adm-grid--2">
+        {/* Seller picker hidden for now — create auto-attaches an active seller behind the scenes.
         <div>
           <Label htmlFor="pf-seller">Seller</Label>
           <select
@@ -156,6 +158,7 @@ function ProductFormFields({
             ))}
           </select>
         </div>
+        */}
         <div>
           <Label htmlFor="pf-audience">Audience</Label>
           <select
@@ -494,8 +497,17 @@ export default function AdminListingsPage() {
 
   async function submitAdd(event: FormEvent): Promise<void> {
     event.preventDefault();
-    if (!addForm.sellerReference || !addForm.categoryKey || !addForm.audience) {
-      setError('Choose a seller, audience (Men or Women), and category.');
+    if (!addForm.categoryKey || !addForm.audience) {
+      setError('Choose audience (Men or Women) and category.');
+      return;
+    }
+    const sellerReference =
+      addForm.sellerReference ||
+      sellerList.find((seller) => seller.status === 'active')?.sellerReference ||
+      sellerList[0]?.sellerReference ||
+      '';
+    if (!sellerReference) {
+      setError('No seller record exists yet. Create one under Sellers, then try again.');
       return;
     }
     setBusy(true);
@@ -504,7 +516,7 @@ export default function AdminListingsPage() {
     try {
       const created = await apiFetch<{ listing: AdminListing }>('/api/admin/listings', {
         method: 'POST',
-        json: { sellerReference: addForm.sellerReference, categoryKey: addForm.categoryKey },
+        json: { sellerReference, categoryKey: addForm.categoryKey },
         headers: session.authHeaders(),
       });
       const ref = created.listing.listingReference;
@@ -598,7 +610,7 @@ export default function AdminListingsPage() {
               className="field"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Reference, title or seller"
+              placeholder="Reference or title"
             />
           </div>
           <div className="adm-filter">
@@ -621,6 +633,7 @@ export default function AdminListingsPage() {
               ))}
             </select>
           </div>
+          {/* Seller filter hidden for now
           <div className="adm-filter">
             <Label htmlFor="l-seller">Seller</Label>
             <select id="l-seller" className="field" value={sellerReference} onChange={(event) => setSellerReference(event.target.value)}>
@@ -632,6 +645,7 @@ export default function AdminListingsPage() {
               ))}
             </select>
           </div>
+          */}
           <div className="adm-filter">
             <Label htmlFor="l-method">Type</Label>
             <select id="l-method" className="field" value={methodFilter} onChange={(event) => setMethodFilter(event.target.value)}>
@@ -684,7 +698,6 @@ export default function AdminListingsPage() {
                   <th scope="col">Type</th>
                   <th scope="col">Audience</th>
                   <th scope="col">Live</th>
-                  <th scope="col">Seller</th>
                   <th scope="col">Updated</th>
                   <th scope="col">Actions</th>
                 </tr>
@@ -707,7 +720,6 @@ export default function AdminListingsPage() {
                     <td>
                       {listing.liveLotReference ? <Badge tone="good">Live auction</Badge> : '—'}
                     </td>
-                    <td className="wrap">{listing.seller.displayName}</td>
                     <td>{fmtBusinessDateTime(listing.updatedAt)}</td>
                     <td>
                       <div className="adm-row-actions">

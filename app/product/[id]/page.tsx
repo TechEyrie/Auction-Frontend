@@ -127,15 +127,6 @@ function ProductPageSkeleton() {
             <div className="product-skeleton-shimmer product-skeleton-block" />
             <div className="product-skeleton-shimmer product-skeleton-btn" />
           </div>
-          <div className="product-sidebar-card" style={css('gap: 12px')}>
-            <div style={css('display: flex; gap: 14px; align-items: center')}>
-              <div className="product-skeleton-shimmer" style={css('width: 52px; height: 52px; border-radius: 50%; flex-shrink: 0')} />
-              <div style={css('flex: 1; display: flex; flex-direction: column; gap: 8px')}>
-                <div className="product-skeleton-shimmer product-skeleton-line product-skeleton-line--lg" style={css('width: 60%')} />
-                <div className="product-skeleton-shimmer product-skeleton-line" style={css('width: 40%')} />
-              </div>
-            </div>
-          </div>
           <div className="product-skeleton-shimmer" style={css('height: 100px; border-radius: 20px')} />
         </aside>
       </div>
@@ -600,8 +591,8 @@ export default function ProductPage() {
                       {data.location.areaKey && data.location.publicPrecision !== 'city' ? ` · ${data.location.areaKey}` : ''}
                     </strong>
                     <span className="mkt-hint">
-                      Published at {data.location.publicPrecision} precision. Exact addresses are only shared when the
-                      seller agreed to it.
+                      Published at {data.location.publicPrecision} precision. Exact addresses are only shared when
+                      arranged with our team.
                     </span>
                   </>
                 )}
@@ -845,24 +836,6 @@ export default function ProductPage() {
               </div>
             </div>
 
-          </div>
-
-          <div className="product-sidebar-card" style={css('padding: 20px; gap: 12px')}>
-            <div style={css('display: flex; gap: 14px; align-items: center')}>
-              <span aria-hidden="true" style={css("width: 52px; height: 52px; border-radius: 50%; background: #15191E; color: #D4A84B; display: flex; align-items: center; justify-content: center; font-family: 'Schibsted Grotesk', sans-serif; font-weight: 700; font-size: 18px")}>
-                {data.seller.displayName.slice(0, 2).toUpperCase()}
-              </span>
-              <div style={css('min-width: 0')}>
-                <div style={css('font-weight: 700; display: flex; align-items: center; gap: 6px')}>
-                  {data.seller.displayName}
-                  {data.seller.verificationBadge && <span className="mkt-badge">Verified</span>}
-                </div>
-                <div className="mkt-hint">Seller {data.seller.sellerReference}</div>
-              </div>
-            </div>
-            <p className="mkt-hint">
-              Contact details are held by our team rather than published on the listing.
-            </p>
           </div>
 
           <div style={css('background: #F6EEDC; border-radius: 20px; padding: 20px')}>
