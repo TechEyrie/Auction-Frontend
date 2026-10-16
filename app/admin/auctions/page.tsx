@@ -5,7 +5,14 @@ import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from '
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '../../../lib/api';
 import { pageWindow } from '../../../lib/admin';
-import { fmtBusinessDateTime, fmtMinor, qarToMinor } from '../../../lib/format';
+import {
+  BUSINESS_TIMEZONE,
+  businessDatetimeLocalToUtcIso,
+  fmtBusinessDateTime,
+  fmtMinor,
+  qarToMinor,
+  toBusinessDatetimeLocalValue,
+} from '../../../lib/format';
 import { css } from '../../../lib/css';
 import {
   AUDIENCE_LABEL,
@@ -28,21 +35,19 @@ import {
   TableWrap,
 } from '../ui';
 
-function roundToMinute(date: Date): Date {
-  const next = new Date(date);
-  next.setSeconds(0, 0);
-  return next;
-}
-
-function toDatetimeLocalValue(date: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+function roundToQatarMinute(date: Date): Date {
+  // Snap the UTC instant so the Qatar wall-clock minute has zero seconds.
+  const asLocal = toBusinessDatetimeLocalValue(date);
+  return new Date(businessDatetimeLocalToUtcIso(asLocal));
 }
 
 function defaultOpenSchedule(): { startsAtLocal: string; endsAtLocal: string } {
-  const starts = roundToMinute(new Date());
-  const ends = roundToMinute(new Date(starts.getTime() + 4 * 3_600_000));
-  return { startsAtLocal: toDatetimeLocalValue(starts), endsAtLocal: toDatetimeLocalValue(ends) };
+  const starts = roundToQatarMinute(new Date());
+  const ends = new Date(starts.getTime() + 4 * 3_600_000);
+  return {
+    startsAtLocal: toBusinessDatetimeLocalValue(starts),
+    endsAtLocal: toBusinessDatetimeLocalValue(ends),
+  };
 }
 
 type ListingPage = { listings: AdminListing[]; page: number; limit: number; total: number; totalPages: number };
@@ -277,13 +282,16 @@ function AdminAuctionsContent() {
       setOpenError('Enter a valid increment in QAR (greater than zero)');
       return;
     }
-    const startsAt = new Date(startsAtLocal);
-    const endsAt = new Date(endsAtLocal);
-    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
-      setOpenError('Enter valid start and end times');
+    let startsAtIso: string;
+    let endsAtIso: string;
+    try {
+      startsAtIso = businessDatetimeLocalToUtcIso(startsAtLocal);
+      endsAtIso = businessDatetimeLocalToUtcIso(endsAtLocal);
+    } catch {
+      setOpenError('Enter valid start and end times (Qatar time)');
       return;
     }
-    if (endsAt.getTime() <= startsAt.getTime()) {
+    if (new Date(endsAtIso).getTime() <= new Date(startsAtIso).getTime()) {
       setOpenError('End time must be after start time');
       return;
     }
@@ -297,8 +305,8 @@ function AdminAuctionsContent() {
           listingReference: openTarget.listingReference,
           startingBidMinor: qarToMinor(startingQar),
           incrementMinor: qarToMinor(incrementQarNum),
-          startsAt: startsAt.toISOString(),
-          endsAt: endsAt.toISOString(),
+          startsAt: startsAtIso,
+          endsAt: endsAtIso,
         },
       });
       await apiFetch(`/api/admin/auctions/${created.auction.lotReference}/open`, {
@@ -655,7 +663,9 @@ function AdminAuctionsContent() {
               />
             </div>
           </div>
-          <Hint>Defaults: start now, end in 4 hours. Amounts are in QAR; times use your browser timezone.</Hint>
+          <Hint>
+            Defaults: start now, end in 4 hours. Amounts are in QAR; start/end times are Qatar time ({BUSINESS_TIMEZONE}), stored as UTC.
+          </Hint>
         </form>
       </Modal>
 

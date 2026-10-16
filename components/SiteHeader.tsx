@@ -10,15 +10,12 @@ const NAV = [
   { id: 'categories', label: 'Categories', href: '/categories' },
   { id: 'auctions', label: 'Live auctions', href: '/auctions', dot: true },
   { id: 'buy', label: 'Buy', href: '/browse' },
-  { id: 'sell', label: 'Sell', href: '/post' },
 ];
 
 const LANG_BTN =
   'height: 44px; padding: 0 14px; border: 1px solid #E6E4DF; background: #FFFFFF; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 600; color: #2A3036; cursor: pointer';
 const SIGN_IN =
   'height: 44px; padding: 0 16px; border-radius: 10px; display: flex; align-items: center; font-weight: 600; font-size: 15px; color: #15191E';
-const POST_AD =
-  'height: 44px; padding: 0 18px; border-radius: 10px; display: flex; align-items: center; gap: 8px; background: #9A6B12; color: #FFFFFF; font-weight: 600; font-size: 15px';
 const DOT_LINK = 'display: flex; align-items: center; gap: 8px';
 const ACTIVE = 'color: #9A6B12; font-weight: 700';
 
@@ -36,9 +33,8 @@ type Props = {
    */
   langLabel?: string;
   toggleLang?: () => void;
-  /* Post an ad is hidden on /post, and both links are hidden on /signin */
+  /* Sign-in is hidden on /signin */
   showSignIn?: boolean;
-  showPostAd?: boolean;
 };
 
 export default function SiteHeader({
@@ -48,7 +44,6 @@ export default function SiteHeader({
   langLabel,
   toggleLang,
   showSignIn = true,
-  showPostAd = true,
 }: Props) {
   const items = home
     ? [...NAV, { id: 'how', label: 'How it works', href: '#how' }]
@@ -114,12 +109,6 @@ export default function SiteHeader({
               // static markup matches the signed-out design instead of flashing an empty slot.
               <Link href="/signin" className="btn-ghost" style={css(SIGN_IN)}>Sign in</Link>
             ))}
-          {showPostAd && (
-            <Link href="/post" className="btn-primary" style={css(POST_AD)}>
-              <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" aria-hidden="true"><path d="M12 5v14 M5 12h14"></path></svg>
-              Post an ad
-            </Link>
-          )}
         </div>
       </div>
     </header>

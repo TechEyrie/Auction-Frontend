@@ -302,7 +302,7 @@ export default function AdminListingsPage() {
                   <th scope="col">Type</th>
                   <th scope="col">Audience</th>
                   <th scope="col">Live</th>
-                  <th scope="col">Updated</th>
+                  <th scope="col">Updated (Qatar)</th>
                   <th scope="col">Actions</th>
                 </tr>
               </thead>

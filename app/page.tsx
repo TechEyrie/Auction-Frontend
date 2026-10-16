@@ -462,10 +462,7 @@ export default function HomePage() {
             </p>
           </div>
           <div style={css('display: flex; flex-wrap: wrap; gap: 12px')}>
-            <Link href="/post" style={css('height: 52px; padding: 0 24px; border-radius: 12px; background: #FFFFFF; color: #9A6B12; font-weight: 700; display: flex; align-items: center')}>
-              Submit an item
-            </Link>
-            <Link href="/contact" style={css('height: 52px; padding: 0 24px; border-radius: 12px; border: 1.5px solid #E3C78C; color: #FFFFFF; font-weight: 600; display: flex; align-items: center')}>
+            <Link href="/contact" style={css('height: 52px; padding: 0 24px; border-radius: 12px; background: #FFFFFF; color: #9A6B12; font-weight: 700; display: flex; align-items: center')}>
               Talk to the team
             </Link>
           </div>

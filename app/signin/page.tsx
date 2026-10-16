@@ -159,7 +159,7 @@ export default function SignInPage() {
   return (
     <div style={css(PAGE_ROOT)}>
       <title>Sign in — Araq &amp; Kahraman Auctions</title>
-      <SiteHeader showSignIn={false} showPostAd={false} />
+      <SiteHeader showSignIn={false} />
 
       {/* @generated */}
       <div style={css("max-width: 1120px; margin: 0 auto; padding: 48px 24px 80px; display: flex; flex-wrap: wrap; gap: 0; align-items: stretch")}>

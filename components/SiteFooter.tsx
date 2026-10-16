@@ -56,7 +56,6 @@ export default function SiteFooter({ minimal, apps, safetyHref = '/help', career
           <Link href="/categories">All categories</Link>
           <Link href="/auctions">Live auctions</Link>
           <Link href="/browse">Latest ads</Link>
-          <Link href="/post">Post an ad</Link>
         </nav>
         <nav aria-label="Company" style={css(COL)}>
           <span style={css(COL_HEAD)}>Company</span>

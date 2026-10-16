@@ -12,8 +12,11 @@ export function qarToMinor(qar: number): number {
   return Math.round(qar * 100);
 }
 
-/** Business auction times display in Qatar (stored and transported as UTC). */
+/** Business times display in Qatar (stored and transported as UTC). */
 export const BUSINESS_TIMEZONE = 'Asia/Qatar';
+
+/** Asia/Qatar has no DST; used when encoding datetime-local values as wall-clock Qatar time. */
+const QATAR_UTC_OFFSET = '+03:00';
 
 export function fmtBusinessDateTime(iso: string): string {
   const date = new Date(iso);
@@ -23,6 +26,41 @@ export function fmtBusinessDateTime(iso: string): string {
     dateStyle: 'medium',
     timeStyle: 'short',
   });
+}
+
+/** Format an instant as `YYYY-MM-DDTHH:mm` for `<input type="datetime-local">` in Qatar time. */
+export function toBusinessDatetimeLocalValue(date: Date): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone: BUSINESS_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    })
+      .formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  ) as Record<string, string>;
+  const hour = parts.hour === '24' ? '00' : parts.hour;
+  return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}`;
+}
+
+/**
+ * Parse a datetime-local string as Qatar wall-clock time and return a UTC ISO instant.
+ * `new Date('YYYY-MM-DDTHH:mm')` would wrongly use the browser's timezone.
+ */
+export function businessDatetimeLocalToUtcIso(value: string): string {
+  const trimmed = value.trim();
+  const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::\d{2})?$/.exec(trimmed);
+  if (!match) throw new Error('Invalid datetime');
+  const base = match[1]!;
+  const withSeconds = /T\d{2}:\d{2}:\d{2}$/.test(trimmed) ? trimmed : `${base}:00`;
+  const date = new Date(`${withSeconds}${QATAR_UTC_OFFSET}`);
+  if (Number.isNaN(date.getTime())) throw new Error('Invalid datetime');
+  return date.toISOString();
 }
 
 export function relativeTimeLabel(iso: string): string {

@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clock, fmt, fmtBusinessDateTime, fmtMinor, qarToMinor } from './format.ts';
+import {
+  businessDatetimeLocalToUtcIso,
+  clock,
+  fmt,
+  fmtBusinessDateTime,
+  fmtMinor,
+  qarToMinor,
+  toBusinessDatetimeLocalValue,
+} from './format.ts';
 
 test('fmt', () => {
   assert.equal(fmt(182000), '182,000 QAR');
@@ -13,9 +21,17 @@ test('fmtMinor', () => {
 });
 
 test('fmtBusinessDateTime uses Qatar zone', () => {
+  // 12:00 UTC = 15:00 in Asia/Qatar (UTC+3)
   const label = fmtBusinessDateTime('2026-06-15T12:00:00.000Z');
   assert.match(label, /Jun/);
-  assert.match(label, /\d/);
+  assert.match(label, /3:00/);
+});
+
+test('toBusinessDatetimeLocalValue and businessDatetimeLocalToUtcIso round-trip in Qatar', () => {
+  const local = toBusinessDatetimeLocalValue(new Date('2026-06-15T12:00:00.000Z'));
+  assert.equal(local, '2026-06-15T15:00');
+  assert.equal(businessDatetimeLocalToUtcIso('2026-06-15T15:00'), '2026-06-15T12:00:00.000Z');
+  assert.equal(businessDatetimeLocalToUtcIso('2026-06-15T15:00:00'), '2026-06-15T12:00:00.000Z');
 });
 
 test('qarToMinor', () => {

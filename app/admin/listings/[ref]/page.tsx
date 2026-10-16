@@ -7,6 +7,7 @@ import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../../lib/api';
 import { css } from '../../../../lib/css';
 import { useSession } from '../../../../lib/session';
 import { fieldError, formatBytes } from '../../../../lib/admin';
+import { BUSINESS_TIMEZONE, fmtBusinessDateTime } from '../../../../lib/format';
 import {
   attributePayload,
   AUDIENCE_LABEL,
@@ -1259,8 +1260,22 @@ export default function AdminListingWizardPage() {
               <dd style={css('margin: 4px 0 0')}>{listing.updatedBy ?? '—'}</dd>
             </div>
             <div>
+              <dt className="lbl">Created</dt>
+              <dd style={css('margin: 4px 0 0')}>
+                {fmtBusinessDateTime(listing.createdAt)} ({BUSINESS_TIMEZONE})
+              </dd>
+            </div>
+            <div>
+              <dt className="lbl">Updated</dt>
+              <dd style={css('margin: 4px 0 0')}>
+                {fmtBusinessDateTime(listing.updatedAt)} ({BUSINESS_TIMEZONE})
+              </dd>
+            </div>
+            <div>
               <dt className="lbl">Published</dt>
-              <dd style={css('margin: 4px 0 0')}>{listing.publishedAt ? new Date(listing.publishedAt).toLocaleString() : '—'}</dd>
+              <dd style={css('margin: 4px 0 0')}>
+                {listing.publishedAt ? `${fmtBusinessDateTime(listing.publishedAt)} (${BUSINESS_TIMEZONE})` : '—'}
+              </dd>
             </div>
             <div>
               <dt className="lbl">Archived reason</dt>

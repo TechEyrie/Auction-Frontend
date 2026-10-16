@@ -28,6 +28,7 @@ import {
   type ListingMethod,
   type LocalizedText,
 } from '../../../lib/listings';
+import { BUSINESS_TIMEZONE, fmtBusinessDateTime } from '../../../lib/format';
 import type { SessionValue } from '../../../lib/session';
 import { Badge, ErrorNote, GhostButton, Hint, Label, Modal, PrimaryButton, Toggle } from '../ui';
 import './listings.css';
@@ -452,9 +453,25 @@ export default function ProductEditorModal({
   }
 
   const title = mode === 'add' ? (ref ? 'Add product' : 'Add product') : 'Edit product';
+  const timeBits = listing
+    ? [
+        listing.createdAt ? `Created ${fmtBusinessDateTime(listing.createdAt)}` : null,
+        listing.updatedAt ? `Updated ${fmtBusinessDateTime(listing.updatedAt)}` : null,
+        listing.publishedAt ? `Published ${fmtBusinessDateTime(listing.publishedAt)}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
   const subtitle = ref
-    ? `${listing?.status ?? 'draft'} · ${METHOD_LABEL[form.listingMethod]}${listing?.publicUrl ? ` · ${listing.publicUrl}` : ''}`
-    : 'Fill in everything here — basics, copy, details, photos, then save or publish.';
+    ? [
+        `${listing?.status ?? 'draft'} · ${METHOD_LABEL[form.listingMethod]}`,
+        listing?.publicUrl ?? null,
+        timeBits || null,
+        `Times ${BUSINESS_TIMEZONE}`,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : `Fill in everything here — basics, copy, details, photos, then save or publish. Times use ${BUSINESS_TIMEZONE}.`;
 
   const canPublish =
     mayManage &&
