@@ -105,6 +105,8 @@ export type PublicListing = {
   coverAssetId: string | null;
   seller: { sellerReference: string; displayName: string; verificationBadge: boolean };
   featured: boolean;
+  priceMinor: number | null;
+  availability: 'available' | 'sold';
   publishedAt: string | null;
   updatedAt: string;
   liveLotReference?: string | null;

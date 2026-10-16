@@ -8,6 +8,7 @@ import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { API_BASE_URL, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
+import { fmtMinor } from '../../lib/format';
 import { useAsync } from '../../lib/useAsync';
 import {
   applyBrowseChange,
@@ -339,6 +340,9 @@ function BrowseContent() {
                     <p style={css('margin: 0; font-size: 13px; color: #5B636B')}>
                       {listing.condition ? listing.condition.replace('_', ' ') : 'Condition not stated'} · {listing.category.key}
                     </p>
+                    {listing.listingMethod === 'fixed_price' && typeof listing.priceMinor === 'number' ? (
+                      <p style={css('margin: 0; font-size: 15px; font-weight: 700; color: #15191E')}>{fmtMinor(listing.priceMinor)}</p>
+                    ) : null}
                   </div>
                 </article>
               );

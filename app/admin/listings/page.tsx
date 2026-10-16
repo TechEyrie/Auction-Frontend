@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useCallback, useMemo, useState } from 'react';
 import { apiFetch, ApiRequestError } from '../../../lib/api';
+import { qarToMinor } from '../../../lib/format';
 import { fmtBusinessDateTime } from '../../../lib/format';
 import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
@@ -63,6 +64,7 @@ type ProductFormState = {
   descAr: string;
   featured: boolean;
   adminNotes: string;
+  priceQar: string;
 };
 
 function defaultForm(categoryKey = '', sellerReference = ''): ProductFormState {
@@ -80,6 +82,7 @@ function defaultForm(categoryKey = '', sellerReference = ''): ProductFormState {
     descAr: '',
     featured: false,
     adminNotes: '',
+    priceQar: '',
   };
 }
 
@@ -107,6 +110,9 @@ function basicsPayload(form: ProductFormState): Record<string, unknown> {
     coverAssetId: null,
     featured: form.featured,
     adminNotes: form.adminNotes.trim() ? form.adminNotes.trim() : null,
+    ...(form.listingMethod === 'fixed_price' && form.priceQar.trim()
+      ? { priceMinor: qarToMinor(Number(form.priceQar)) }
+      : {}),
   };
 }
 
@@ -217,6 +223,22 @@ function ProductFormFields({
             ))}
           </select>
         </div>
+        {form.listingMethod === 'fixed_price' ? (
+          <div>
+            <Label htmlFor="pf-price">Price (QAR)</Label>
+            <input
+              id="pf-price"
+              className="field"
+              type="number"
+              min={1}
+              step="0.01"
+              disabled={disabled}
+              value={form.priceQar}
+              onChange={(event) => setForm({ ...form, priceQar: event.target.value })}
+              placeholder="e.g. 450"
+            />
+          </div>
+        ) : null}
         <div>
           <Label htmlFor="pf-language">Advertisement language</Label>
           <select
@@ -410,6 +432,7 @@ export default function AdminListingsPage() {
           descAr: listing.description.ar ?? '',
           featured: listing.featured,
           adminNotes: listing.adminNotes ?? '',
+          priceQar: listing.priceMinor ? String(listing.priceMinor / 100) : '',
         });
       } catch (err) {
         setError(apiMessage(err));

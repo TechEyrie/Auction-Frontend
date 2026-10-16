@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, Fragment, useEffect, useMemo, useState } from 'react';
 import SiteFooter from '../../../components/SiteFooter';
 import SiteHeader from '../../../components/SiteHeader';
@@ -124,7 +124,12 @@ export default function ProductPage() {
   const [flashAmountMinor, setFlashAmountMinor] = useState<number | null>(null);
   const [flashBidCount, setFlashBidCount] = useState<number | null>(null);
   const [optimisticBids, setOptimisticBids] = useState<PublicBidRow[]>([]);
+  const router = useRouter();
   const productReturnTo = id ? `/product/${encodeURIComponent(id)}` : '/';
+  const [buyOpen, setBuyOpen] = useState(false);
+  const [buyBusy, setBuyBusy] = useState(false);
+  const [buyError, setBuyError] = useState<string | null>(null);
+  const [buyForm, setBuyForm] = useState({ fullName: '', phone: '', city: '', address: '' });
 
   const listing = useAsync<{ listing: PublicListing }>(
     () => apiFetch<{ listing: PublicListing }>(`/api/listings/${encodeURIComponent(id)}`, { cache: 'no-store' }),
@@ -148,6 +153,13 @@ export default function ProductPage() {
 
   const liveLotRef = listing.data?.listing.liveLotReference ?? null;
   const viewerReference = session.user?.publicReference ?? null;
+  const account = useAsync<{ orders: Array<{ orderReference: string; listingReference: string; paymentState: string }> }>(
+    () =>
+      session.status === 'authenticated'
+        ? apiFetch('/api/account', { cache: 'no-store', headers: session.authHeaders() })
+        : Promise.resolve({ orders: [] }),
+    [session.status, viewerReference],
+  );
   const liveAuction = useAsync<{ auction: LiveAuctionSnapshot } | null>(
     () => {
       if (!liveLotRef) return Promise.resolve(null);
@@ -377,6 +389,32 @@ export default function ProductPage() {
         : (minimumMinor / 100).toFixed(2)
       : '';
   const auctionLive = fetchedAuction?.status === 'live';
+  const unpaidWinOrder = account.data?.orders.find(
+    (order) =>
+      order.listingReference === data.listingReference &&
+      (order.paymentState === 'awaiting_payment' || order.paymentState === 'failed'),
+  );
+
+  const submitBuy = async (event: FormEvent) => {
+    event.preventDefault();
+    if (session.status !== 'authenticated') {
+      router.push(`/signin?returnTo=${encodeURIComponent(productReturnTo)}`);
+      return;
+    }
+    setBuyError(null);
+    setBuyBusy(true);
+    try {
+      const result = await apiFetch<{ order: { orderReference: string } }>(
+        `/api/listings/${encodeURIComponent(data.listingReference)}/buy`,
+        { method: 'POST', headers: session.authHeaders(), json: buyForm },
+      );
+      router.push(`/account/orders/${encodeURIComponent(result.order.orderReference)}`);
+    } catch (err) {
+      setBuyError(err instanceof ApiRequestError ? err.message : err instanceof Error ? err.message : 'Buy could not be completed');
+    } finally {
+      setBuyBusy(false);
+    }
+  };
 
   return (
     <div style={css(PAGE_ROOT)}>
@@ -597,17 +635,14 @@ export default function ProductPage() {
                 {bidMessage ? (
                   <p role="status" style={css('margin: 0; font-weight: 600')}>{bidMessage}</p>
                 ) : null}
-                <div style={css('display: flex; flex-wrap: wrap; gap: 10px')}>
+                {!auctionLive && unpaidWinOrder ? (
                   <Link
-                    href={`/contact?ref=${encodeURIComponent(data.listingReference)}`}
-                    className="live-auction-outline-btn"
+                    href={`/account/orders/${encodeURIComponent(unpaidWinOrder.orderReference)}`}
+                    style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 18px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}
                   >
-                    Enquire about this listing
+                    Checkout — pay winning bid
                   </Link>
-                  <Link href="/account" className="live-auction-outline-btn">
-                    Your bids and wins
-                  </Link>
-                </div>
+                ) : null}
                 <p className="mkt-hint" role="status" style={css('margin: 0; font-size: 13px; color: #5B636B')}>
                   {liveSocket ? 'Live bid updates enabled.' : 'Checking for new bids every 15 seconds.'}
                 </p>
@@ -618,29 +653,75 @@ export default function ProductPage() {
                   This listing is recorded for auction. Staff will open bidding on this listing when it should begin — there is no
                   bid button until then.
                 </p>
-                <div style={css('display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px')}>
-                  <Link href={`/contact?ref=${encodeURIComponent(data.listingReference)}`} style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 18px; border: 1px solid #15191E; border-radius: 12px; font-weight: 700')}>
-                    Enquire about this listing
+                {unpaidWinOrder ? (
+                  <Link
+                    href={`/account/orders/${encodeURIComponent(unpaidWinOrder.orderReference)}`}
+                    style={css('display: inline-flex; align-items: center; height: 48px; margin-top: 12px; padding: 0 18px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}
+                  >
+                    Checkout — pay winning bid
                   </Link>
-                  <Link href="/account" style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 18px; border: 1px solid #DAD7D0; border-radius: 12px; font-weight: 600')}>
-                    Your bids and wins
+                ) : null}
+              </div>
+            ) : data.listingMethod === 'fixed_price' ? (
+              <div style={css('padding: 14px 16px; border-radius: 14px; background: #F6EEDC; color: #3D3420; display: grid; gap: 12px')}>
+                {data.availability === 'sold' ? (
+                  <>
+                    <span className="mkt-badge" style={css('justify-self: start')}>Sold</span>
+                    <p className="mkt-hint" style={css('margin: 0')}>This item has been sold.</p>
+                  </>
+                ) : typeof data.priceMinor === 'number' ? (
+                  <>
+                    <div style={css("font-family: 'Schibsted Grotesk', sans-serif; font-size: 28px; font-weight: 700")}>
+                      {fmtMinor(data.priceMinor)}
+                    </div>
+                    {!buyOpen ? (
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={css('justify-self: start; height: 48px; padding: 0 20px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}
+                        onClick={() => {
+                          if (session.status === 'anonymous') {
+                            router.push(`/signin?returnTo=${encodeURIComponent(productReturnTo)}`);
+                            return;
+                          }
+                          setBuyOpen(true);
+                        }}
+                      >
+                        Buy now
+                      </button>
+                    ) : (
+                      <form onSubmit={(event) => void submitBuy(event)} style={css('display: grid; gap: 10px')}>
+                        <p style={css('margin: 0; font-weight: 600')}>Checkout details</p>
+                        {(['fullName', 'phone', 'city', 'address'] as const).map((field) => (
+                          <label key={field} style={css('display: grid; gap: 4px; font-size: 14px')}>
+                            <span style={css('text-transform: capitalize')}>{field === 'fullName' ? 'Full name' : field}</span>
+                            <input
+                              className="field"
+                              required
+                              value={buyForm[field]}
+                              onChange={(event) => setBuyForm({ ...buyForm, [field]: event.target.value })}
+                            />
+                          </label>
+                        ))}
+                        <button type="submit" disabled={buyBusy} style={css('height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}>
+                          {buyBusy ? 'Creating order…' : 'Continue to payment'}
+                        </button>
+                        {buyError ? <p role="alert" style={css('margin: 0; color: #8B1A1A')}>{buyError}</p> : null}
+                      </form>
+                    )}
+                  </>
+                ) : (
+                  <p className="mkt-hint" style={css('margin: 0')}>Price is not published for this listing yet.</p>
+                )}
+                {unpaidWinOrder ? (
+                  <Link href={`/account/orders/${encodeURIComponent(unpaidWinOrder.orderReference)}`} style={css('font-weight: 700')}>
+                    Complete your order →
                   </Link>
-                </div>
+                ) : null}
               </div>
             ) : (
-              <div style={css('padding: 14px 16px; border-radius: 14px; background: #F6EEDC; color: #3D3420')}>
-                <strong style={css('display: block; margin-bottom: 4px')}>No published price yet</strong>
-                <p className="mkt-hint" style={css('color: #3D3420')}>
-                  Fixed-price checkout is not available. Send an enquiry and our team will follow up with pricing.
-                </p>
-                <div style={css('display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px')}>
-                  <Link href={`/contact?ref=${encodeURIComponent(data.listingReference)}`} className="btn-primary" style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 18px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}>
-                    Enquire about this listing
-                  </Link>
-                  <Link href="/account" style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 18px; border: 1px solid #DAD7D0; border-radius: 12px; font-weight: 600')}>
-                    Your bids and wins
-                  </Link>
-                </div>
+              <div style={css('padding: 14px 16px; border-radius: 14px; background: #FBFAF7; border: 1px solid #EEECE7; color: #3D3420')}>
+                <p className="mkt-hint" style={css('margin: 0')}>This is an enquiry listing. Contact our team through the marketplace intake flow.</p>
               </div>
             )}
 
@@ -679,12 +760,8 @@ export default function ProductPage() {
               </div>
             </div>
             <p className="mkt-hint">
-              Contact details are held by our team rather than published, so enquiries are handled through the
-              marketplace.
+              Contact details are held by our team rather than published on the listing.
             </p>
-            <Link href={`/contact?ref=${encodeURIComponent(data.listingReference)}`} style={css('font-weight: 600; font-size: 15px')}>
-              Send an enquiry →
-            </Link>
           </div>
 
           <div style={css('background: #F6EEDC; border-radius: 20px; padding: 20px')}>

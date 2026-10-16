@@ -70,6 +70,7 @@ type FormState = {
   coverAssetId: string | null;
   featured: boolean;
   adminNotes: string;
+  priceQar: string;
 };
 
 const STEPS = ['basics', 'content', 'attributes', 'media', 'review'] as const;
@@ -110,6 +111,7 @@ function formFrom(listing: AdminListing): FormState {
     coverAssetId: listing.coverAssetId,
     featured: listing.featured,
     adminNotes: listing.adminNotes ?? '',
+    priceQar: listing.priceMinor ? String(listing.priceMinor / 100) : '',
   };
 }
 
@@ -129,6 +131,9 @@ function payloadOf(form: FormState, fields: AttributeField[]): Record<string, un
     coverAssetId: form.coverAssetId,
     featured: form.featured,
     adminNotes: form.adminNotes.trim() ? form.adminNotes : null,
+    ...(form.listingMethod === 'fixed_price' && form.priceQar.trim()
+      ? { priceMinor: Math.round(Number(form.priceQar) * 100) }
+      : {}),
   };
 }
 
@@ -643,6 +648,22 @@ export default function AdminListingWizardPage() {
                 <Hint>A published listing is not a live auction: the auction engine arrives in the next phase.</Hint>
                 <FieldError>{fieldError(fieldErrors, 'listingMethod')}</FieldError>
               </div>
+              {form.listingMethod === 'fixed_price' ? (
+                <div>
+                  <Label htmlFor="w-price">Price (QAR)</Label>
+                  <input
+                    id="w-price"
+                    className="field"
+                    type="number"
+                    min={1}
+                    step="0.01"
+                    disabled={!mayManage}
+                    value={form.priceQar}
+                    onChange={(event) => setForm({ ...form, priceQar: event.target.value })}
+                  />
+                  <FieldError>{fieldError(fieldErrors, 'priceMinor')}</FieldError>
+                </div>
+              ) : null}
               <div>
                 <Label htmlFor="w-language">Advertisement language</Label>
                 <select id="w-language" className="field" value={form.languageMode} disabled={!mayManage} onChange={(event) => setForm({ ...form, languageMode: event.target.value as LanguageMode })}>
