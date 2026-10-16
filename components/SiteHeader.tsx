@@ -11,6 +11,7 @@ import type { MessageKey } from '../lib/uiMessages';
 
 const UI_CITY_STORAGE_KEY = 'araq-ui-city';
 const DEFAULT_CITY = 'Doha';
+const HEADER_FLOAT_SCROLL_THRESHOLD = 16;
 
 type NavItem = {
   id: string;
@@ -107,6 +108,7 @@ export default function SiteHeader({
   const { lang, setLang, t } = useUiLocale();
   const signedInName = session.user?.fullName ?? null;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [headerFloating, setHeaderFloating] = useState(false);
   const [selectedCity, setSelectedCity] = useState(DEFAULT_CITY);
   const [cityMenu, setCityMenu] = useState<'desktop' | 'drawer' | null>(null);
   const menuId = useId();
@@ -118,6 +120,15 @@ export default function SiteHeader({
     if (stored && QATAR_PLACES.some((place) => place.value === stored)) {
       setSelectedCity(stored);
     }
+  }, []);
+
+  useEffect(() => {
+    const syncFloating = () => {
+      setHeaderFloating(window.scrollY > HEADER_FLOAT_SCROLL_THRESHOLD);
+    };
+    syncFloating();
+    window.addEventListener('scroll', syncFloating, { passive: true });
+    return () => window.removeEventListener('scroll', syncFloating);
   }, []);
 
   useEffect(() => {
@@ -346,7 +357,7 @@ export default function SiteHeader({
   }
 
   return (
-    <header className="site-header">
+    <header className={headerFloating ? 'site-header site-header--floating' : 'site-header'}>
       <div className="site-header__inner">
         <BrandMark home={home} homeLabel={t('header.brandHome')} />
 
