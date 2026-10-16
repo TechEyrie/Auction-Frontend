@@ -2,9 +2,17 @@ import type { NextConfig } from 'next';
 
 const backendOrigin = process.env.BACKEND_URL ?? 'http://localhost:4000';
 
-/** Proxy /api to the Express backend when the client uses a same-origin API base (empty NEXT_PUBLIC_API_BASE_URL). */
+/**
+ * Proxy /api → backend when the browser uses a same-origin API base (empty NEXT_PUBLIC_API_BASE_URL).
+ * Skip rewriting to localhost in production builds — Vercel cannot reach private/loopback hosts
+ * (DNS_HOSTNAME_RESOLVED_PRIVATE) and that broke listing images on auction-frontend-rouge.
+ */
 const nextConfig: NextConfig = {
   async rewrites() {
+    const isLoopback = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(backendOrigin);
+    if (process.env.NODE_ENV === 'production' && isLoopback) {
+      return [];
+    }
     return [
       {
         source: '/api/:path*',

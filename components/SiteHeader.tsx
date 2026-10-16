@@ -120,8 +120,38 @@ export default function SiteHeader({
     await session.logout();
   }
 
-  const accountLinks = showSignIn ? (
+  const authButton =
+    showSignIn && signedInName ? (
+      <button type="button" className="site-header__action site-header__auth-btn site-header__signout" onClick={() => void handleSignOut()}>
+        Sign out
+      </button>
+    ) : showSignIn ? (
+      <Link href="/signin" className="site-header__action site-header__action--primary site-header__auth-btn">
+        Sign in
+      </Link>
+    ) : null;
+
+  const desktopAccount = showSignIn ? (
     signedInName ? (
+      <>
+        <Link href="/account" className="site-header__action">
+          Account
+        </Link>
+        {session.capabilities.length > 0 ? (
+          <Link href="/admin" className="site-header__action">
+            Admin
+          </Link>
+        ) : null}
+        <span className="site-header__user">{signedInName}</span>
+        {authButton}
+      </>
+    ) : (
+      authButton
+    )
+  ) : null;
+
+  const drawerAccount =
+    showSignIn && signedInName ? (
       <>
         <Link href="/account" className="site-header__action" onClick={() => setMenuOpen(false)}>
           Account
@@ -132,16 +162,8 @@ export default function SiteHeader({
           </Link>
         ) : null}
         <span className="site-header__user">{signedInName}</span>
-        <button type="button" className="site-header__action site-header__signout" onClick={() => void handleSignOut()}>
-          Sign out
-        </button>
       </>
-    ) : (
-      <Link href="/signin" className="site-header__action site-header__action--primary" onClick={() => setMenuOpen(false)}>
-        Sign in
-      </Link>
-    )
-  ) : null;
+    ) : null;
 
   return (
     <header className="site-header">
@@ -158,7 +180,8 @@ export default function SiteHeader({
               {langLabel}
             </button>
           ) : null}
-          <div className="site-header__actions-desktop">{accountLinks}</div>
+          <div className="site-header__actions-desktop">{desktopAccount}</div>
+          <div className="site-header__actions-mobile">{authButton}</div>
           <button
             type="button"
             className="site-header__menu-btn"
@@ -189,7 +212,7 @@ export default function SiteHeader({
             <nav aria-label="Mobile" className="site-header__drawer-nav">
               {items.map((item) => renderNavItem(item, () => setMenuOpen(false)))}
             </nav>
-            <div className="site-header__drawer-foot">{accountLinks}</div>
+            {drawerAccount ? <div className="site-header__drawer-foot">{drawerAccount}</div> : null}
           </div>
         </div>
       ) : null}

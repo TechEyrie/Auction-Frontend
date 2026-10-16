@@ -9,12 +9,25 @@
 /** Local dev backend; used when NEXT_PUBLIC_API_BASE_URL is unset (not when explicitly empty). */
 const DEV_API_BASE_URL = 'http://localhost:4000';
 
+/**
+ * Production API host (Render). Used when the public env var is unset so Vercel never falls back
+ * to same-origin `/api` rewrites aimed at localhost (that yields broken images and DNS errors).
+ */
+const PRODUCTION_API_BASE_URL = 'https://auction-backend-7zcn.onrender.com';
+
 function resolveApiBaseUrl(): string {
   const raw = process.env.NEXT_PUBLIC_API_BASE_URL;
-  // When the env var is set (including to ""), honor it — empty means same-origin /api rewrites.
-  if (raw !== undefined) return raw.trim();
+  if (raw !== undefined) {
+    const trimmed = raw.trim();
+    // Empty string = same-origin `/api` rewrites (local NEXT + BACKEND_URL).
+    // Never ship that mode to Vercel without a public BACKEND_URL — default to Render.
+    if (trimmed === '' && process.env.NODE_ENV === 'production') {
+      return PRODUCTION_API_BASE_URL;
+    }
+    return trimmed;
+  }
   if (process.env.NODE_ENV === 'development') return DEV_API_BASE_URL;
-  return '';
+  return PRODUCTION_API_BASE_URL;
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
