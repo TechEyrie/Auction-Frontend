@@ -885,9 +885,9 @@ export default function ProductPage() {
               return (
                 <Fragment key={entry.listingReference}>
                   <article className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden')}>
-                    <Link href={productPath(entry)} style={css('height: 150px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
+                    <Link href={productPath(entry)} className="listing-card-media" aria-label={title}>
                       {cover ? (
-                        <img src={mediaUrl(API_BASE_URL, cover.url)} alt={cover.alt.en ?? entry.title.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
+                        <img src={mediaUrl(API_BASE_URL, cover.url)} alt={cover.alt.en ?? entry.title.en ?? ''} loading="lazy" />
                       ) : (
                         <span className="mkt-hint">No image</span>
                       )}
@@ -898,7 +898,7 @@ export default function ProductPage() {
                           {title}
                         </Link>
                       </h3>
-                      <p className="mkt-hint" style={css('margin-top: 6px')}>
+                      <p className="listing-card-meta" style={css('margin-top: 6px')}>
                         {METHOD_LABEL[entry.listingMethod]} · {entry.location.label ?? 'Location not published'}
                       </p>
                       {price ? (

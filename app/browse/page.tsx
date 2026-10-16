@@ -388,16 +388,11 @@ function BrowseContent() {
                 const price = listingCardPrice(listing);
                 return (
                   <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                    <Link
-                      href={productPath(listing)}
-                      aria-label={title}
-                      style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}
-                    >
+                    <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
                       {image ? (
                         <img
                           src={image}
                           alt={listing.media.find((entry) => entry.assetId === listing.coverAssetId)?.alt.en ?? listing.title.en ?? 'Listing image'}
-                          style={css('width: 100%; height: 100%; object-fit: cover')}
                           loading="lazy"
                         />
                       ) : (
@@ -413,10 +408,10 @@ function BrowseContent() {
                           {title}
                         </Link>
                       </h3>
-                      <p style={css('margin: 4px 0 0; font-size: 13px; color: #5B636B')}>
+                      <p className="listing-card-meta" style={css('margin-top: 4px')}>
                         {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
                       </p>
-                      <p style={css('margin: 0; font-size: 13px; color: #5B636B')}>
+                      <p className="listing-card-meta">
                         {listing.condition ? listing.condition.replace('_', ' ') : 'Condition not stated'} · {listing.category.key}
                       </p>
                       {price ? (

@@ -104,9 +104,9 @@ export default function AuctionsPage() {
             const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={title} style={css('position: relative; height: 180px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
+                <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
                   {cover ? (
-                    <img src={mediaUrl(API_BASE_URL, cover.url)} alt={cover.alt.en ?? listing.title.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
+                    <img src={mediaUrl(API_BASE_URL, cover.url)} alt={cover.alt.en ?? listing.title.en ?? ''} loading="lazy" />
                   ) : (
                     <span className="mkt-hint">No image</span>
                   )}
@@ -122,11 +122,11 @@ export default function AuctionsPage() {
                       {title}
                     </Link>
                   </h3>
-                  <p className="mkt-hint">
+                  <p className="listing-card-meta">
                     {METHOD_LABEL[listing.listingMethod]}
                     {listing.condition ? ` · ${listing.condition.replace('_', ' ')}` : ''}
                   </p>
-                  <p className="mkt-hint">
+                  <p className="listing-card-meta">
                     {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
                   </p>
                   {price ? (

@@ -326,8 +326,8 @@ export default function HomePage() {
             const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={title} style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
-                  {image.url ? <img src={image.url} alt={image.alt} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" /> : <span className="mkt-hint">No image</span>}
+                <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
+                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">No image</span>}
                   {live ? (
                     <span style={css('position: absolute; top: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 700')}>
                       Live
@@ -340,7 +340,7 @@ export default function HomePage() {
                       {title}
                     </Link>
                   </h3>
-                  <p className="mkt-hint">
+                  <p className="listing-card-meta">
                     {listing.category.key} · {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
                   </p>
                   {price ? (
@@ -443,8 +443,8 @@ export default function HomePage() {
             const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={title} style={css('position: relative; height: 170px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
-                  {image.url ? <img src={image.url} alt={image.alt} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" /> : <span className="mkt-hint">No image</span>}
+                <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
+                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">No image</span>}
                 </Link>
                 <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
                   <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
@@ -452,7 +452,7 @@ export default function HomePage() {
                       {title}
                     </Link>
                   </h3>
-                  <p className="mkt-hint">
+                  <p className="listing-card-meta">
                     {METHOD_LABEL[listing.listingMethod]}
                     {listing.condition ? ` · ${listing.condition.replace('_', ' ')}` : ''} · {listing.location.label ?? 'Location not published'}
                   </p>

@@ -7,6 +7,29 @@ a{color:#9A6B12;text-decoration:none}a:hover{color:#7D5610}
 .btn-ghost:hover{background:#F3F1EC !important}
 .card{transition:transform .18s ease, box-shadow .18s ease}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 32px -18px rgba(21,25,30,.35)}
+.listing-card-media{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  width:100%;
+  aspect-ratio:1 / 1;
+  background:#F3F1EC;
+}
+.listing-card-media img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+}
+.listing-card-meta{
+  margin:0;
+  color:#5B636B;
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:0.02em;
+}
 .cat:hover{border-color:#9A6B12 !important;background:#FCF8EF !important}
 .local-info-bar__social:hover{color:#9A6B12 !important;background:#F6EEDC}
 .cat-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
