@@ -664,7 +664,8 @@ function AdminAuctionsContent() {
             </div>
           </div>
           <Hint>
-            Defaults: start now, end in 4 hours. Amounts are in QAR; start/end times are Qatar time ({BUSINESS_TIMEZONE}), stored as UTC.
+            Start/end are Qatar time ({BUSINESS_TIMEZONE}), not your PC clock. Defaults use Qatar “now”.
+            The public catalogue only shows the product while that start–end window contains the real current time (UTC under the hood).
           </Hint>
         </form>
       </Modal>
