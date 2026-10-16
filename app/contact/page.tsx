@@ -7,14 +7,45 @@ import SiteHeader from '../../components/SiteHeader';
 import { apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useSession } from '../../lib/session';
+import {
+  CONTACT_EMAIL,
+  mailtoHref,
+  OFFICE_ADDRESS,
+  PHONE_DISPLAY,
+  telHref,
+  whatsappChatUrl,
+} from '../../lib/siteContact';
 import './contact.css';
 
-const CHANNELS = [
-  { k: 'Phone', v: '+974 [XXXX XXXX]', d: 'M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z' },
-  { k: 'WhatsApp', v: '+974 [XXXX XXXX]', d: 'M4 5h16v11H8l-4 4z M8 10h8' },
-  { k: 'Email', v: '[info@yourdomain.com]', d: 'M3 6h18v12H3z M3 7l9 6 9-6' },
-  { k: 'Office', v: '[Street, area], Doha, Qatar', d: 'M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z M12 8a2 2 0 1 0 0 4a2 2 0 1 0 0-4z' },
-  { k: 'Opening hours', v: '[Sat–Thu, 9 AM – 6 PM]', d: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 7v5l3 2' },
+const CHANNELS: Array<{ k: string; v: string; d: string; href?: string }> = [
+  {
+    k: 'Phone',
+    v: PHONE_DISPLAY,
+    href: telHref(),
+    d: 'M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z',
+  },
+  {
+    k: 'WhatsApp',
+    v: PHONE_DISPLAY,
+    href: whatsappChatUrl(),
+    d: 'M4 5h16v11H8l-4 4z M8 10h8',
+  },
+  {
+    k: 'Email',
+    v: CONTACT_EMAIL,
+    href: mailtoHref(),
+    d: 'M3 6h18v12H3z M3 7l9 6 9-6',
+  },
+  {
+    k: 'Office',
+    v: OFFICE_ADDRESS,
+    d: 'M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z M12 8a2 2 0 1 0 0 4a2 2 0 1 0 0-4z',
+  },
+  {
+    k: 'Opening hours',
+    v: 'Sat–Thu, 9 AM – 6 PM',
+    d: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 7v5l3 2',
+  },
 ];
 
 export default function ContactPage() {
@@ -162,7 +193,17 @@ export default function ContactPage() {
               </span>
               <div style={css("min-width: 0")}>
                 <div style={css("font-size: 13px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em")}>{c.k}</div>
-                <div style={css("font-weight: 600")}>{c.v}</div>
+                {c.href ? (
+                  <a
+                    href={c.href}
+                    style={css("font-weight: 600; color: #15191E; word-break: break-word")}
+                    {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  >
+                    {c.v}
+                  </a>
+                ) : (
+                  <div style={css("font-weight: 600")}>{c.v}</div>
+                )}
               </div>
             </div>
             </Fragment>
@@ -171,7 +212,7 @@ export default function ContactPage() {
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#9A6B12" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z M12 8a2 2 0 1 0 0 4a2 2 0 1 0 0-4z"></path>
             </svg>
-            <span style={css("font-size: 14px")}>[Map appears here]</span>
+            <span style={css("font-size: 14px; font-weight: 600; color: #2A3036")}>{OFFICE_ADDRESS}</span>
           </div>
         </aside>
       </div>
