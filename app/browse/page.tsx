@@ -10,6 +10,9 @@ import { API_BASE_URL, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { fmtMinor } from '../../lib/format';
 import { useAsync } from '../../lib/useAsync';
+import { useUiLocale } from '../../lib/UiLocaleProvider';
+import { localizedText, type UiLang } from '../../lib/uiLocale';
+import { conditionLabel, methodLabel } from '../../lib/uiMessages';
 import {
   applyBrowseChange,
   browseIsFiltered,
@@ -18,7 +21,6 @@ import {
   LISTING_METHODS,
   listingCardPrice,
   listingCardTitle,
-  METHOD_LABEL,
   parseBrowseState,
   mediaUrl,
   productPath,
@@ -47,19 +49,21 @@ function thumbUrl(listing: PublicListing): string | null {
   return url ? mediaUrl(API_BASE_URL, url) : null;
 }
 
-function postedLabel(iso: string | null): string {
-  if (!iso) return 'Draft';
+type Translate = ReturnType<typeof useUiLocale>['t'];
+
+function postedLabel(iso: string | null, t: Translate, lang: UiLang): string {
+  if (!iso) return t('browse.draft');
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  if (days < 30) return `${days} days ago`;
-  return new Date(iso).toLocaleDateString();
+  if (days <= 0) return t('common.today');
+  if (days === 1) return t('common.yesterday');
+  if (days < 30) return t('common.daysAgo', { n: days });
+  return new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-QA' : undefined);
 }
 
-function loadingStatusLabel(state: BrowseState): string {
-  if (state.q) return 'Searching listings…';
-  if (browseIsFiltered(state)) return 'Filtering listings…';
-  return 'Loading listings…';
+function loadingStatusLabel(state: BrowseState, t: Translate): string {
+  if (state.q) return t('browse.searching');
+  if (browseIsFiltered(state)) return t('browse.filtering');
+  return t('browse.loading');
 }
 
 function BrowseListingSkeletonGrid({ count = SKELETON_COUNT }: { count?: number }) {
@@ -82,6 +86,7 @@ function BrowseListingSkeletonGrid({ count = SKELETON_COUNT }: { count?: number 
 
 function BrowseContent() {
   const router = useRouter();
+  const { lang, t } = useUiLocale();
   const searchParams = useSearchParams();
   const state = useMemo(() => parseBrowseState(new URLSearchParams(searchParams.toString())), [searchParams]);
 
@@ -146,22 +151,21 @@ function BrowseContent() {
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>Browse listings — Araq &amp; Kahraman Auctions</title>
+      <title>{t('browse.title')}</title>
       <SiteHeader active="buy" />
 
       <section style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
         <div style={css('max-width: 1240px; margin: 0 auto; padding: 28px 24px 32px')}>
           <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
-            <Link href="/">Home</Link> <span aria-hidden="true">/</span> Browse
+            <Link href="/">{t('common.home')}</Link> <span aria-hidden="true">/</span> {t('browse.breadcrumb')}
           </nav>
           <div style={css('display: flex; flex-wrap: wrap; gap: 20px; align-items: end; justify-content: space-between')}>
             <div>
               <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2rem, 3.6vw, 2.75rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.1")}>
-                Browse inventory
+                {t('browse.h1')}
               </h1>
               <p style={css('margin: 8px 0 0; color: #5B636B')}>
-                Published listings from our catalogue. Prices, bids and buyer premiums are not shown until those
-                features are approved.
+                {t('browse.lead')}
               </p>
             </div>
             <form
@@ -173,23 +177,23 @@ function BrowseContent() {
               style={css('flex: 0 1 480px; min-width: 0; display: flex; gap: 8px; padding: 6px; border: 1px solid #DAD7D0; border-radius: 14px; background: #FFFFFF')}
             >
               <label htmlFor="bq" className="sr">
-                Search listings
+                {t('browse.searchLabel')}
               </label>
               <input
                 id="bq"
                 type="search"
                 value={searchText}
                 onChange={(event) => setSearchText(event.target.value)}
-                placeholder="Search listings…"
+                placeholder={t('browse.searchPlaceholder')}
                 style={css('flex: 1; min-width: 0; height: 44px; border: 0; padding: 0 12px; font: inherit; font-size: 15px; background: transparent')}
               />
               <button type="submit" className="btn-primary" style={css('height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                Search
+                {t('common.search')}
               </button>
             </form>
           </div>
           <div style={css('margin-top: 22px; max-width: 520px')}>
-            <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>Shop for</p>
+            <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>{t('common.shopFor')}</p>
             <AudiencePicker value={state.audience} onChange={(audience) => update({ audience })} />
           </div>
         </div>
@@ -203,25 +207,25 @@ function BrowseContent() {
             aria-expanded={filtersOpen}
             onClick={() => setFiltersOpen((open) => !open)}
           >
-            {filtersOpen ? 'Hide filters' : 'Show filters'}
-            {browseIsFiltered(state) ? ' · active' : ''}
+            {filtersOpen ? t('browse.hideFilters') : t('browse.showFilters')}
+            {browseIsFiltered(state) ? t('browse.activeSuffix') : ''}
           </button>
         </div>
         <aside
-          aria-label="Filters"
+          aria-label={t('browse.filters')}
           className={filtersOpen ? 'browse-filters is-open' : 'browse-filters'}
           style={css('flex: 1 1 260px; min-width: 0; max-width: 100%; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 26px')}
         >
           <div style={css('display: flex; justify-content: space-between; align-items: center')}>
-            <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 20px; font-weight: 700")}>Filters</h2>
+            <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 20px; font-weight: 700")}>{t('browse.filters')}</h2>
             <button type="button" onClick={() => router.push('/browse')} style={css('height: 36px; padding: 0 10px; border: 0; background: transparent; color: #9A6B12; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}>
-              Clear all
+              {t('browse.clearAll')}
             </button>
           </div>
 
           <div>
-            <span className="lbl">Category</span>
-            {categories.error && <p className="mkt-hint">Categories could not be loaded.</p>}
+            <span className="lbl">{t('browse.category')}</span>
+            {categories.error && <p className="mkt-hint">{t('browse.categoriesError')}</p>}
             <div style={css('display: flex; flex-direction: column; gap: 4px')}>
               <button
                 type="button"
@@ -229,7 +233,7 @@ function BrowseContent() {
                 aria-pressed={state.category === ''}
                 style={css(`height: 42px; padding: 0 12px; border: 0; border-radius: 10px; text-align: left; font: inherit; font-size: 15px; cursor: pointer; background: ${state.category === '' ? '#F6EEDC' : 'transparent'}; color: ${state.category === '' ? '#7D5610' : '#2A3036'}; font-weight: ${state.category === '' ? 700 : 500}`)}
               >
-                All categories
+                {t('browse.allCategories')}
               </button>
               {roots.map((root) => (
                 <button
@@ -246,7 +250,7 @@ function BrowseContent() {
           </div>
 
           <div>
-            <span className="lbl">Listing method</span>
+            <span className="lbl">{t('browse.listingMethod')}</span>
             <div style={css('display: flex; gap: 8px; flex-wrap: wrap')}>
               {LISTING_METHODS.map((method) => {
                 const on = state.method === method;
@@ -258,7 +262,7 @@ function BrowseContent() {
                     aria-pressed={on}
                     style={css(`height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid ${on ? '#15191E' : '#DAD7D0'}; background: ${on ? '#15191E' : '#FFFFFF'}; color: ${on ? '#FFFFFF' : '#2A3036'}`)}
                   >
-                    {METHOD_LABEL[method]}
+                    {methodLabel(lang, method)}
                   </button>
                 );
               })}
@@ -266,7 +270,7 @@ function BrowseContent() {
           </div>
 
           <div>
-            <span className="lbl">Condition</span>
+            <span className="lbl">{t('browse.condition')}</span>
             <div style={css('display: flex; gap: 8px; flex-wrap: wrap')}>
               {(['new', 'like_new', 'used', 'refurbished'] as const).map((condition) => {
                 const on = state.condition === condition;
@@ -278,7 +282,7 @@ function BrowseContent() {
                     aria-pressed={on}
                     style={css(`height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid ${on ? '#15191E' : '#DAD7D0'}; background: ${on ? '#15191E' : '#FFFFFF'}; color: ${on ? '#FFFFFF' : '#2A3036'}`)}
                   >
-                    {condition.replace('_', ' ')}
+                    {conditionLabel(lang, condition)}
                   </button>
                 );
               })}
@@ -287,10 +291,10 @@ function BrowseContent() {
 
           <div>
             <label htmlFor="loc" className="lbl">
-              City
+              {t('browse.city')}
             </label>
             <select id="loc" className="field" value={state.city} onChange={(event) => update({ city: event.target.value })} style={css('cursor: pointer')}>
-              <option value="">All cities</option>
+              <option value="">{t('browse.allCities')}</option>
               {[...new Set((locations.data?.locations ?? []).map((location) => location.cityKey))].map((cityKey) => (
                 <option key={cityKey} value={cityKey}>
                   {cityKey}
@@ -300,21 +304,21 @@ function BrowseContent() {
           </div>
 
           <div>
-            <span className="lbl">Placement</span>
+            <span className="lbl">{t('browse.placement')}</span>
             <button
               type="button"
               onClick={() => update({ featured: !state.featured })}
               aria-pressed={state.featured}
               style={css(`height: 42px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; border: 1px solid ${state.featured ? '#15191E' : '#DAD7D0'}; background: ${state.featured ? '#15191E' : '#FFFFFF'}; color: ${state.featured ? '#FFFFFF' : '#2A3036'}`)}
             >
-              Featured listings only
+              {t('browse.featuredOnly')}
             </button>
           </div>
 
           <Link href="/auctions" style={css('display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 14px; background: #F6EEDC; color: #15191E')}>
             <span style={css('font-size: 14px')}>
-              <strong style={css('display: block')}>Auction listings</strong>
-              See what is being prepared for auction →
+              <strong style={css('display: block')}>{t('browse.auctionPromoTitle')}</strong>
+              {t('browse.auctionPromoBody')}
             </span>
           </Link>
         </aside>
@@ -323,17 +327,17 @@ function BrowseContent() {
           <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px')}>
             {isUpdating ? (
               <p className="browse-status-pulse" role="status" aria-live="polite">
-                {loadingStatusLabel(state)}
+                {loadingStatusLabel(state, t)}
               </p>
             ) : (
               <p style={css('margin: 0; color: #2A3036')} role="status">
-                <strong>{listings.data?.total ?? 0}</strong> {listings.data?.total === 1 ? 'listing' : 'listings'}
-                {browseIsFiltered(state) && <span className="mkt-hint"> · filtered</span>}
+                <strong>{listings.data?.total ?? 0}</strong> {listings.data?.total === 1 ? t('browse.listing') : t('browse.listings')}
+                {browseIsFiltered(state) && <span className="mkt-hint">{t('browse.filtered')}</span>}
               </p>
             )}
             <div style={css('display: flex; align-items: center; gap: 10px')}>
               <label htmlFor="sort" style={css('font-size: 14px; color: #5B636B')}>
-                Sort by
+                {t('browse.sortBy')}
               </label>
               <select
                 id="sort"
@@ -343,9 +347,9 @@ function BrowseContent() {
                 onChange={(event) => update({ sort: event.target.value as BrowseState['sort'] })}
                 style={css('width: auto; height: 42px; cursor: pointer')}
               >
-                <option value="recent">Newest first</option>
-                <option value="title">Title (A–Z)</option>
-                <option value="featured">Featured first</option>
+                <option value="recent">{t('browse.sortRecent')}</option>
+                <option value="title">{t('browse.sortTitle')}</option>
+                <option value="featured">{t('browse.sortFeatured')}</option>
               </select>
             </div>
           </div>
@@ -354,21 +358,21 @@ function BrowseContent() {
             <div role="alert" className="mkt-state" data-state="error">
               <p style={css('margin: 0 0 10px; font-weight: 600')}>{listings.error}</p>
               <button type="button" onClick={() => listings.reload()} className="btn-primary" style={css('height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                Retry
+                {t('common.retry')}
               </button>
             </div>
           )}
 
           {showEmpty && (
             <div style={css('background: #FFFFFF; border: 1px dashed #DAD7D0; border-radius: 18px; padding: 56px 24px; text-align: center')}>
-              <h3 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>No listings match</h3>
+              <h3 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>{t('browse.emptyTitle')}</h3>
               <p style={css('margin: 8px 0 20px; color: #5B636B')}>
                 {browseIsFiltered(state)
-                  ? 'Try a different category, city or search term.'
-                  : 'Nothing has been published yet. Listings appear here as soon as our team publishes them.'}
+                  ? t('browse.emptyFiltered')
+                  : t('browse.emptyNone')}
               </p>
               <button type="button" onClick={() => router.push('/browse')} className="btn-primary" style={css('height: 46px; padding: 0 20px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                Clear filters
+                {t('browse.clearFilters')}
               </button>
             </div>
           )}
@@ -376,7 +380,7 @@ function BrowseContent() {
           {isUpdating ? (
             <>
               <span className="sr" role="status" aria-live="polite">
-                {loadingStatusLabel(state)}
+                {loadingStatusLabel(state, t)}
               </span>
               <BrowseListingSkeletonGrid />
             </>
@@ -384,7 +388,7 @@ function BrowseContent() {
             <div className="browse-grid">
               {resultListings.map((listing) => {
                 const image = thumbUrl(listing);
-                const title = listingCardTitle(listing);
+                const title = listingCardTitle(listing, lang);
                 const price = listingCardPrice(listing);
                 return (
                   <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
@@ -392,14 +396,14 @@ function BrowseContent() {
                       {image ? (
                         <img
                           src={image}
-                          alt={listing.media.find((entry) => entry.assetId === listing.coverAssetId)?.alt.en ?? listing.title.en ?? 'Listing image'}
+                          alt={localizedText(listing.media.find((entry) => entry.assetId === listing.coverAssetId)?.alt, lang) || localizedText(listing.title, lang, t('common.listingImage'))}
                           loading="lazy"
                         />
                       ) : (
-                        <span className="mkt-hint">No image</span>
+                        <span className="mkt-hint">{t('common.noImage')}</span>
                       )}
                       <span style={css('position: absolute; left: 10px; top: 10px; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; font-size: 12px; font-weight: 600; color: #2A3036')}>
-                        {listing.listingMethod === 'auction' ? 'Auction listing' : listing.listingMethod === 'fixed_price' ? 'Fixed price' : 'Enquiry'}
+                        {listing.listingMethod === 'auction' ? t('method.auctionListing') : methodLabel(lang, listing.listingMethod)}
                       </span>
                     </Link>
                     <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
@@ -409,14 +413,14 @@ function BrowseContent() {
                         </Link>
                       </h3>
                       <p className="listing-card-meta" style={css('margin-top: 4px')}>
-                        {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
+                        {listing.location.label ?? t('common.locationNotPublished')} · {postedLabel(listing.publishedAt, t, lang)}
                       </p>
                       <p className="listing-card-meta">
-                        {listing.condition ? listing.condition.replace('_', ' ') : 'Condition not stated'} · {listing.category.key}
+                        {listing.condition ? conditionLabel(lang, listing.condition) : t('browse.conditionNotStated')} · {listing.category.key}
                       </p>
                       {price ? (
                         <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                          {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                          {price.kind === 'starting' ? t('common.starting', { price: fmtMinor(price.minor) }) : fmtMinor(price.minor)}
                         </p>
                       ) : null}
                     </div>
@@ -427,7 +431,7 @@ function BrowseContent() {
           )}
 
           {!isUpdating && totalPages > 1 && (
-            <nav aria-label="Pagination" style={css('display: flex; justify-content: center; gap: 8px; margin-top: 36px; flex-wrap: wrap')}>
+            <nav aria-label={t('browse.pagination')} style={css('display: flex; justify-content: center; gap: 8px; margin-top: 36px; flex-wrap: wrap')}>
               <button
                 type="button"
                 disabled={page <= 1}
@@ -435,7 +439,7 @@ function BrowseContent() {
                 className="btn-ghost"
                 style={css('height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #E6E4DF; background: #FFFFFF; color: #15191E; font: inherit; font-weight: 600; cursor: pointer')}
               >
-                ← Previous
+                {t('browse.previous')}
               </button>
               {pages.map((entry, index) =>
                 entry === '…' ? (
@@ -461,7 +465,7 @@ function BrowseContent() {
                 className="btn-ghost"
                 style={css('height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #E6E4DF; background: #FFFFFF; color: #15191E; font: inherit; font-weight: 600; cursor: pointer')}
               >
-                Next →
+                {t('browse.next')}
               </button>
             </nav>
           )}
@@ -474,6 +478,7 @@ function BrowseContent() {
 }
 
 export default function BrowsePage() {
+  const { t } = useUiLocale();
   return (
     <Suspense
       fallback={
@@ -481,7 +486,7 @@ export default function BrowsePage() {
           <SiteHeader active="buy" />
           <div style={css('max-width: 1240px; margin: 0 auto; padding: 32px 24px 72px')}>
             <p className="browse-status-pulse" role="status" style={css('margin: 0 0 18px')}>
-              Loading listings…
+              {t('browse.loading')}
             </p>
             <BrowseListingSkeletonGrid />
           </div>

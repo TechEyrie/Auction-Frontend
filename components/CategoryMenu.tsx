@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
+import { useUiLocale } from '../lib/UiLocaleProvider';
 
 type Option = { key: string; name: string };
 
@@ -20,10 +21,13 @@ export default function CategoryMenu({
   value,
   options,
   onChange,
-  label = 'Category',
-  allLabel = 'All categories',
+  label,
+  allLabel,
   className = '',
 }: Props) {
+  const { t } = useUiLocale();
+  label = label ?? t('browse.category');
+  allLabel = allLabel ?? t('browse.allCategories');
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const listId = useId();

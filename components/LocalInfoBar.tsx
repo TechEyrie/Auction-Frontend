@@ -9,6 +9,8 @@ import {
   qatarDateKey,
 } from '../lib/prayerTimes';
 import { whatsappChatUrl } from '../lib/siteContact';
+import { useUiLocale } from '../lib/UiLocaleProvider';
+import type { MessageKey } from '../lib/uiMessages';
 
 /** Doha — used for weather and prayer times on the public catalogue. */
 const DOHA = { lat: 25.2854, lon: 51.531, city: 'Doha', country: 'QA' };
@@ -27,21 +29,30 @@ const SOCIAL = [
   { id: 'snapchat', label: 'Snapchat', href: 'https://www.snapchat.com/' },
 ] as const;
 
-type WeatherState = { tempC: number; label: string; isDay: boolean } | null;
+type WeatherState = { tempC: number; labelKey: MessageKey; isDay: boolean } | null;
 type PrayerState = { name: string; time: string } | null;
 
-function weatherLabel(code: number): string {
-  if (code === 0) return 'Clear Sky';
-  if (code === 1) return 'Mainly Clear';
-  if (code === 2) return 'Partly Cloudy';
-  if (code === 3) return 'Overcast';
-  if (code === 45 || code === 48) return 'Fog';
-  if (code >= 51 && code <= 67) return 'Rain';
-  if (code >= 71 && code <= 77) return 'Snow';
-  if (code >= 80 && code <= 82) return 'Showers';
-  if (code >= 95) return 'Thunderstorm';
-  return 'Doha';
+function weatherLabelKey(code: number): MessageKey {
+  if (code === 0) return 'weather.clear';
+  if (code === 1) return 'weather.mainlyClear';
+  if (code === 2) return 'weather.partlyCloudy';
+  if (code === 3) return 'weather.overcast';
+  if (code === 45 || code === 48) return 'weather.fog';
+  if (code >= 51 && code <= 67) return 'weather.rain';
+  if (code >= 71 && code <= 77) return 'weather.snow';
+  if (code >= 80 && code <= 82) return 'weather.showers';
+  if (code >= 95) return 'weather.thunderstorm';
+  return 'weather.doha';
 }
+
+const PRAYER_KEYS: Record<string, MessageKey> = {
+  Fajr: 'prayer.Fajr',
+  Sunrise: 'prayer.Sunrise',
+  Dhuhr: 'prayer.Dhuhr',
+  Asr: 'prayer.Asr',
+  Maghrib: 'prayer.Maghrib',
+  Isha: 'prayer.Isha',
+};
 
 function SocialIcon({ id }: { id: (typeof SOCIAL)[number]['id'] }) {
   const common = {
@@ -109,6 +120,7 @@ function SocialIcon({ id }: { id: (typeof SOCIAL)[number]['id'] }) {
  * Doha weather, social strip, and next prayer — sits above the category browse block.
  */
 export default function LocalInfoBar() {
+  const { t } = useUiLocale();
   const [weather, setWeather] = useState<WeatherState>(null);
   const [prayer, setPrayer] = useState<PrayerState>(null);
   const [prayerFailed, setPrayerFailed] = useState(false);
@@ -134,7 +146,7 @@ export default function LocalInfoBar() {
         if (cancelled) return;
         setWeather({
           tempC: Math.round(current.temperature_2m),
-          label: weatherLabel(current.weather_code ?? 0),
+          labelKey: weatherLabelKey(current.weather_code ?? 0),
           isDay: current.is_day === 1,
         });
       } catch {
@@ -205,7 +217,7 @@ export default function LocalInfoBar() {
   }, []);
 
   return (
-    <section aria-label="Doha weather, social links and next prayer" className="local-info-bar" style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
+    <section aria-label={t('info.ariaLabel')} className="local-info-bar" style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
       <div className="local-info-bar__inner">
         <div className="local-info-bar__weather">
           <span style={css('color: #9A6B12; display: flex; flex-shrink: 0')} aria-hidden="true">
@@ -224,15 +236,15 @@ export default function LocalInfoBar() {
             <div style={css('font-size: 18px; font-weight: 800; color: #15191E; line-height: 1.1')}>
               {weather ? `${weather.tempC}°C` : '—°C'}
             </div>
-            <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>{weather?.label ?? 'Doha weather'}</div>
+            <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>{weather ? t(weather.labelKey) : t('info.dohaWeather')}</div>
           </div>
         </div>
 
         <div className="local-info-bar__socials">
           <span className="local-info-bar__socials-label" style={css('font-size: 14px; font-weight: 600; color: #2A3036')}>
-            Follow us on
+            {t('info.followUs')}
           </span>
-          <nav aria-label="Social media" style={css('display: flex; flex-wrap: wrap; align-items: center; gap: 8px')}>
+          <nav aria-label={t('info.social')} style={css('display: flex; flex-wrap: wrap; align-items: center; gap: 8px')}>
             {SOCIAL.map((entry) => (
               <a
                 key={entry.id}
@@ -257,13 +269,13 @@ export default function LocalInfoBar() {
             </svg>
           </span>
           <div>
-            <div style={css('font-size: 14px; font-weight: 800; color: #15191E; line-height: 1.15')}>Next Prayer</div>
+            <div style={css('font-size: 14px; font-weight: 800; color: #15191E; line-height: 1.15')}>{t('info.nextPrayer')}</div>
             <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>
               {prayer
-                ? `${prayer.name} ${prayer.time}`
+                ? `${PRAYER_KEYS[prayer.name] ? t(PRAYER_KEYS[prayer.name]) : prayer.name} ${prayer.time}`
                 : prayerFailed
-                  ? 'Unavailable'
-                  : 'Loading…'}
+                  ? t('info.unavailable')
+                  : t('info.loading')}
             </div>
           </div>
         </div>

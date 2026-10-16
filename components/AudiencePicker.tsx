@@ -1,7 +1,9 @@
 'use client';
 
 import { css } from '../lib/css';
-import { AUDIENCE_LABEL, type Audience } from '../lib/listings';
+import type { Audience } from '../lib/listings';
+import { useUiLocale } from '../lib/UiLocaleProvider';
+import type { MessageKey } from '../lib/uiMessages';
 
 type Props = {
   value: '' | Audience;
@@ -10,18 +12,19 @@ type Props = {
   variant?: 'hero' | 'inline';
 };
 
-const OPTIONS: Array<{ value: '' | Audience; label: string }> = [
-  { value: '', label: 'All' },
-  { value: 'men', label: AUDIENCE_LABEL.men },
-  { value: 'women', label: AUDIENCE_LABEL.women },
+const OPTIONS: Array<{ value: '' | Audience; label: MessageKey }> = [
+  { value: '', label: 'common.all' },
+  { value: 'men', label: 'common.men' },
+  { value: 'women', label: 'common.women' },
 ];
 
 export default function AudiencePicker({ value, onChange, variant = 'hero' }: Props) {
   const hero = variant === 'hero';
+  const { t } = useUiLocale();
   return (
     <div
       role="group"
-      aria-label="Shop for"
+      aria-label={t('common.shopFor')}
       style={css(
         hero
           ? 'display: flex; flex-wrap: wrap; gap: 10px; padding: 6px; border-radius: 16px; background: #FBFAF7; border: 1px solid #E6E4DF'
@@ -32,7 +35,7 @@ export default function AudiencePicker({ value, onChange, variant = 'hero' }: Pr
         const selected = value === option.value;
         return (
           <button
-            key={option.label}
+            key={option.value || 'all'}
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
@@ -42,7 +45,7 @@ export default function AudiencePicker({ value, onChange, variant = 'hero' }: Pr
                 : `height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid ${selected ? '#9A6B12' : '#E6E4DF'}; background: ${selected ? '#F6EEDC' : '#FFFFFF'}; color: ${selected ? '#7D5610' : '#2A3036'}; font: inherit; font-size: 14px; font-weight: ${selected ? 700 : 600}; cursor: pointer`,
             )}
           >
-            {option.label}
+            {t(option.label)}
           </button>
         );
       })}

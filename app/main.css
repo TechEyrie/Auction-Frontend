@@ -162,7 +162,7 @@ input:focus,select:focus,textarea:focus{outline:none}
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  text-align:left;
+  text-align:start;
 }
 .cat-menu__chevron{flex:0 0 auto;color:#5B636B;transition:transform .18s ease}
 .cat-menu.is-open .cat-menu__chevron{transform:rotate(180deg);color:#9A6B12}
@@ -196,7 +196,7 @@ input:focus,select:focus,textarea:focus{outline:none}
   font-size:14px;
   font-weight:600;
   color:#2A3036;
-  text-align:left;
+  text-align:start;
   cursor:pointer;
 }
 .cat-menu__list button:hover{background:#F6EEDC;color:#7D5610}
@@ -219,7 +219,7 @@ input:focus,select:focus,textarea:focus{outline:none}
 .mkt-state{margin:0 0 18px;padding:18px;border:1px dashed #DAD7D0;border-radius:12px;background:#FBFAF7;color:#5B636B}
 .mkt-state[data-state="error"]{border-style:solid;border-color:#E7C9C2;background:#FDF6F4;color:#8A2C11}
 
-/* —— How Our Auction Works —— */
+/* â€”â€” How Our Auction Works â€”â€” */
 .how-auction{padding-top:72px;padding-bottom:40px}
 .how-auction__header{text-align:center;max-width:640px;margin:0 auto 40px}
 .how-auction__title{
@@ -284,7 +284,7 @@ input:focus,select:focus,textarea:focus{outline:none}
   border:1px solid #E8E6E1;
   border-radius:14px;
   background:#FFFFFF;
-  text-align:left;
+  text-align:start;
   cursor:pointer;
   font:inherit;
   color:inherit;

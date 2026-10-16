@@ -8,6 +8,10 @@
  * typed into the payload the API expects, and explain what the server said afterwards.
  */
 
+import { localizedText, type UiLang } from './uiLocale.ts';
+
+export { localizedText };
+
 export type ListingMethod = 'auction' | 'fixed_price' | 'enquiry';
 export type LanguageMode = 'en' | 'ar' | 'both';
 export type ListingStatus = 'draft' | 'published' | 'archived';
@@ -530,9 +534,15 @@ export function coverImage(listing: { coverAssetId: string | null; media: Array<
   return cover?.url ?? listing.media[0]?.url ?? null;
 }
 
-/** Public listing cards always show the title in caps. */
-export function listingCardTitle(listing: { title: LocalizedText; listingReference?: string }): string {
-  const raw = listing.title.en ?? listing.title.ar ?? listing.listingReference ?? 'Untitled listing';
+/**
+ * Public listing cards always show the title in caps (a no-op for Arabic script). With `lang` 'ar'
+ * the Arabic title is preferred when present; otherwise the English title is used.
+ */
+export function listingCardTitle(
+  listing: { title: LocalizedText; listingReference?: string },
+  lang: UiLang = 'en',
+): string {
+  const raw = localizedText(listing.title, lang, listing.listingReference ?? 'Untitled listing');
   return raw.toUpperCase();
 }
 

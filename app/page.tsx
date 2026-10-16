@@ -11,13 +11,15 @@ import SiteHeader from '../components/SiteHeader';
 import { API_BASE_URL, apiFetch } from '../lib/api';
 import { css, PAGE_ROOT } from '../lib/css';
 import { useAsync } from '../lib/useAsync';
+import { useUiLocale } from '../lib/UiLocaleProvider';
+import { localizedText, type UiLang } from '../lib/uiLocale';
+import { conditionLabel, methodLabel, type MessageKey } from '../lib/uiMessages';
 import { useLive } from '../lib/live';
 import { fmtMinor } from '../lib/format';
 import {
   listingCardPrice,
   listingCardTitle,
   mediaUrl,
-  METHOD_LABEL,
   productPath,
   type ListingMethod,
   type PublicListing,
@@ -50,40 +52,38 @@ const ICON: Record<string, string> = {
 type Category = { key: string; name: string; parentKey: string | null; listingMethods: ListingMethod[] };
 type ListingsResponse = { listings: PublicListing[]; total: number };
 
-const AUCTION_STEPS = [
-  {
-    title: 'Register Your Account',
-    description: 'Create your account and complete your quick verification',
-  },
-  {
-    title: 'Browse Available Auctions',
-    description: 'Place bids, receive alerts and stay in control',
-  },
-  {
-    title: 'Place Your Bid',
-    description: 'Bid on your favorite items and monitor real-time auction updates.',
-  },
-  {
-    title: 'Win and Checkout',
-    description: 'If you win, proceed to checkout and complete the payment securely.',
-  },
+const AUCTION_STEPS: Array<{ id: number; title: MessageKey; description: MessageKey }> = [
+  { id: 1, title: 'home.step1Title', description: 'home.step1Desc' },
+  { id: 2, title: 'home.step2Title', description: 'home.step2Desc' },
+  { id: 3, title: 'home.step3Title', description: 'home.step3Desc' },
+  { id: 4, title: 'home.step4Title', description: 'home.step4Desc' },
 ];
 
-function cardImage(listing: PublicListing): { url: string | null; alt: string } {
+function cardImage(listing: PublicListing, lang: UiLang, fallbackAlt: string): { url: string | null; alt: string } {
   const cover = listing.media.find((entry) => entry.assetId === listing.coverAssetId) ?? listing.media[0] ?? null;
-  return { url: cover ? mediaUrl(API_BASE_URL, cover.url) : null, alt: cover?.alt.en ?? listing.title.en ?? 'Listing image' };
+  return {
+    url: cover ? mediaUrl(API_BASE_URL, cover.url) : null,
+    alt: (cover ? localizedText(cover.alt, lang) : '') || localizedText(listing.title, lang, fallbackAlt),
+  };
 }
 
-function postedLabel(iso: string | null): string {
-  if (!iso) return 'Not published';
+type Translate = ReturnType<typeof useUiLocale>['t'];
+
+function postedLabel(iso: string | null, t: Translate): string {
+  if (!iso) return t('common.notPublished');
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  return `${days} days ago`;
+  if (days <= 0) return t('common.today');
+  if (days === 1) return t('common.yesterday');
+  return t('common.daysAgo', { n: days });
+}
+
+function startingOrPrice(price: { kind: string; minor: number }, t: Translate): string {
+  return price.kind === 'starting' ? t('common.starting', { price: fmtMinor(price.minor) }) : fmtMinor(price.minor);
 }
 
 export default function HomePage() {
   const router = useRouter();
+  const { lang, t } = useUiLocale();
   const [auctionStep, setAuctionStep] = useState(0);
   const [search, setSearch] = useState('');
   const [heroCategory, setHeroCategory] = useState('');
@@ -100,7 +100,7 @@ export default function HomePage() {
   });
 
   const heroListing = featured.data?.listings[0] ?? recent.data?.listings[0] ?? null;
-  const heroImage = heroListing ? cardImage(heroListing) : { url: null, alt: '' };
+  const heroImage = heroListing ? cardImage(heroListing, lang, t('common.listingImage')) : { url: null, alt: '' };
   // Sub-categories hidden for now; restore when client wants depth.
   // Property omitted so the six remaining roots stay on one desktop row.
   const roots = (categories.data?.categories ?? [])
@@ -111,22 +111,21 @@ export default function HomePage() {
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>Araq &amp; Kahraman Auctions</title>
+      <title>{t('home.title')}</title>
       <SiteHeader home />
 
       <section id="top" style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
         <div className="home-hero">
           <div style={css('flex: 999 1 560px; min-width: 0')}>
             <p style={css('margin: 0 0 14px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #F6EEDC; color: #9A6B12; font-size: 13px; font-weight: 600')}>
-              A curated marketplace, managed by our team
+              {t('home.badge')}
             </p>
             <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2rem, 8vw, 4.1rem); line-height: 1.05; letter-spacing: -0.035em; font-weight: 700; max-width: 14ch")}>
-              {'Browse, enquire, '}
-              <span style={css('color: #9A6B12')}>and settle safely.</span>
+              {t('home.heroLine1')}
+              <span style={css('color: #9A6B12')}>{t('home.heroLine2')}</span>
             </h1>
             <p style={css('margin: 16px 0 24px; font-size: clamp(15px, 3.6vw, 19px); color: #5B636B; max-width: 46ch')}>
-              Every listing here is published by our inventory team. Live auctions show a Bid now link; fixed-price
-              checkout and deposits are not offered on this site yet.
+              {t('home.heroLead')}
             </p>
             <form
               role="search"
@@ -141,7 +140,7 @@ export default function HomePage() {
               }}
             >
               <label htmlFor="q" className="sr">
-                What are you looking for?
+                {t('home.searchLabel')}
               </label>
               <div className="mkt-search__query">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9198" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -152,7 +151,7 @@ export default function HomePage() {
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search published listings…"
+                  placeholder={t('home.searchPlaceholder')}
                   autoComplete="off"
                 />
               </div>
@@ -162,42 +161,42 @@ export default function HomePage() {
                 options={roots.map((category) => ({ key: category.key, name: category.name }))}
               />
               <button type="submit" className="mkt-search__submit">
-                Search
+                {t('common.search')}
               </button>
             </form>
             <div style={css('margin-top: 22px; max-width: 520px')}>
-              <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>Shop for</p>
+              <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>{t('common.shopFor')}</p>
               <AudiencePicker value={heroAudience} onChange={setHeroAudience} />
             </div>
             <div style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; align-items: center')}>
               <Link href="/browse?audience=men" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
-                Men&apos;s listings
+                {t('home.mensListings')}
               </Link>
               <Link href="/browse?audience=women" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
-                Women&apos;s listings
+                {t('home.womensListings')}
               </Link>
-              <span style={css('font-size: 14px; color: #5B636B; margin-right: 4px')}>Popular:</span>
+              <span style={css('font-size: 14px; color: #5B636B; margin-right: 4px')}>{t('home.popular')}</span>
               <Link href="/browse?q=land+cruiser" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
-                Land Cruiser
+                {t('home.landCruiser')}
               </Link>
               <Link href="/browse?q=iphone" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
-                iPhone
+                {t('home.iphone')}
               </Link>
               <Link href="/browse?method=auction" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
-                Auction listings
+                {t('home.auctionListings')}
               </Link>
               <Link href="/browse?condition=used" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
-                Used items
+                {t('home.usedItems')}
               </Link>
             </div>
           </div>
 
-          <aside aria-label="Featured listing" style={css('flex: 1 1 360px; min-width: 0; max-width: 440px; background: #15191E; color: #FFFFFF; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 18px')}>
+          <aside aria-label={t('home.featuredAria')} style={css('flex: 1 1 360px; min-width: 0; max-width: 440px; background: #15191E; color: #FFFFFF; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 18px')}>
             <div style={css('display: flex; justify-content: space-between; align-items: center')}>
               <span style={css('font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #F6B48A')}>
-                {featured.data?.listings.length ? 'Featured listing' : 'Latest listing'}
+                {featured.data?.listings.length ? t('home.featuredListing') : t('home.latestListing')}
               </span>
-              <span style={css('font-size: 13px; color: #AEB5B0')}>{recent.data ? `${recent.data.total} published` : ''}</span>
+              <span style={css('font-size: 13px; color: #AEB5B0')}>{recent.data ? t('home.published', { n: recent.data.total }) : ''}</span>
             </div>
             {heroListing ? (
               <>
@@ -205,40 +204,40 @@ export default function HomePage() {
                   {heroImage.url ? (
                     <img src={heroImage.url} alt={heroImage.alt} />
                   ) : (
-                    <span style={css('color: #AEB5B0; font-size: 14px')}>No image published</span>
+                    <span style={css('color: #AEB5B0; font-size: 14px')}>{t('home.noImagePublished')}</span>
                   )}
                 </div>
                 <div>
                   <h2 style={css("margin: 0 0 4px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase")}>
                     <Link href={productPath(heroListing)} style={css('color: #FFFFFF')}>
-                      {listingCardTitle(heroListing)}
+                      {listingCardTitle(heroListing, lang)}
                     </Link>
                   </h2>
                   <p className="home-hero-listing-meta">
-                    {METHOD_LABEL[heroListing.listingMethod]}
-                    {heroListing.condition ? ` · ${heroListing.condition.replace('_', ' ')}` : ''} ·{' '}
-                    {heroListing.location.label ?? 'Location not published'}
+                    {methodLabel(lang, heroListing.listingMethod)}
+                    {heroListing.condition ? ` · ${conditionLabel(lang, heroListing.condition)}` : ''} ·{' '}
+                    {heroListing.location.label ?? t('common.locationNotPublished')}
                   </p>
                   {(() => {
                     const price = listingCardPrice(heroListing);
                     if (!price) return null;
                     return (
                       <p style={css('margin: 10px 0 0; font-size: 20px; font-weight: 800; color: #F6B48A; letter-spacing: -0.01em')}>
-                        {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                        {startingOrPrice(price, t)}
                       </p>
                     );
                   })()}
                 </div>
                 <Link href={productPath(heroListing)} style={css('height: 50px; border-radius: 12px; background: #FFFFFF; color: #15191E; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center')}>
-                  View this listing
+                  {t('home.viewListing')}
                 </Link>
                 <p style={css('margin: -6px 0 0; font-size: 13px; color: #AEB5B0; text-align: center')}>
-                  Ad {heroListing.listingReference} · {postedLabel(heroListing.publishedAt)}
+                  {t('home.ad', { ref: heroListing.listingReference, posted: postedLabel(heroListing.publishedAt, t) })}
                 </p>
               </>
             ) : (
               <p style={css('margin: 0; font-size: 15px; color: #AEB5B0')}>
-                {recent.loading ? 'Loading published listings…' : 'Nothing has been published yet. This card stays empty rather than showing sample inventory.'}
+                {recent.loading ? t('home.loadingPublished') : t('home.heroEmpty')}
               </p>
             )}
           </aside>
@@ -251,22 +250,22 @@ export default function HomePage() {
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 28px')}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
-              Browse by category
+              {t('home.categoriesTitle')}
             </h2>
-            <p style={css('margin: 6px 0 0; color: #5B636B')}>The live category tree, exactly as our team maintains it.</p>
+            <p style={css('margin: 6px 0 0; color: #5B636B')}>{t('home.categoriesSub')}</p>
           </div>
           <Link href="/categories" style={css('font-weight: 600')}>
-            All categories →
+            {t('home.allCategoriesLink')}
           </Link>
         </div>
 
         {categories.error && (
           <p role="alert" className="mkt-state" data-state="error">
-            Categories could not be loaded ({categories.error}).
+            {t('home.categoriesError', { error: categories.error })}
           </p>
         )}
         {!categories.error && roots.length === 0 && (
-          <p className="mkt-state">{categories.loading ? 'Loading categories…' : 'No categories are published yet.'}</p>
+          <p className="mkt-state">{categories.loading ? t('home.categoriesLoading') : t('home.categoriesEmpty')}</p>
         )}
 
         <div className="cat-grid">
@@ -285,7 +284,7 @@ export default function HomePage() {
                 <span>
                   <span style={css('display: block; font-weight: 600; font-size: 16px')}>{category.name}</span>
                   <span style={css('display: block; font-size: 13px; color: #5B636B')}>
-                    {category.listingMethods.map((method) => METHOD_LABEL[method]).join(' · ')}
+                    {category.listingMethods.map((method) => methodLabel(lang, method)).join(' · ')}
                   </span>
                 </span>
               </Link>
@@ -298,39 +297,39 @@ export default function HomePage() {
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 24px')}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
-              Live auctions
+              {t('home.auctionsTitle')}
             </h2>
             <p style={css('margin: 6px 0 0; color: #5B636B')}>
-              Listings staff have opened for bidding. Scheduled or draft auction inventory does not appear here.
+              {t('home.auctionsSub')}
             </p>
           </div>
           <Link href="/auctions" style={css('font-weight: 600')}>
-            Auction overview →
+            {t('home.auctionOverview')}
           </Link>
         </div>
 
         {auctionListings.error && (
           <p role="alert" className="mkt-state" data-state="error">
-            Auction listings could not be loaded ({auctionListings.error}).
+            {t('home.auctionsError', { error: auctionListings.error })}
           </p>
         )}
         {!auctionListings.error && auctionCards.length === 0 && (
-          <p className="mkt-state">{auctionListings.loading ? 'Loading live auctions…' : 'No live auctions right now. Check back after staff open bidding on a listing.'}</p>
+          <p className="mkt-state">{auctionListings.loading ? t('home.auctionsLoading') : t('home.auctionsEmpty')}</p>
         )}
 
         <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
           {auctionCards.map((listing) => {
-            const image = cardImage(listing);
+            const image = cardImage(listing, lang, t('common.listingImage'));
             const live = listing.liveLotReference;
-            const title = listingCardTitle(listing);
+            const title = listingCardTitle(listing, lang);
             const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
                 <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
-                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">No image</span>}
+                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">{t('common.noImage')}</span>}
                   {live ? (
                     <span style={css('position: absolute; top: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 700')}>
-                      Live
+                      {t('common.live')}
                     </span>
                   ) : null}
                 </Link>
@@ -341,16 +340,16 @@ export default function HomePage() {
                     </Link>
                   </h3>
                   <p className="listing-card-meta">
-                    {listing.category.key} · {listing.location.label ?? 'Location not published'} · {postedLabel(listing.publishedAt)}
+                    {listing.category.key} · {listing.location.label ?? t('common.locationNotPublished')} · {postedLabel(listing.publishedAt, t)}
                   </p>
                   {price ? (
                     <p style={css('margin: 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                      {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                      {startingOrPrice(price, t)}
                     </p>
                   ) : null}
                   {live ? (
                     <Link href={productPath(listing)} className="btn-primary" style={css('margin-top: auto; display: inline-flex; align-items: center; justify-content: center; height: 42px; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}>
-                      Bid now
+                      {t('common.bidNow')}
                     </Link>
                   ) : null}
                 </div>
@@ -362,27 +361,27 @@ export default function HomePage() {
 
       <section id="how" className="home-section how-auction">
         <header className="how-auction__header">
-          <h2 className="how-auction__title">How Our Auction Works</h2>
+          <h2 className="how-auction__title">{t('home.howTitle')}</h2>
           <p className="how-auction__subtitle">
-            Learn how to participate and win in our online auction process step by step.
+            {t('home.howSubtitle')}
           </p>
         </header>
         <div className="how-auction__body">
           <div className="how-auction__media">
             <img
               src="/how_our_auctions_work.jpg"
-              alt="Live auction hall with bidders and an auctioneer on stage"
+              alt={t('home.howImageAlt')}
               width={720}
               height={720}
               loading="lazy"
             />
           </div>
           <div className="how-auction__steps-wrap">
-            <ol className="how-auction__steps" aria-label="Auction process steps">
+            <ol className="how-auction__steps" aria-label={t('home.stepsAria')}>
               {AUCTION_STEPS.map((step, index) => {
                 const active = auctionStep === index;
                 return (
-                  <li key={step.title}>
+                  <li key={step.id}>
                     <button
                       type="button"
                       className={active ? 'how-auction__step is-active' : 'how-auction__step'}
@@ -393,8 +392,8 @@ export default function HomePage() {
                         {index + 1}
                       </span>
                       <span className="how-auction__step-copy">
-                        <span className="how-auction__step-title">{step.title}</span>
-                        <span className="how-auction__step-desc">{step.description}</span>
+                        <span className="how-auction__step-title">{t(step.title)}</span>
+                        <span className="how-auction__step-desc">{t(step.description)}</span>
                       </span>
                     </button>
                   </li>
@@ -405,7 +404,7 @@ export default function HomePage() {
               <span className="how-auction__rail-line" />
               {AUCTION_STEPS.map((step, index) => (
                 <span
-                  key={step.title}
+                  key={step.id}
                   className={auctionStep === index ? 'how-auction__rail-dot is-active' : 'how-auction__rail-dot'}
                 />
               ))}
@@ -418,33 +417,33 @@ export default function HomePage() {
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 24px')}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
-              Fresh listings
+              {t('home.freshTitle')}
             </h2>
-            <p style={css('margin: 6px 0 0; color: #5B636B')}>The most recently published records from our catalogue.</p>
+            <p style={css('margin: 6px 0 0; color: #5B636B')}>{t('home.freshSub')}</p>
           </div>
           <Link href="/browse" style={css('font-weight: 600')}>
-            View all →
+            {t('home.viewAll')}
           </Link>
         </div>
 
         {recent.error && (
           <p role="alert" className="mkt-state" data-state="error">
-            Listings could not be loaded ({recent.error}).
+            {t('home.listingsError', { error: recent.error })}
           </p>
         )}
         {!recent.error && recentListings.length === 0 && (
-          <p className="mkt-state">{recent.loading ? 'Loading listings…' : 'No listings have been published yet.'}</p>
+          <p className="mkt-state">{recent.loading ? t('home.listingsLoading') : t('home.listingsEmpty')}</p>
         )}
 
         <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
           {recentListings.map((listing) => {
-            const image = cardImage(listing);
-            const title = listingCardTitle(listing);
+            const image = cardImage(listing, lang, t('common.listingImage'));
+            const title = listingCardTitle(listing, lang);
             const price = listingCardPrice(listing);
             return (
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
                 <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
-                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">No image</span>}
+                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">{t('common.noImage')}</span>}
                 </Link>
                 <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
                   <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
@@ -453,15 +452,15 @@ export default function HomePage() {
                     </Link>
                   </h3>
                   <p className="listing-card-meta">
-                    {METHOD_LABEL[listing.listingMethod]}
-                    {listing.condition ? ` · ${listing.condition.replace('_', ' ')}` : ''} · {listing.location.label ?? 'Location not published'}
+                    {methodLabel(lang, listing.listingMethod)}
+                    {listing.condition ? ` · ${conditionLabel(lang, listing.condition)}` : ''} · {listing.location.label ?? t('common.locationNotPublished')}
                   </p>
                   {price ? (
                     <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                      {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
+                      {startingOrPrice(price, t)}
                     </p>
                   ) : null}
-                  <p className="mkt-hint">{postedLabel(listing.publishedAt)}</p>
+                  <p className="mkt-hint">{postedLabel(listing.publishedAt, t)}</p>
                 </div>
               </article>
             );
@@ -473,16 +472,15 @@ export default function HomePage() {
         <div style={css('background: #9A6B12; color: #FFFFFF; border-radius: 24px; padding: clamp(28px, 5vw, 56px); display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: space-between')}>
           <div style={css('flex: 1 1 420px; min-width: 0')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -0.025em; font-weight: 700; line-height: 1.1")}>
-              Got something to sell?
+              {t('home.sellTitle')}
             </h2>
             <p style={css('margin: 12px 0 0; font-size: 18px; color: #F6EAD0; max-width: 48ch')}>
-              Send us the details. Our team consigns items, writes the listing and publishes it — there is no
-              self-service posting, and no automatic payouts.
+              {t('home.sellBody')}
             </p>
           </div>
           <div style={css('display: flex; flex-wrap: wrap; gap: 12px')}>
             <Link href="/contact" style={css('height: 52px; padding: 0 24px; border-radius: 12px; background: #FFFFFF; color: #9A6B12; font-weight: 700; display: flex; align-items: center')}>
-              Talk to the team
+              {t('home.talkToTeam')}
             </Link>
           </div>
         </div>
@@ -497,9 +495,9 @@ export default function HomePage() {
               </svg>
             </span>
             <div>
-              <h3 style={css('margin: 0; font-size: 17px; font-weight: 600')}>Staff-published listings</h3>
+              <h3 style={css('margin: 0; font-size: 17px; font-weight: 600')}>{t('home.trust1Title')}</h3>
               <p style={css('margin: 4px 0 0; color: #5B636B; font-size: 15px')}>
-                Nothing appears here unless an operator published it against a real category.
+                {t('home.trust1Body')}
               </p>
             </div>
           </div>
@@ -510,9 +508,9 @@ export default function HomePage() {
               </svg>
             </span>
             <div>
-              <h3 style={css('margin: 0; font-size: 17px; font-weight: 600')}>No hidden amounts</h3>
+              <h3 style={css('margin: 0; font-size: 17px; font-weight: 600')}>{t('home.trust2Title')}</h3>
               <p style={css('margin: 4px 0 0; color: #5B636B; font-size: 15px')}>
-                No prices, deposits or buyer premiums are displayed until those rules are approved.
+                {t('home.trust2Body')}
               </p>
             </div>
           </div>
@@ -523,9 +521,9 @@ export default function HomePage() {
               </svg>
             </span>
             <div>
-              <h3 style={css('margin: 0; font-size: 17px; font-weight: 600')}>Enquiries, not chat</h3>
+              <h3 style={css('margin: 0; font-size: 17px; font-weight: 600')}>{t('home.trust3Title')}</h3>
               <p style={css('margin: 4px 0 0; color: #5B636B; font-size: 15px')}>
-                Messages come to our team; there is no live chat, and no contact details are published.
+                {t('home.trust3Body')}
               </p>
             </div>
           </div>

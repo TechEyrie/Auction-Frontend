@@ -11,6 +11,7 @@ import { css, PAGE_ROOT } from '../../../lib/css';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtBusinessDateTime, fmtMinor, qarToMinor, relativeTimeLabel } from '../../../lib/format';
 import { useSession } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import {
   AUDIENCE_LABEL,
   listingCardPrice,
@@ -176,6 +177,7 @@ export default function ProductPage() {
   const [shotIdx, setShotIdx] = useState(0);
   const [tab, setTab] = useState<'description' | 'specifications' | 'location'>('description');
   const session = useSession();
+  const { lang } = useUiLocale();
   const [amountQar, setAmountQar] = useState('');
   const [bidMessage, setBidMessage] = useState<string | null>(null);
   const [bidCooldownUntil, setBidCooldownUntil] = useState<number | null>(null);
@@ -880,7 +882,7 @@ export default function ProductPage() {
           <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px')}>
             {relatedListings.map((entry) => {
               const cover = entry.media.find((item) => item.assetId === entry.coverAssetId) ?? entry.media[0] ?? null;
-              const title = listingCardTitle(entry);
+              const title = listingCardTitle(entry, lang);
               const price = listingCardPrice(entry);
               return (
                 <Fragment key={entry.listingReference}>

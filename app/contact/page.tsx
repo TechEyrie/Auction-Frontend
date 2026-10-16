@@ -97,7 +97,7 @@ export default function ContactPage() {
   return (
     <div style={css(PAGE_ROOT)}>
       <title>Contact us — Araq &amp; Kahraman Auctions</title>
-      <SiteHeader />
+      <SiteHeader active="sell" />
 
 
       {/* @generated */}
