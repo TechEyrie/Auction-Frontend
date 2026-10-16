@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import AudiencePicker from '../../components/AudiencePicker';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
@@ -29,7 +29,7 @@ type Category = {
  * carries the canonical category key, so the browse page's filters are shareable URLs rather than
  * component state.
  */
-export default function CategoriesPage() {
+function CategoriesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const audience = parseBrowseState(new URLSearchParams(searchParams.toString())).audience;
@@ -180,5 +180,23 @@ export default function CategoriesPage() {
 
       <SiteFooter />
     </div>
+  );
+}
+
+export default function CategoriesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={css(PAGE_ROOT)}>
+          <SiteHeader active="categories" />
+          <p role="status" className="mkt-state" data-state="loading" style={css('max-width: 1240px; margin: 32px auto; padding: 18px')}>
+            Loading categories…
+          </p>
+          <SiteFooter />
+        </div>
+      }
+    >
+      <CategoriesContent />
+    </Suspense>
   );
 }

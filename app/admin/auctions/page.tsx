@@ -1,18 +1,26 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { apiFetch } from '../../../lib/api';
-import { productPath } from '../../../lib/listings';
+import { pageWindow } from '../../../lib/admin';
 import { fmtBusinessDateTime, fmtMinor, qarToMinor } from '../../../lib/format';
-import { useSession } from '../../../lib/session';
 import { css } from '../../../lib/css';
 import {
+  AUDIENCE_LABEL,
+  type AdminListing,
+  type ListingStatus,
+} from '../../../lib/listings';
+import { useSession } from '../../../lib/session';
+import { useAsync } from '../../../lib/useAsync';
+import {
+  Badge,
   ErrorNote,
   GhostButton,
   Hint,
   Label,
+  Modal,
   PageHeader,
   Panel,
   PrimaryButton,
@@ -31,13 +39,38 @@ function toDatetimeLocalValue(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function defaultSchedule(): { startsAtLocal: string; endsAtLocal: string } {
+function defaultOpenSchedule(): { startsAtLocal: string; endsAtLocal: string } {
   const starts = roundToMinute(new Date());
-  const ends = roundToMinute(new Date(starts.getTime() + 24 * 3_600_000));
+  const ends = roundToMinute(new Date(starts.getTime() + 4 * 3_600_000));
   return { startsAtLocal: toDatetimeLocalValue(starts), endsAtLocal: toDatetimeLocalValue(ends) };
 }
 
-const INITIAL_SCHEDULE = defaultSchedule();
+type ListingPage = { listings: AdminListing[]; page: number; limit: number; total: number; totalPages: number };
+
+type AdminAuction = {
+  lotReference: string;
+  listingReference: string;
+  status: string;
+  outcome: 'pending' | 'sold' | 'no_bids';
+  bidCount: number;
+  startingBidMinor: number;
+  incrementMinor: number;
+  currentAmountMinor: number | null;
+  startsAt: string;
+  endsAt: string;
+  closedAt: string | null;
+  winningUserReference: string | null;
+  orderReference: string | null;
+  version: number;
+};
+
+type AuctionListPage = {
+  auctions: AdminAuction[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
 
 type AdminBidRow = {
   sequence: number;
@@ -48,119 +81,191 @@ type AdminBidRow = {
   acceptedAt: string;
 };
 
+const STATUS_TONE: Record<ListingStatus, 'good' | 'neutral' | 'warn'> = {
+  published: 'good',
+  draft: 'neutral',
+  archived: 'warn',
+};
+
+const AUCTION_STATUS_TONE: Record<string, 'good' | 'neutral' | 'warn' | 'bad'> = {
+  live: 'good',
+  scheduled: 'neutral',
+  draft: 'neutral',
+  closed: 'warn',
+  cancelled: 'bad',
+};
+
+function outcomeLabel(auction: AdminAuction): string {
+  if (auction.status === 'live') return 'Live';
+  if (auction.status === 'scheduled') return 'Scheduled';
+  if (auction.status === 'draft') return 'Draft';
+  if (auction.status === 'cancelled') return 'Cancelled';
+  if (auction.outcome === 'sold') return 'Sold';
+  if (auction.outcome === 'no_bids') return 'Not sold (no bids)';
+  return 'Pending';
+}
+
+function outcomeTone(auction: AdminAuction): 'good' | 'neutral' | 'warn' | 'bad' {
+  if (auction.status === 'live') return 'good';
+  if (auction.outcome === 'sold') return 'good';
+  if (auction.outcome === 'no_bids') return 'warn';
+  return 'neutral';
+}
+
 const BIDS_PAGE_SIZE = 100;
 
-export default function AdminAuctionsPage() {
+function AdminAuctionsContent() {
   const session = useSession();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const mayManage = session.capabilities.includes('auctions.manage');
 
-  const [listingReference, setListingReference] = useState('');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState({ search: '' });
+  const [selectedRef, setSelectedRef] = useState<string | null>(null);
+
+  const [openModal, setOpenModal] = useState(false);
+  const [openTarget, setOpenTarget] = useState<AdminListing | null>(null);
   const [startingBidQar, setStartingBidQar] = useState('100');
   const [incrementQar, setIncrementQar] = useState('10');
-  const [startsAtLocal, setStartsAtLocal] = useState(INITIAL_SCHEDULE.startsAtLocal);
-  const [endsAtLocal, setEndsAtLocal] = useState(INITIAL_SCHEDULE.endsAtLocal);
+  const [startsAtLocal, setStartsAtLocal] = useState('');
+  const [endsAtLocal, setEndsAtLocal] = useState('');
   const [openBusy, setOpenBusy] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
-  const [openNotice, setOpenNotice] = useState<string | null>(null);
-  const [openedProductPath, setOpenedProductPath] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const [bidsLookupInput, setBidsLookupInput] = useState('');
-  const [bidsAuctionId, setBidsAuctionId] = useState('');
+  const [bidsModalLot, setBidsModalLot] = useState<string | null>(null);
   const [bids, setBids] = useState<AdminBidRow[]>([]);
-  const [bidsMessage, setBidsMessage] = useState<string | null>(null);
   const [bidsLoading, setBidsLoading] = useState(false);
+  const [bidsMessage, setBidsMessage] = useState<string | null>(null);
   const [bidsHasMore, setBidsHasMore] = useState(false);
 
-  const resolveAuctionId = useCallback(
-    async (input: string): Promise<string> => {
-      const trimmed = input.trim();
-      if (/^lot_/i.test(trimmed)) return trimmed;
-      if (/^l_/.test(trimmed)) {
-        const { listing } = await apiFetch<{ listing: { liveLotReference: string | null } }>(
-          `/api/listings/${encodeURIComponent(trimmed)}`,
-          { headers: session.authHeaders(), cache: 'no-store' },
-        );
-        if (!listing.liveLotReference) {
-          throw new Error('No live auction found for this product.');
-        }
-        return listing.liveLotReference;
-      }
-      throw new Error('Enter a product reference (Ad l_…) or an internal auction id.');
-    },
-    [session],
+  const listings = useAsync<ListingPage>(
+    () =>
+      apiFetch<ListingPage>(
+        `/api/admin/listings?${new URLSearchParams({
+          page: String(page),
+          limit: '20',
+          status: 'published',
+          ...(query.search ? { search: query.search } : {}),
+        }).toString()}`,
+        { headers: session.authHeaders(), cache: 'no-store' },
+      ),
+    [page, query, session],
   );
 
-  const fetchBids = useCallback(
-    async (auctionId: string, before?: number, append = false) => {
-      setBidsLoading(true);
-      setBidsMessage(null);
-      try {
-        const query = new URLSearchParams({ limit: String(BIDS_PAGE_SIZE) });
-        if (before !== undefined) query.set('before', String(before));
-        const result = await apiFetch<{ bids: AdminBidRow[] }>(
-          `/api/admin/auctions/${encodeURIComponent(auctionId)}/bids?${query}`,
-          { headers: session.authHeaders() },
-        );
-        const rows = result.bids;
-        setBids((prev) => (append ? [...prev, ...rows] : rows));
-        setBidsHasMore(rows.length >= BIDS_PAGE_SIZE);
-        if (!append && rows.length === 0) setBidsMessage('No bids on this auction yet.');
-      } catch (err) {
-        setBidsMessage(err instanceof Error ? err.message : 'Could not load bids');
-        if (!append) setBids([]);
-        setBidsHasMore(false);
-      } finally {
-        setBidsLoading(false);
-      }
-    },
-    [session],
+  const auctionProducts = useMemo(
+    () => (listings.data?.listings ?? []).filter((row) => row.listingMethod === 'auction'),
+    [listings.data?.listings],
   );
 
-  const loadBidsFromInput = useCallback(
-    async (input: string) => {
-      const trimmed = input.trim();
-      if (!trimmed) {
-        setBidsMessage('Enter a product reference or internal auction id');
-        return;
+  type ProductAuctionStats = { runs: number; unsold: number; sold: number };
+  const [productStats, setProductStats] = useState<Record<string, ProductAuctionStats>>({});
+
+  useEffect(() => {
+    if (auctionProducts.length === 0) {
+      setProductStats({});
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const entries = await Promise.all(
+        auctionProducts.map(async (listing) => {
+          try {
+            const page = await apiFetch<AuctionListPage>(
+              `/api/admin/auctions?${new URLSearchParams({
+                listingReference: listing.listingReference,
+                limit: '50',
+                page: '1',
+              }).toString()}`,
+              { headers: session.authHeaders(), cache: 'no-store' },
+            );
+            const auctions = page.auctions ?? [];
+            const unsold = auctions.filter((row) => row.status === 'closed' && row.outcome === 'no_bids').length;
+            const sold = auctions.filter((row) => row.outcome === 'sold').length;
+            return [listing.listingReference, { runs: page.total ?? auctions.length, unsold, sold }] as const;
+          } catch {
+            return [listing.listingReference, { runs: 0, unsold: 0, sold: 0 }] as const;
+          }
+        }),
+      );
+      if (!cancelled) {
+        setProductStats(Object.fromEntries(entries));
       }
-      try {
-        const auctionId = await resolveAuctionId(trimmed);
-        setBidsAuctionId(auctionId);
-        await fetchBids(auctionId);
-      } catch (err) {
-        setBidsMessage(err instanceof Error ? err.message : 'Could not resolve auction');
-        setBids([]);
-        setBidsHasMore(false);
-        setBidsAuctionId('');
-      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [auctionProducts, session]);
+
+  const history = useAsync<AuctionListPage>(
+    () => {
+      if (!selectedRef) return Promise.resolve({ auctions: [], page: 1, limit: 50, total: 0, totalPages: 0 });
+      return apiFetch<AuctionListPage>(
+        `/api/admin/auctions?${new URLSearchParams({
+          listingReference: selectedRef,
+          limit: '50',
+          page: '1',
+        }).toString()}`,
+        { headers: session.authHeaders(), cache: 'no-store' },
+      );
     },
-    [fetchBids, resolveAuctionId],
+    [selectedRef, session],
   );
+
+  const selectedListing = useMemo(
+    () => auctionProducts.find((row) => row.listingReference === selectedRef) ?? null,
+    [auctionProducts, selectedRef],
+  );
+
+  const selectProduct = useCallback(
+    (ref: string) => {
+      setSelectedRef(ref);
+      setNotice(null);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('listing', ref);
+      router.replace(`/admin/auctions?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  const closeHistoryModal = useCallback(() => {
+    setSelectedRef(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('listing');
+    const qs = params.toString();
+    router.replace(qs ? `/admin/auctions?${qs}` : '/admin/auctions', { scroll: false });
+  }, [router, searchParams]);
 
   useEffect(() => {
     const listing = searchParams.get('listing');
-    if (listing) {
-      setBidsLookupInput(listing);
-      void loadBidsFromInput(listing);
+    if (listing && listing !== selectedRef) {
+      setSelectedRef(listing);
     }
-  }, [searchParams, loadBidsFromInput]);
+  }, [searchParams, selectedRef]);
 
-  const loadBids = async (event: FormEvent) => {
+  const applyFilters = (event: FormEvent) => {
     event.preventDefault();
-    await loadBidsFromInput(bidsLookupInput);
+    setQuery({ search: search.trim() });
+    setPage(1);
   };
 
-  const loadMoreBids = async () => {
-    if (!bidsAuctionId || bids.length === 0) return;
-    const oldest = bids.reduce((min, row) => (row.sequence < min ? row.sequence : min), bids[0].sequence);
-    await fetchBids(bidsAuctionId, oldest, true);
-  };
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
+  const beginOpenAuction = (listing: AdminListing) => {
+    const schedule = defaultOpenSchedule();
+    setOpenTarget(listing);
+    setStartingBidQar('100');
+    setIncrementQar('10');
+    setStartsAtLocal(schedule.startsAtLocal);
+    setEndsAtLocal(schedule.endsAtLocal);
     setOpenError(null);
-    setOpenNotice(null);
-    setOpenedProductPath(null);
+    setOpenModal(true);
+  };
+
+  const submitOpenAuction = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!openTarget) return;
+    setOpenError(null);
 
     const startingQar = Number(startingBidQar);
     const incrementQarNum = Number(incrementQar);
@@ -183,32 +288,28 @@ export default function AdminAuctionsPage() {
       return;
     }
 
-    const startingBidMinor = qarToMinor(startingQar);
-    const incrementMinor = qarToMinor(incrementQarNum);
     setOpenBusy(true);
     try {
-      const created = await apiFetch<{ auction: { lotReference: string; status: string; startsAt: string } }>('/api/admin/auctions', {
+      const created = await apiFetch<{ auction: { lotReference: string } }>('/api/admin/auctions', {
         method: 'POST',
         headers: session.authHeaders(),
         json: {
-          listingReference,
-          startingBidMinor,
-          incrementMinor,
+          listingReference: openTarget.listingReference,
+          startingBidMinor: qarToMinor(startingQar),
+          incrementMinor: qarToMinor(incrementQarNum),
           startsAt: startsAt.toISOString(),
           endsAt: endsAt.toISOString(),
         },
       });
-      const opened = await apiFetch<{ auction: { lotReference: string; status: string; startsAt: string } }>(
-        `/api/admin/auctions/${created.auction.lotReference}/open`,
-        { method: 'POST', headers: session.authHeaders() },
-      );
-      const scheduled =
-        opened.auction.status === 'scheduled' || new Date(opened.auction.startsAt).getTime() > Date.now();
-      setOpenNotice(scheduled ? 'Scheduled auction created for this product.' : 'Live auction opened for this product.');
-      setOpenedProductPath(productPath({ listingReference }));
-      setBidsLookupInput(listingReference);
-      setBidsAuctionId(opened.auction.lotReference);
-      await fetchBids(opened.auction.lotReference);
+      await apiFetch(`/api/admin/auctions/${created.auction.lotReference}/open`, {
+        method: 'POST',
+        headers: session.authHeaders(),
+      });
+      setOpenModal(false);
+      setNotice(`Auction opened for ${openTarget.title.en ?? openTarget.listingReference}.`);
+      selectProduct(openTarget.listingReference);
+      history.reload();
+      listings.reload({ soft: true });
     } catch (err) {
       setOpenError(err instanceof Error ? err.message : 'Could not open the auction');
     } finally {
@@ -216,43 +317,303 @@ export default function AdminAuctionsPage() {
     }
   };
 
+  const fetchBids = useCallback(
+    async (lotReference: string, before?: number, append = false) => {
+      setBidsLoading(true);
+      setBidsMessage(null);
+      try {
+        const params = new URLSearchParams({ limit: String(BIDS_PAGE_SIZE) });
+        if (before !== undefined) params.set('before', String(before));
+        const result = await apiFetch<{ bids: AdminBidRow[] }>(
+          `/api/admin/auctions/${encodeURIComponent(lotReference)}/bids?${params}`,
+          { headers: session.authHeaders() },
+        );
+        const rows = result.bids;
+        setBids((prev) => (append ? [...prev, ...rows] : rows));
+        setBidsHasMore(rows.length >= BIDS_PAGE_SIZE);
+        if (!append && rows.length === 0) setBidsMessage('No bids on this auction yet.');
+      } catch (err) {
+        setBidsMessage(err instanceof Error ? err.message : 'Could not load bids');
+        if (!append) setBids([]);
+        setBidsHasMore(false);
+      } finally {
+        setBidsLoading(false);
+      }
+    },
+    [session],
+  );
+
+  const openBidsModal = (lotReference: string) => {
+    setBidsModalLot(lotReference);
+    setBids([]);
+    void fetchBids(lotReference);
+  };
+
+  const loadMoreBids = async () => {
+    if (!bidsModalLot || bids.length === 0) return;
+    const oldest = bids.reduce((min, row) => (row.sequence < min ? row.sequence : min), bids[0].sequence);
+    await fetchBids(bidsModalLot, oldest, true);
+  };
+
+  const totalPages = listings.data?.totalPages ?? 0;
+  const auctionCount = history.data?.total ?? 0;
+
   return (
     <div style={css('display: flex; flex-direction: column; gap: 16px')}>
       <PageHeader
         title="Auctions"
-        subtitle="Open timed auctions for auction-type products and review accepted bid history."
+        subtitle="Search auction products, review past runs, and open new timed auctions."
       />
 
-      <Panel title="Open auction for product" subtitle="Amounts in QAR. Times use your browser timezone and are stored as UTC.">
-        <ErrorNote>{openError}</ErrorNote>
-        {openNotice && (
-          <p className="adm-note" data-tone="good" style={css('margin-bottom: 14px')}>
-            {openNotice}
-            {openedProductPath ? (
-              <>
-                {' '}
-                <Link href={openedProductPath}>View product</Link>
-              </>
+      {notice && (
+        <p className="adm-note" data-tone="good">
+          {notice}
+        </p>
+      )}
+
+      <Panel title="Auction products" subtitle="Published catalogue items set to the auction listing method.">
+        <form className="adm-filters" onSubmit={applyFilters}>
+          <div className="adm-filter" style={css('flex: 2 1 280px')}>
+            <Label htmlFor="auc-search">Search</Label>
+            <input
+              id="auc-search"
+              className="field"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Title or Ad reference…"
+            />
+          </div>
+          <div className="adm-actions">
+            <PrimaryButton>Search</PrimaryButton>
+            <GhostButton
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setQuery({ search: '' });
+                setPage(1);
+              }}
+            >
+              Clear
+            </GhostButton>
+          </div>
+        </form>
+
+        <StateBlock
+          loading={listings.loading}
+          error={listings.error}
+          empty={auctionProducts.length === 0}
+          emptyText="No published auction products match this search."
+          onRetry={listings.reload}
+        >
+          <TableWrap label="Auction products">
+            <table className="adm-table adm-table--sticky-head">
+              <thead>
+                <tr>
+                  <th scope="col">Product</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Audience</th>
+                  <th scope="col">Live</th>
+                  <th scope="col">Runs</th>
+                  <th scope="col">Unsold</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auctionProducts.map((listing) => {
+                  const selected = listing.listingReference === selectedRef;
+                  const stats = productStats[listing.listingReference];
+                  return (
+                    <tr
+                      key={listing.listingReference}
+                      data-selected={selected ? 'true' : undefined}
+                      style={selected ? css('background: var(--adm-row-selected, rgba(0,0,0,0.04))') : undefined}
+                    >
+                      <td className="wrap">
+                        <button
+                          type="button"
+                          className="adm-link-btn"
+                          style={css('font-weight: 600; text-align: left')}
+                          onClick={() => selectProduct(listing.listingReference)}
+                        >
+                          {listing.title.en ?? listing.title.ar ?? 'Untitled'}
+                        </button>
+                        <div className="adm-hint">Ad {listing.listingReference}</div>
+                      </td>
+                      <td>
+                        <Badge tone={STATUS_TONE[listing.status]}>{listing.status}</Badge>
+                      </td>
+                      <td>{listing.audience ? AUDIENCE_LABEL[listing.audience] : '—'}</td>
+                      <td>
+                        {listing.liveLotReference ? <Badge tone="good">Live</Badge> : '—'}
+                      </td>
+                      <td>{stats ? stats.runs : '…'}</td>
+                      <td>
+                        {stats ? (
+                          stats.unsold > 0 ? <Badge tone="warn">{stats.unsold}</Badge> : stats.unsold
+                        ) : '…'}
+                      </td>
+                      <td>
+                        <div className="adm-row-actions">
+                          <button type="button" className="adm-link-btn" onClick={() => selectProduct(listing.listingReference)}>
+                            History
+                          </button>
+                          {mayManage && (
+                            <button type="button" className="adm-link-btn" onClick={() => beginOpenAuction(listing)}>
+                              Open auction
+                            </button>
+                          )}
+                          <Link href={`/admin/listings/${listing.listingReference}`} className="adm-link-btn">
+                            Edit
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableWrap>
+
+          {totalPages > 1 && (
+            <nav className="adm-pager" aria-label="Products pages" style={css('margin-top: 14px')}>
+              <GhostButton type="button" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Previous
+              </GhostButton>
+              {pageWindow(page, totalPages).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={p === page ? 'adm-pager-btn adm-pager-btn--active' : 'adm-pager-btn'}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <GhostButton type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </GhostButton>
+            </nav>
+          )}
+        </StateBlock>
+      </Panel>
+
+      <Modal
+        open={selectedRef !== null}
+        onClose={closeHistoryModal}
+        title="Auction history"
+        size="lg"
+        subtitle={
+          selectedRef
+            ? selectedListing
+              ? `${selectedListing.title.en ?? selectedListing.title.ar ?? selectedRef} · Ad ${selectedRef} · ${auctionCount} auction${auctionCount === 1 ? '' : 's'}`
+              : `Ad ${selectedRef} · ${auctionCount} auction${auctionCount === 1 ? '' : 's'}`
+            : undefined
+        }
+        footer={
+          <div className="adm-actions">
+            <GhostButton type="button" onClick={closeHistoryModal}>
+              Close
+            </GhostButton>
+            {mayManage && selectedListing ? (
+              <PrimaryButton type="button" onClick={() => beginOpenAuction(selectedListing)}>
+                Open auction
+              </PrimaryButton>
             ) : null}
-          </p>
-        )}
-        <form className="adm-form" onSubmit={submit}>
+          </div>
+        }
+      >
+        <StateBlock
+          loading={history.loading}
+          error={history.error}
+          empty={!history.loading && (history.data?.auctions.length ?? 0) === 0}
+          emptyText="No auctions have been run for this product yet."
+          onRetry={history.reload}
+        >
+          <TableWrap label="Auction history for product">
+            <table className="adm-table adm-table--sticky-head">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Outcome</th>
+                  <th scope="col">Bids</th>
+                  <th scope="col">Schedule</th>
+                  <th scope="col">Top bid</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(history.data?.auctions ?? []).map((auction, index) => (
+                  <tr key={auction.lotReference}>
+                    <td>
+                      <div>{(history.data?.auctions.length ?? 0) - index}</div>
+                      <div className="adm-hint">{auction.lotReference}</div>
+                    </td>
+                    <td>
+                      <Badge tone={AUCTION_STATUS_TONE[auction.status] ?? 'neutral'}>{auction.status}</Badge>
+                    </td>
+                    <td>
+                      <Badge tone={outcomeTone(auction)}>{outcomeLabel(auction)}</Badge>
+                    </td>
+                    <td>{auction.bidCount}</td>
+                    <td className="wrap">
+                      <div>{fmtBusinessDateTime(auction.startsAt)}</div>
+                      <div className="adm-hint">→ {fmtBusinessDateTime(auction.endsAt)}</div>
+                      {auction.closedAt ? <div className="adm-hint">Closed {fmtBusinessDateTime(auction.closedAt)}</div> : null}
+                    </td>
+                    <td>
+                      {auction.currentAmountMinor != null ? fmtMinor(auction.currentAmountMinor) : fmtMinor(auction.startingBidMinor)}
+                      <div className="adm-hint">Start {fmtMinor(auction.startingBidMinor)}</div>
+                    </td>
+                    <td>
+                      <div className="adm-row-actions">
+                        <button type="button" className="adm-link-btn" onClick={() => openBidsModal(auction.lotReference)}>
+                          View bids
+                        </button>
+                        {auction.orderReference ? (
+                          <span className="adm-hint">{auction.orderReference}</span>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TableWrap>
+        </StateBlock>
+      </Modal>
+
+      <Modal
+        open={openModal}
+        onClose={() => !openBusy && setOpenModal(false)}
+        title="Open auction"
+        subtitle={
+          openTarget
+            ? `${openTarget.title.en ?? openTarget.title.ar ?? 'Product'} · Ad ${openTarget.listingReference}`
+            : undefined
+        }
+        footer={
+          <div className="adm-actions">
+            <GhostButton type="button" disabled={openBusy} onClick={() => setOpenModal(false)}>
+              Cancel
+            </GhostButton>
+            <PrimaryButton
+              type="button"
+              disabled={openBusy}
+              onClick={() => void submitOpenAuction({ preventDefault: () => {} } as FormEvent)}
+            >
+              {openBusy ? 'Working…' : 'Create and open'}
+            </PrimaryButton>
+          </div>
+        }
+      >
+        <ErrorNote>{openError}</ErrorNote>
+        <form className="adm-form" onSubmit={(event) => void submitOpenAuction(event)}>
           <div className="adm-grid">
             <div>
-              <Label htmlFor="auc-listing">Product reference (Ad l_…)</Label>
+              <Label htmlFor="open-start">Starting bid (QAR)</Label>
               <input
-                id="auc-listing"
-                className="field"
-                value={listingReference}
-                onChange={(event) => setListingReference(event.target.value)}
-                placeholder="l_…"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="auc-start">Starting bid (QAR)</Label>
-              <input
-                id="auc-start"
+                id="open-start"
                 className="field"
                 value={startingBidQar}
                 onChange={(event) => setStartingBidQar(event.target.value)}
@@ -261,9 +622,9 @@ export default function AdminAuctionsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="auc-inc">Bid increment (QAR)</Label>
+              <Label htmlFor="open-inc">Bid increment (QAR)</Label>
               <input
-                id="auc-inc"
+                id="open-inc"
                 className="field"
                 value={incrementQar}
                 onChange={(event) => setIncrementQar(event.target.value)}
@@ -272,9 +633,9 @@ export default function AdminAuctionsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="auc-starts">Starts at</Label>
+              <Label htmlFor="open-starts">Starts at</Label>
               <input
-                id="auc-starts"
+                id="open-starts"
                 className="field"
                 type="datetime-local"
                 value={startsAtLocal}
@@ -283,9 +644,9 @@ export default function AdminAuctionsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="auc-ends">Ends at</Label>
+              <Label htmlFor="open-ends">Ends at</Label>
               <input
-                id="auc-ends"
+                id="open-ends"
                 className="field"
                 type="datetime-local"
                 value={endsAtLocal}
@@ -294,40 +655,26 @@ export default function AdminAuctionsPage() {
               />
             </div>
           </div>
-          <Hint>Example: 100 means QAR 100.00. Current bid defaults to the starting bid when the auction opens.</Hint>
-          <div className="adm-actions">
-            <PrimaryButton disabled={openBusy}>{openBusy ? 'Working…' : 'Create and open'}</PrimaryButton>
-          </div>
+          <Hint>Defaults: start now, end in 4 hours. Amounts are in QAR; times use your browser timezone.</Hint>
         </form>
-      </Panel>
+      </Modal>
 
-      <Panel title="Bid history" subtitle="Look up by product Ad reference; internal auction id also works for staff.">
-        <form className="adm-filters" onSubmit={loadBids}>
-          <div className="adm-filter" style={css('flex: 2 1 280px')}>
-            <Label htmlFor="bids-lookup">Product reference</Label>
-            <input
-              id="bids-lookup"
-              className="field"
-              value={bidsLookupInput}
-              onChange={(event) => setBidsLookupInput(event.target.value)}
-              placeholder="l_…"
-            />
-          </div>
-          <div className="adm-actions">
-            <PrimaryButton disabled={bidsLoading}>{bidsLoading ? 'Loading…' : 'Load bids'}</PrimaryButton>
-          </div>
-        </form>
-        <Hint>Paste the product Ad reference. An internal auction id is accepted if you already have one.</Hint>
-
+      <Modal
+        open={bidsModalLot !== null}
+        onClose={() => setBidsModalLot(null)}
+        title="Bid history"
+        subtitle={bidsModalLot ? `Auction id ${bidsModalLot}` : undefined}
+        size="lg"
+      >
         <StateBlock
           loading={bidsLoading && bids.length === 0}
           error={null}
-          empty={!bidsLoading && bids.length === 0 && !!bidsMessage}
-          emptyText={bidsMessage ?? 'No bids loaded yet.'}
+          empty={!bidsLoading && bids.length === 0}
+          emptyText={bidsMessage ?? 'No bids loaded.'}
         >
           {bids.length > 0 && (
             <>
-              <TableWrap label="Bid history">
+              <TableWrap label="Accepted bids">
                 <table className="adm-table adm-table--sticky-head">
                   <thead>
                     <tr>
@@ -363,8 +710,21 @@ export default function AdminAuctionsPage() {
             </>
           )}
         </StateBlock>
-        {bidsMessage && bids.length > 0 && <p className="adm-hint" style={css('margin-top: 12px')}>{bidsMessage}</p>}
-      </Panel>
+      </Modal>
     </div>
+  );
+}
+
+export default function AdminAuctionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <p role="status" className="adm-state" data-state="loading">
+          Loading auctions…
+        </p>
+      }
+    >
+      <AdminAuctionsContent />
+    </Suspense>
   );
 }
