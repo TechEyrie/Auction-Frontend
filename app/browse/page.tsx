@@ -20,6 +20,7 @@ import {
   listingCardTitle,
   METHOD_LABEL,
   parseBrowseState,
+  mediaUrl,
   productPath,
   type BrowseState,
   type ListingMethod,
@@ -43,7 +44,7 @@ const SKELETON_COUNT = 12;
 
 function thumbUrl(listing: PublicListing): string | null {
   const url = coverImage(listing);
-  return url ? `${API_BASE_URL}${url}` : null;
+  return url ? mediaUrl(API_BASE_URL, url) : null;
 }
 
 function postedLabel(iso: string | null): string {

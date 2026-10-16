@@ -15,6 +15,8 @@ import {
   AUDIENCE_LABEL,
   listingCardPrice,
   listingCardTitle,
+  listingDetailApiPath,
+  mediaUrl,
   METHOD_LABEL,
   productPath,
   type AttributeField,
@@ -189,7 +191,13 @@ export default function ProductPage() {
   const [buyPrefilled, setBuyPrefilled] = useState(false);
 
   const listing = useAsync<{ listing: PublicListing }>(
-    () => apiFetch<{ listing: PublicListing }>(`/api/listings/${encodeURIComponent(id)}`, { cache: 'no-store' }),
+    () => {
+      const path = listingDetailApiPath(id);
+      if (!path) {
+        return Promise.reject(new ApiRequestError(404, { code: 'NOT_FOUND', message: 'Listing not found', fieldErrors: {}, requestId: '', details: {} }));
+      }
+      return apiFetch<{ listing: PublicListing }>(path, { cache: 'no-store' });
+    },
     [id],
   );
   const categories = useAsync<{ categories: Category[] }>(() => apiFetch<{ categories: Category[] }>('/api/catalog/categories', { cache: 'no-store' }), []);
@@ -376,7 +384,9 @@ export default function ProductPage() {
     return map;
   }, [schema.data]);
 
-  const relatedListings = (related.data?.listings ?? []).filter((entry) => entry.listingReference !== id).slice(0, 4);
+  const relatedListings = (related.data?.listings ?? [])
+    .filter((entry) => entry.listingReference !== data?.listingReference)
+    .slice(0, 4);
   const category = (categories.data?.categories ?? []).find((entry) => entry.key === categoryKey) ?? null;
 
   if (listing.loading && !listing.data) {
@@ -506,7 +516,7 @@ export default function ProductPage() {
           <div className="product-gallery-main">
             {shot ? (
               <img
-                src={`${API_BASE_URL}${shot.url}`}
+                src={mediaUrl(API_BASE_URL, shot.url)}
                 alt={shot.alt.en ?? shot.alt.ar ?? (data.title.en ?? 'Listing photo')}
               />
             ) : (
@@ -529,7 +539,7 @@ export default function ProductPage() {
                   aria-label={`Show photo ${index + 1}`}
                   aria-pressed={index === shotIdx}
                 >
-                  <img src={`${API_BASE_URL}${entry.url}`} alt={entry.alt.en ?? ''} loading="lazy" />
+                  <img src={mediaUrl(API_BASE_URL, entry.url)} alt={entry.alt.en ?? ''} loading="lazy" />
                 </button>
               ))}
             </div>
@@ -733,10 +743,12 @@ export default function ProductPage() {
                 ) : null}
                 {auctionLive && !session.user ? (
                   <p style={css('margin: 0')}>
-                    <Link href={`/signin?returnTo=${encodeURIComponent(productReturnTo)}`} style={css('font-weight: 700')}>
-                      Sign in
-                    </Link>{' '}
-                    to place a bid.
+                    <Link
+                      href={`/signin?returnTo=${encodeURIComponent(productReturnTo)}`}
+                      style={css('font-weight: 700; color: #9A6B12')}
+                    >
+                      Sign in to place a bid
+                    </Link>
                   </p>
                 ) : null}
                 {bidMessage ? (
@@ -875,7 +887,7 @@ export default function ProductPage() {
                   <article className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden')}>
                     <Link href={productPath(entry)} style={css('height: 150px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
                       {cover ? (
-                        <img src={`${API_BASE_URL}${cover.url}`} alt={cover.alt.en ?? entry.title.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
+                        <img src={mediaUrl(API_BASE_URL, cover.url)} alt={cover.alt.en ?? entry.title.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
                       ) : (
                         <span className="mkt-hint">No image</span>
                       )}

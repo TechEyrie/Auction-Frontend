@@ -7,7 +7,7 @@ import { API_BASE_URL, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
 import { fmtMinor } from '../../lib/format';
-import { listingCardPrice, listingCardTitle, METHOD_LABEL, productPath, type PublicListing } from '../../lib/listings';
+import { listingCardPrice, listingCardTitle, mediaUrl, METHOD_LABEL, productPath, type PublicListing } from '../../lib/listings';
 import { useLive } from '../../lib/live';
 import './auctions.css';
 
@@ -106,7 +106,7 @@ export default function AuctionsPage() {
               <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
                 <Link href={productPath(listing)} aria-label={title} style={css('position: relative; height: 180px; background: #F3F1EC; display: flex; align-items: center; justify-content: center; overflow: hidden')}>
                   {cover ? (
-                    <img src={`${API_BASE_URL}${cover.url}`} alt={cover.alt.en ?? listing.title.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
+                    <img src={mediaUrl(API_BASE_URL, cover.url)} alt={cover.alt.en ?? listing.title.en ?? ''} style={css('width: 100%; height: 100%; object-fit: cover')} loading="lazy" />
                   ) : (
                     <span className="mkt-hint">No image</span>
                   )}

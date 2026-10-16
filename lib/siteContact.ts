@@ -8,9 +8,9 @@ export const OFFICE_ADDRESS = 'Doha, Qatar';
  * WhatsApp business number in E.164 digits only (country code, no + or spaces).
  * Set `NEXT_PUBLIC_WHATSAPP_NUMBER` on Vercel / `.env.local` to override.
  */
-export const WHATSAPP_E164 = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '97459929039').replace(/\D/g, '');
+export const WHATSAPP_E164 = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '97474040003').replace(/\D/g, '');
 
-/** Display form, e.g. +974 5992 9039 */
+/** Display form, e.g. +974 7404 0003 */
 export function formatWhatsAppDisplay(e164 = WHATSAPP_E164): string {
   const digits = e164.replace(/\D/g, '');
   if (digits.length === 11 && digits.startsWith('974')) {

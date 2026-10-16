@@ -241,25 +241,29 @@
   gap:10px;
   color:#15191E;
   text-decoration:none;
-  flex:0 0 auto;
-  max-width:none;
-  overflow:visible;
+  flex:1 1 auto;
+  min-width:0;
+  max-width:100%;
 }
 .site-header__logo{width:44px;height:44px;object-fit:contain;display:block;flex:0 0 auto}
-.site-header__brand-text{display:flex;flex-direction:column;line-height:1.05;overflow:visible}
+.site-header__brand-text{display:flex;flex-direction:column;line-height:1.05;min-width:0;overflow:hidden}
 .site-header__brand-name{
   font-family:'Schibsted Grotesk',sans-serif;
   font-weight:800;
   font-size:17px;
   letter-spacing:.01em;
   white-space:nowrap;
-  overflow:visible;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .site-header__brand-sub{
   font-size:10px;
   font-weight:600;
   letter-spacing:.28em;
   color:#9A6B12;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 .site-header__nav--desktop{
   display:flex;
@@ -302,7 +306,6 @@
   background:#FFFFFF;
 }
 .site-header__user{font-size:13px;color:#5B636B;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.site-header__signin-mobile{display:none}
 .site-header__menu-btn{
   display:none;
   width:44px;
@@ -340,11 +343,11 @@
   .site-header__nav--desktop,
   .site-header__actions-desktop{display:none}
   .site-header__menu-btn{display:inline-flex}
-  .site-header__signin-mobile{display:inline-flex}
-  .site-header__brand{gap:8px}
+  .site-header__brand{gap:8px;flex:1 1 auto;min-width:0}
   .site-header__brand-name{font-size:14px}
   .site-header__brand-sub{letter-spacing:.18em;font-size:9px}
   .site-header__logo{width:38px;height:38px}
+  .site-header__actions{flex:0 0 auto;margin-left:8px}
   .site-header__overlay.is-open{
     display:block;
     position:fixed;
@@ -419,6 +422,11 @@
     color:#FFFFFF;
     border-color:#9A6B12;
   }
+  .site-header__drawer-foot .site-header__signout{
+    border-color:#E7C9C2;
+    color:#8A2C11;
+    background:#FDF6F4;
+  }
   .site-header__drawer-foot .site-header__user{
     text-align:center;
     max-width:none;
@@ -430,8 +438,6 @@
   .site-header__brand{gap:7px}
   .site-header__brand-name{font-size:12px;letter-spacing:0}
   .site-header__brand-sub{font-size:8px;letter-spacing:.14em}
-  /* Sign-in lives in the drawer on the narrowest phones so the full brand fits. */
-  .site-header__signin-mobile{display:none}
   .site-header__menu-btn{width:40px;height:40px}
 }
 @keyframes site-drawer-in{

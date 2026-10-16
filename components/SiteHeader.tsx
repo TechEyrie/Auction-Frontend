@@ -115,6 +115,11 @@ export default function SiteHeader({
     );
   }
 
+  async function handleSignOut(): Promise<void> {
+    setMenuOpen(false);
+    await session.logout();
+  }
+
   const accountLinks = showSignIn ? (
     signedInName ? (
       <>
@@ -127,6 +132,9 @@ export default function SiteHeader({
           </Link>
         ) : null}
         <span className="site-header__user">{signedInName}</span>
+        <button type="button" className="site-header__action site-header__signout" onClick={() => void handleSignOut()}>
+          Sign out
+        </button>
       </>
     ) : (
       <Link href="/signin" className="site-header__action site-header__action--primary" onClick={() => setMenuOpen(false)}>
@@ -151,11 +159,6 @@ export default function SiteHeader({
             </button>
           ) : null}
           <div className="site-header__actions-desktop">{accountLinks}</div>
-          {!signedInName && showSignIn ? (
-            <Link href="/signin" className="site-header__action site-header__action--primary site-header__signin-mobile">
-              Sign in
-            </Link>
-          ) : null}
           <button
             type="button"
             className="site-header__menu-btn"

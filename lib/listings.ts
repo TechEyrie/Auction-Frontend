@@ -71,8 +71,39 @@ export type AttributeField = {
 
 export type LocalizedText = { en: string | null; ar: string | null };
 
-export function productPath(listing: { publicUrl?: string; listingReference: string }): string {
-  return listing.publicUrl || `/product/${listing.listingReference}`;
+/** Matches public GET /api/listings/:key when :key is a listing reference. */
+const LISTING_REFERENCE_PATTERN = /^l_[A-Za-z0-9_-]{6,32}$/;
+
+/** Matches public GET /api/listings/:key when :key is a published slug. */
+const LISTING_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+){0,16}$/;
+
+/**
+ * In-app product URL for cards and navigation.
+ *
+ * Uses `listingReference` so links keep working even when the API proxy or an older backend
+ * only accepts references on mutating routes. Published slug URLs (`publicUrl`) still work when
+ * opened directly; see `listingDetailApiPath`.
+ */
+export function productPath(listing: { listingReference: string }): string {
+  return `/product/${listing.listingReference}`;
+}
+
+/** Path segment from a published `publicUrl` such as `/product/al-majlis-2`. */
+export function productSlugFromPublicUrl(publicUrl: string): string | null {
+  const match = /^\/product\/([^/?#]+)$/.exec(publicUrl.trim());
+  return match?.[1] ?? null;
+}
+
+export function isListingRouteKey(value: string): boolean {
+  const key = value.trim();
+  return LISTING_REFERENCE_PATTERN.test(key) || LISTING_SLUG_PATTERN.test(key);
+}
+
+/** Public listing detail fetch path; accepts listing reference or published slug. */
+export function listingDetailApiPath(routeKey: string): string | null {
+  const key = routeKey.trim();
+  if (!isListingRouteKey(key)) return null;
+  return `/api/listings/${encodeURIComponent(key)}`;
 }
 
 export type PublicListing = {

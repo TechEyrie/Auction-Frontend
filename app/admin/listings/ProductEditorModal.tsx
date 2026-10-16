@@ -174,6 +174,7 @@ export default function ProductEditorModal({
   mayManage,
   onClose,
   onSaved,
+  onDeleted,
 }: {
   open: boolean;
   mode: 'add' | 'edit';
@@ -185,6 +186,7 @@ export default function ProductEditorModal({
   mayManage: boolean;
   onClose: () => void;
   onSaved: (listing: AdminListing) => void;
+  onDeleted?: (listingReference: string) => void;
 }) {
   const [form, setForm] = useState<EditorForm>(emptyForm());
   const formRef = useRef(form);
@@ -201,6 +203,8 @@ export default function ProductEditorModal({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmPublish, setConfirmPublish] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('Removed by operator');
 
   const loadAssets = useCallback(async (listingRef: string) => {
     const response = await apiFetch<{ assets: Asset[] }>(
@@ -254,6 +258,8 @@ export default function ProductEditorModal({
   useEffect(() => {
     if (!open) return;
     setConfirmPublish(false);
+    setDeleteOpen(false);
+    setDeleteReason('Removed by operator');
     setError(null);
     setNotice(null);
     setProgress(null);
@@ -390,6 +396,32 @@ export default function ProductEditorModal({
     }
   }
 
+  async function handleDelete(event?: FormEvent): Promise<void> {
+    event?.preventDefault();
+    if (!listing || listing.status === 'archived') return;
+    const reason = deleteReason.trim();
+    if (reason.length < 3) {
+      setError('Delete needs a written reason (at least 3 characters).');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await apiFetch(`/api/admin/listings/${listing.listingReference}/archive`, {
+        method: 'POST',
+        json: { reason },
+        headers: session.authHeaders(),
+      });
+      setDeleteOpen(false);
+      onDeleted?.(listing.listingReference);
+    } catch (err) {
+      setError(apiMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function upload(file: File): Promise<void> {
     setError(null);
     setBusy(true);
@@ -483,6 +515,7 @@ export default function ProductEditorModal({
     missingRequired.length === 0;
 
   return (
+    <>
     <Modal
       open={open}
       onClose={() => !busy && !loading && onClose()}
@@ -491,9 +524,24 @@ export default function ProductEditorModal({
       size="xl"
       footer={
         <>
-          <GhostButton type="button" disabled={busy || loading} onClick={onClose}>
-            Close
-          </GhostButton>
+          <div style={css('display: flex; flex-wrap: wrap; gap: 8px; align-items: center')}>
+            {mayManage && listing && listing.status !== 'archived' ? (
+              <GhostButton
+                type="button"
+                disabled={busy || loading}
+                onClick={() => {
+                  setDeleteReason('Removed by operator');
+                  setDeleteOpen(true);
+                  setError(null);
+                }}
+              >
+                <span style={css('color: #8A2C11; font-weight: 600')}>Delete</span>
+              </GhostButton>
+            ) : null}
+            <GhostButton type="button" disabled={busy || loading} onClick={onClose}>
+              Close
+            </GhostButton>
+          </div>
           <div style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto')}>
             {mayManage && listing && listing.status !== 'published' && listing.status !== 'archived' ? (
               <PrimaryButton type="button" disabled={busy || loading || !confirmPublish || !canPublish} onClick={() => void handlePublish()}>
@@ -908,5 +956,34 @@ export default function ProductEditorModal({
         </form>
       )}
     </Modal>
+
+    <Modal
+      open={deleteOpen}
+      onClose={() => !busy && setDeleteOpen(false)}
+      title="Delete product"
+      subtitle={listing ? `Ad ${listing.listingReference}` : undefined}
+      size="sm"
+      footer={
+        <>
+          <GhostButton type="button" disabled={busy} onClick={() => setDeleteOpen(false)}>Cancel</GhostButton>
+          <PrimaryButton type="button" disabled={busy} onClick={() => void handleDelete()}>
+            Delete
+          </PrimaryButton>
+        </>
+      }
+    >
+      <form onSubmit={(event) => void handleDelete(event)}>
+        <Label htmlFor="pe-delete-reason">Reason</Label>
+        <textarea
+          id="pe-delete-reason"
+          className="field"
+          rows={3}
+          value={deleteReason}
+          onChange={(event) => setDeleteReason(event.target.value)}
+          placeholder="Why is this product being removed?"
+        />
+      </form>
+    </Modal>
+    </>
   );
 }

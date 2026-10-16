@@ -10,9 +10,9 @@
 const DEV_API_BASE_URL = 'http://localhost:4000';
 
 function resolveApiBaseUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
-  // Empty string means "same origin" (Next rewrite proxies /api → backend).
-  if (configured) return configured;
+  const raw = process.env.NEXT_PUBLIC_API_BASE_URL;
+  // When the env var is set (including to ""), honor it — empty means same-origin /api rewrites.
+  if (raw !== undefined) return raw.trim();
   if (process.env.NODE_ENV === 'development') return DEV_API_BASE_URL;
   return '';
 }

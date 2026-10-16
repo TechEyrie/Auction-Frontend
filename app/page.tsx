@@ -16,6 +16,7 @@ import { fmtMinor } from '../lib/format';
 import {
   listingCardPrice,
   listingCardTitle,
+  mediaUrl,
   METHOD_LABEL,
   productPath,
   type ListingMethod,
@@ -70,7 +71,7 @@ const AUCTION_STEPS = [
 
 function cardImage(listing: PublicListing): { url: string | null; alt: string } {
   const cover = listing.media.find((entry) => entry.assetId === listing.coverAssetId) ?? listing.media[0] ?? null;
-  return { url: cover ? `${API_BASE_URL}${cover.url}` : null, alt: cover?.alt.en ?? listing.title.en ?? 'Listing image' };
+  return { url: cover ? mediaUrl(API_BASE_URL, cover.url) : null, alt: cover?.alt.en ?? listing.title.en ?? 'Listing image' };
 }
 
 function postedLabel(iso: string | null): string {

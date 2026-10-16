@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from 'react';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useSession } from '../../lib/session';
 import './admin.css';
@@ -87,29 +87,109 @@ function EnrollPanel() {
 
 function BrandHeader({ onSignOut, identity }: { onSignOut?: () => void; identity?: string }) {
   return (
-    <header style={css('background: #15191E; color: #FFFFFF')}>
-      <div className="adm-chrome-inner" style={css('display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px')}>
-        <Link href="/" aria-label="Araq & Kahraman Auctions home" style={css('display: flex; align-items: center; gap: 12px; color: #FFFFFF')}>
-          <img src="/logo.png" alt="" width={44} height={44} style={css('width: 44px; height: 44px; object-fit: contain; display: block')} />
-          <span style={css('display: flex; flex-direction: column; line-height: 1.05')}>
-            <span style={css("font-family: 'Schibsted Grotesk', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: 0.01em")}>ARAQ &amp; KAHRAMAN</span>
-            <span style={css('font-size: 11px; font-weight: 600; letter-spacing: 0.32em; color: #D4A84B')}>ADMIN</span>
+    <header className="adm-topbar">
+      <div className="adm-chrome-inner adm-topbar__inner">
+        <Link href="/" aria-label="Araq & Kahraman Auctions home" className="adm-topbar__brand">
+          <img src="/logo.png" alt="" width={44} height={44} className="adm-topbar__logo" />
+          <span className="adm-topbar__brand-text">
+            <span className="adm-topbar__brand-name">ARAQ &amp; KAHRAMAN</span>
+            <span className="adm-topbar__brand-sub">ADMIN</span>
           </span>
         </Link>
-        {identity && onSignOut && (
-          <div style={css('margin-inline-start: auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap')}>
-            <span style={css('font-size: 14px; color: #C9CFCB')}>{identity}</span>
-            <button
-              type="button"
-              onClick={onSignOut}
-              style={css('height: 40px; padding: 0 16px; border: 1px solid #4B535A; border-radius: 10px; background: transparent; color: #FFFFFF; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}
-            >
+        {identity && onSignOut ? (
+          <div className="adm-topbar__account">
+            <span className="adm-topbar__identity">{identity}</span>
+            <button type="button" className="adm-topbar__signout" onClick={onSignOut}>
               Sign out
             </button>
           </div>
-        )}
+        ) : null}
       </div>
     </header>
+  );
+}
+
+function AdminNav({
+  sections,
+  pathname,
+}: {
+  sections: Array<{ label: string; href: string }>;
+  pathname: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuId = useId();
+  const current = sections.find((section) => navIsCurrent(pathname, section.href)) ?? sections[0];
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  function renderLinks(onNavigate?: () => void) {
+    return sections.map((section) => (
+      <Link
+        key={section.href}
+        href={section.href}
+        aria-current={navIsCurrent(pathname, section.href) ? 'page' : undefined}
+        onClick={onNavigate}
+      >
+        {section.label}
+      </Link>
+    ));
+  }
+
+  return (
+    <>
+      <div className="adm-nav-mobile-bar">
+        <div className="adm-nav-mobile-bar__current">
+          <span className="adm-nav-mobile-bar__label">Section</span>
+          <strong>{current?.label ?? 'Admin'}</strong>
+        </div>
+        <button
+          type="button"
+          className="adm-nav-mobile-bar__btn"
+          aria-expanded={open}
+          aria-controls={menuId}
+          onClick={() => setOpen((value) => !value)}
+        >
+          Menu
+        </button>
+      </div>
+
+      <nav aria-label="Admin sections" className="adm-nav adm-nav--desktop">
+        {renderLinks()}
+      </nav>
+
+      {open ? (
+        <div className="adm-nav-drawer is-open">
+          <button type="button" className="adm-nav-drawer__backdrop" aria-label="Close menu" onClick={() => setOpen(false)} />
+          <div id={menuId} className="adm-nav-drawer__panel" role="dialog" aria-modal="true" aria-label="Admin menu">
+            <div className="adm-nav-drawer__head">
+              <span>Admin menu</span>
+              <button type="button" className="adm-nav-drawer__close" aria-label="Close menu" onClick={() => setOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <nav aria-label="Admin sections mobile" className="adm-nav adm-nav--drawer">
+              {renderLinks(() => setOpen(false))}
+            </nav>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -169,6 +249,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (session.status === 'loading' || session.status === 'anonymous') return signedOut;
 
+  const navSections = SECTIONS.filter((section) => !section.capability || session.capabilities.includes(section.capability)).map(
+    ({ label, href }) => ({ label, href }),
+  );
+
   const chrome = (content: ReactNode, showNav = true) => (
     <div style={css(PAGE_ROOT)}>
       <BrandHeader
@@ -176,15 +260,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         onSignOut={() => { void session.logout().then(() => router.replace('/signin')); }}
       />
       <div className="adm-shell">
-        {showNav && (
-          <nav aria-label="Admin sections" className="adm-nav adm-nav--sticky">
-            {SECTIONS.filter((section) => !section.capability || session.capabilities.includes(section.capability)).map((section) => (
-              <Link key={section.href} href={section.href} aria-current={navIsCurrent(pathname, section.href) ? 'page' : undefined}>
-                {section.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        {showNav ? <AdminNav sections={navSections} pathname={pathname} /> : null}
         <main className="adm-main">{content}</main>
       </div>
       <BrandFooter />

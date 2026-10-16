@@ -75,8 +75,8 @@ export default function AdminListingsPage() {
   const [editorMode, setEditorMode] = useState<'add' | 'edit'>('add');
   const [editorRef, setEditorRef] = useState<string | null>(null);
 
-  const [archiveTarget, setArchiveTarget] = useState<AdminListing | null>(null);
-  const [archiveReason, setArchiveReason] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<AdminListing | null>(null);
+  const [deleteReason, setDeleteReason] = useState('Removed by operator');
 
   const list = useAsync<ListingPage>(
     () =>
@@ -150,26 +150,26 @@ export default function AdminListingsPage() {
     }
   }
 
-  async function confirmArchive(event: FormEvent): Promise<void> {
+  async function confirmDelete(event: FormEvent): Promise<void> {
     event.preventDefault();
-    if (!archiveTarget) return;
-    const reason = archiveReason.trim();
+    if (!deleteTarget) return;
+    const reason = deleteReason.trim();
     if (reason.length < 3) {
-      setError('Archiving needs a written reason (at least 3 characters).');
+      setError('Delete needs a written reason (at least 3 characters).');
       return;
     }
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
-      await apiFetch(`/api/admin/listings/${archiveTarget.listingReference}/archive`, {
+      await apiFetch(`/api/admin/listings/${deleteTarget.listingReference}/archive`, {
         method: 'POST',
         json: { reason },
         headers: session.authHeaders(),
       });
-      setNotice(`Archived ${archiveTarget.listingReference}.`);
-      setArchiveTarget(null);
-      setArchiveReason('');
+      setNotice(`Deleted ${deleteTarget.listingReference}.`);
+      setDeleteTarget(null);
+      setDeleteReason('Removed by operator');
       list.reload();
     } catch (err) {
       setError(apiMessage(err));
@@ -345,15 +345,15 @@ export default function AdminListingsPage() {
                         {mayManage && listing.status !== 'archived' && (
                           <button
                             type="button"
-                            className="adm-link-btn"
+                            className="adm-row-btn adm-row-btn--danger"
                             disabled={busy}
                             onClick={() => {
-                              setArchiveTarget(listing);
-                              setArchiveReason('');
+                              setDeleteTarget(listing);
+                              setDeleteReason('Removed by operator');
                               setError(null);
                             }}
                           >
-                            Archive
+                            Delete product
                           </button>
                         )}
                       </div>
@@ -406,32 +406,37 @@ export default function AdminListingsPage() {
           setNotice(`Saved ${listing.title.en ?? listing.title.ar ?? listing.listingReference}.`);
           list.reload();
         }}
+        onDeleted={(listingRef) => {
+          setEditorOpen(false);
+          setNotice(`Deleted ${listingRef}.`);
+          list.reload();
+        }}
       />
 
       <Modal
-        open={archiveTarget !== null}
-        onClose={() => !busy && setArchiveTarget(null)}
-        title="Archive product"
-        subtitle={archiveTarget ? `Ad ${archiveTarget.listingReference}` : undefined}
+        open={deleteTarget !== null}
+        onClose={() => !busy && setDeleteTarget(null)}
+        title="Delete product"
+        subtitle={deleteTarget ? `Ad ${deleteTarget.listingReference}` : undefined}
         size="sm"
         footer={
           <>
-            <GhostButton type="button" disabled={busy} onClick={() => setArchiveTarget(null)}>Cancel</GhostButton>
-            <PrimaryButton type="button" disabled={busy} onClick={() => void confirmArchive({ preventDefault: () => {} } as FormEvent)}>
-              Confirm archive
+            <GhostButton type="button" disabled={busy} onClick={() => setDeleteTarget(null)}>Cancel</GhostButton>
+            <PrimaryButton type="button" disabled={busy} onClick={() => void confirmDelete({ preventDefault: () => {} } as FormEvent)}>
+              Delete
             </PrimaryButton>
           </>
         }
       >
-        <form onSubmit={(event) => void confirmArchive(event)}>
-          <Label htmlFor="archive-reason">Reason</Label>
+        <form onSubmit={(event) => void confirmDelete(event)}>
+          <Label htmlFor="delete-reason">Reason</Label>
           <textarea
-            id="archive-reason"
+            id="delete-reason"
             className="field"
             rows={3}
-            value={archiveReason}
-            onChange={(event) => setArchiveReason(event.target.value)}
-            placeholder="Why is this product archived?"
+            value={deleteReason}
+            onChange={(event) => setDeleteReason(event.target.value)}
+            placeholder="Why is this product being removed?"
           />
         </form>
       </Modal>

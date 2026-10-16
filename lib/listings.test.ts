@@ -22,6 +22,10 @@ import {
   saveStatusText,
   shouldAdoptServerForm,
   visibleFields,
+  isListingRouteKey,
+  listingDetailApiPath,
+  productPath,
+  productSlugFromPublicUrl,
   type AttributeField,
 } from './listings.ts';
 
@@ -39,6 +43,17 @@ function field(overrides: Partial<AttributeField> & { key: string }): AttributeF
     ...overrides,
   };
 }
+
+test('product links use listing reference; API accepts slug or reference', () => {
+  const listing = { listingReference: 'l_Jtm2KExh-gGp', publicUrl: '/product/al-majlis-2' };
+  assert.equal(productPath(listing), '/product/l_Jtm2KExh-gGp');
+  assert.equal(productSlugFromPublicUrl(listing.publicUrl), 'al-majlis-2');
+  assert.equal(listingDetailApiPath('al-majlis-2'), '/api/listings/al-majlis-2');
+  assert.equal(listingDetailApiPath('l_Jtm2KExh-gGp'), '/api/listings/l_Jtm2KExh-gGp');
+  assert.ok(isListingRouteKey('al-majlis-2'));
+  assert.ok(isListingRouteKey('l_Jtm2KExh-gGp'));
+  assert.equal(listingDetailApiPath('not valid!'), null);
+});
 
 test('an advertisement language decides which locales are required', () => {
   assert.deepEqual(requiredLocales('en'), ['en']);
