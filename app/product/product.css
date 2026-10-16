@@ -19,13 +19,14 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{out
 
 .product-breadcrumb{max-width:1240px;margin:0 auto;padding:24px 24px 0;font-size:14px;color:#5B636B;display:flex;flex-wrap:wrap;gap:6px}
 .product-layout{max-width:1240px;margin:0 auto;padding:18px 24px 48px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.9fr);gap:26px;align-items:start}
-.product-left{display:flex;flex-direction:column;gap:14px;min-width:0}
+.product-left{display:flex;flex-direction:column;gap:14px;min-width:0;align-self:start}
 .product-sidebar{display:flex;flex-direction:column;gap:14px;min-width:0;overflow-wrap:anywhere;word-break:break-word;align-self:start}
 .product-sidebar-card{background:#FFFFFF;border:1px solid #E6E4DF;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0;box-sizing:border-box}
 .product-sidebar-card>*{min-width:0;max-width:100%}
-/* Sticky only the main commerce card so tall seller/safety blocks never trap a nested scrollbar. */
+/* When the sidebar is taller than the gallery+tabs, keep the left column pinned so
+   images stay in view instead of leaving empty space under a short left column. */
 @media (min-width:901px){
-  .product-sidebar-card--commerce{position:sticky;top:16px;z-index:1}
+  .product-left{position:sticky;top:16px;z-index:1}
 }
 @media (max-width:900px){.product-layout{grid-template-columns:1fr;gap:18px}}
 
