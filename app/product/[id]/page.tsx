@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { FormEvent, Fragment, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import CheckoutDetailsFields, { type CheckoutDetails } from '../../../components/CheckoutDetailsFields';
+import ProductListingCard from '../../../components/ProductListingCard';
 import SiteFooter from '../../../components/SiteFooter';
 import SiteHeader from '../../../components/SiteHeader';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
@@ -14,8 +15,6 @@ import { useSession } from '../../../lib/session';
 import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import {
   AUDIENCE_LABEL,
-  listingCardPrice,
-  listingCardTitle,
   listingDetailApiPath,
   mediaUrl,
   METHOD_LABEL,
@@ -880,39 +879,9 @@ export default function ProductPage() {
             </Link>
           </div>
           <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px')}>
-            {relatedListings.map((entry) => {
-              const cover = entry.media.find((item) => item.assetId === entry.coverAssetId) ?? entry.media[0] ?? null;
-              const title = listingCardTitle(entry, lang);
-              const price = listingCardPrice(entry);
-              return (
-                <Fragment key={entry.listingReference}>
-                  <article className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden')}>
-                    <Link href={productPath(entry)} className="listing-card-media" aria-label={title}>
-                      {cover ? (
-                        <img src={mediaUrl(API_BASE_URL, cover.url)} alt={cover.alt.en ?? entry.title.en ?? ''} loading="lazy" />
-                      ) : (
-                        <span className="mkt-hint">No image</span>
-                      )}
-                    </Link>
-                    <div style={css('padding: 14px 16px 16px')}>
-                      <h3 style={css('margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase')}>
-                        <Link href={productPath(entry)} style={css('color: #15191E')}>
-                          {title}
-                        </Link>
-                      </h3>
-                      <p className="listing-card-meta" style={css('margin-top: 6px')}>
-                        {METHOD_LABEL[entry.listingMethod]} · {entry.location.label ?? 'Location not published'}
-                      </p>
-                      {price ? (
-                        <p style={css('margin: 8px 0 0; font-size: 17px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                          {price.kind === 'starting' ? `Starting ${fmtMinor(price.minor)}` : fmtMinor(price.minor)}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
-                </Fragment>
-              );
-            })}
+            {relatedListings.map((entry) => (
+              <ProductListingCard key={entry.listingReference} listing={entry} />
+            ))}
           </div>
         </section>
       )}

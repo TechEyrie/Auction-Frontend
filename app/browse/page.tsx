@@ -4,14 +4,13 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import AudiencePicker from '../../components/AudiencePicker';
+import ProductListingCard from '../../components/ProductListingCard';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { API_BASE_URL, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
-import { fmtMinor } from '../../lib/format';
 import { useAsync } from '../../lib/useAsync';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
-import { localizedText, type UiLang } from '../../lib/uiLocale';
 import { conditionLabel, methodLabel } from '../../lib/uiMessages';
 import {
   applyBrowseChange,
@@ -19,11 +18,8 @@ import {
   browseQuery,
   coverImage,
   LISTING_METHODS,
-  listingCardPrice,
-  listingCardTitle,
   parseBrowseState,
   mediaUrl,
-  productPath,
   type BrowseState,
   type ListingMethod,
   type PublicListing,
@@ -50,15 +46,6 @@ function thumbUrl(listing: PublicListing): string | null {
 }
 
 type Translate = ReturnType<typeof useUiLocale>['t'];
-
-function postedLabel(iso: string | null, t: Translate, lang: UiLang): string {
-  if (!iso) return t('browse.draft');
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return t('common.today');
-  if (days === 1) return t('common.yesterday');
-  if (days < 30) return t('common.daysAgo', { n: days });
-  return new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-QA' : undefined);
-}
 
 function loadingStatusLabel(state: BrowseState, t: Translate): string {
   if (state.q) return t('browse.searching');
@@ -386,47 +373,9 @@ function BrowseContent() {
             </>
           ) : (
             <div className="browse-grid">
-              {resultListings.map((listing) => {
-                const image = thumbUrl(listing);
-                const title = listingCardTitle(listing, lang);
-                const price = listingCardPrice(listing);
-                return (
-                  <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                    <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
-                      {image ? (
-                        <img
-                          src={image}
-                          alt={localizedText(listing.media.find((entry) => entry.assetId === listing.coverAssetId)?.alt, lang) || localizedText(listing.title, lang, t('common.listingImage'))}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span className="mkt-hint">{t('common.noImage')}</span>
-                      )}
-                      <span style={css('position: absolute; left: 10px; top: 10px; padding: 4px 10px; border-radius: 999px; background: #FFFFFF; font-size: 12px; font-weight: 600; color: #2A3036')}>
-                        {listing.listingMethod === 'auction' ? t('method.auctionListing') : methodLabel(lang, listing.listingMethod)}
-                      </span>
-                    </Link>
-                    <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
-                      <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
-                        <Link href={productPath(listing)} style={css('color: #15191E')}>
-                          {title}
-                        </Link>
-                      </h3>
-                      <p className="listing-card-meta" style={css('margin-top: 4px')}>
-                        {listing.location.label ?? t('common.locationNotPublished')} · {postedLabel(listing.publishedAt, t, lang)}
-                      </p>
-                      <p className="listing-card-meta">
-                        {listing.condition ? conditionLabel(lang, listing.condition) : t('browse.conditionNotStated')} · {listing.category.key}
-                      </p>
-                      {price ? (
-                        <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                          {price.kind === 'starting' ? t('common.starting', { price: fmtMinor(price.minor) }) : fmtMinor(price.minor)}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
+              {resultListings.map((listing) => (
+                <ProductListingCard key={listing.listingReference} listing={listing} imageUrl={thumbUrl(listing)} />
+              ))}
             </div>
           )}
 

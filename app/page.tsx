@@ -6,6 +6,7 @@ import { Fragment, useState } from 'react';
 import AudiencePicker from '../components/AudiencePicker';
 import CategoryMenu from '../components/CategoryMenu';
 import LocalInfoBar from '../components/LocalInfoBar';
+import ProductListingCard from '../components/ProductListingCard';
 import SiteFooter from '../components/SiteFooter';
 import SiteHeader from '../components/SiteHeader';
 import { API_BASE_URL, apiFetch } from '../lib/api';
@@ -320,40 +321,13 @@ export default function HomePage() {
         <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
           {auctionCards.map((listing) => {
             const image = cardImage(listing, lang, t('common.listingImage'));
-            const live = listing.liveLotReference;
-            const title = listingCardTitle(listing, lang);
-            const price = listingCardPrice(listing);
             return (
-              <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
-                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">{t('common.noImage')}</span>}
-                  {live ? (
-                    <span style={css('position: absolute; top: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 700')}>
-                      {t('common.live')}
-                    </span>
-                  ) : null}
-                </Link>
-                <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1')}>
-                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
-                    <Link href={productPath(listing)} style={css('color: #15191E')}>
-                      {title}
-                    </Link>
-                  </h3>
-                  <p className="listing-card-meta">
-                    {listing.category.key} · {listing.location.label ?? t('common.locationNotPublished')} · {postedLabel(listing.publishedAt, t)}
-                  </p>
-                  {price ? (
-                    <p style={css('margin: 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                      {startingOrPrice(price, t)}
-                    </p>
-                  ) : null}
-                  {live ? (
-                    <Link href={productPath(listing)} className="btn-primary" style={css('margin-top: auto; display: inline-flex; align-items: center; justify-content: center; height: 42px; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}>
-                      {t('common.bidNow')}
-                    </Link>
-                  ) : null}
-                </div>
-              </article>
+              <ProductListingCard
+                key={listing.listingReference}
+                listing={listing}
+                imageUrl={image.url}
+                imageAlt={image.alt}
+              />
             );
           })}
         </div>
@@ -438,31 +412,13 @@ export default function HomePage() {
         <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
           {recentListings.map((listing) => {
             const image = cardImage(listing, lang, t('common.listingImage'));
-            const title = listingCardTitle(listing, lang);
-            const price = listingCardPrice(listing);
             return (
-              <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
-                  {image.url ? <img src={image.url} alt={image.alt} loading="lazy" /> : <span className="mkt-hint">{t('common.noImage')}</span>}
-                </Link>
-                <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 6px')}>
-                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
-                    <Link href={productPath(listing)} style={css('color: #15191E')}>
-                      {title}
-                    </Link>
-                  </h3>
-                  <p className="listing-card-meta">
-                    {methodLabel(lang, listing.listingMethod)}
-                    {listing.condition ? ` · ${conditionLabel(lang, listing.condition)}` : ''} · {listing.location.label ?? t('common.locationNotPublished')}
-                  </p>
-                  {price ? (
-                    <p style={css('margin: 2px 0 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                      {startingOrPrice(price, t)}
-                    </p>
-                  ) : null}
-                  <p className="mkt-hint">{postedLabel(listing.publishedAt, t)}</p>
-                </div>
-              </article>
+              <ProductListingCard
+                key={listing.listingReference}
+                listing={listing}
+                imageUrl={image.url}
+                imageAlt={image.alt}
+              />
             );
           })}
         </div>

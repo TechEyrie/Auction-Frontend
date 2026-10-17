@@ -1,30 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import ProductListingCard from '../../components/ProductListingCard';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
-import { API_BASE_URL, apiFetch } from '../../lib/api';
+import { apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
-import { fmtMinor } from '../../lib/format';
-import { listingCardPrice, listingCardTitle, mediaUrl, productPath, type PublicListing } from '../../lib/listings';
+import { type PublicListing } from '../../lib/listings';
 import { useLive } from '../../lib/live';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
-import { localizedText } from '../../lib/uiLocale';
-import { conditionLabel, methodLabel } from '../../lib/uiMessages';
 import './auctions.css';
 
 type ListingsResponse = { listings: PublicListing[]; total: number };
-
-type Translate = ReturnType<typeof useUiLocale>['t'];
-
-function postedLabel(iso: string | null, t: Translate): string {
-  if (!iso) return t('common.notPublished');
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return t('common.publishedToday');
-  if (days === 1) return t('common.publishedYesterday');
-  return t('common.publishedDaysAgo', { n: days });
-}
 
 /**
  * Auctions overview.
@@ -33,7 +21,7 @@ function postedLabel(iso: string | null, t: Translate): string {
  * public catalogue API, so cards without a live lot reference should not appear.
  */
 export default function AuctionsPage() {
-  const { lang, t } = useUiLocale();
+  const { t } = useUiLocale();
   const listings = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?method=auction&limit=24', { cache: 'no-store' }), []);
   useLive(() => listings.reload());
 
@@ -103,52 +91,9 @@ export default function AuctionsPage() {
         )}
 
         <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
-          {(listings.data?.listings ?? []).map((listing) => {
-            const cover = listing.media.find((entry) => entry.assetId === listing.coverAssetId) ?? listing.media[0] ?? null;
-            const live = listing.liveLotReference;
-            const title = listingCardTitle(listing, lang);
-            const price = listingCardPrice(listing);
-            return (
-              <article key={listing.listingReference} className="card" style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; overflow: hidden; display: flex; flex-direction: column')}>
-                <Link href={productPath(listing)} aria-label={title} className="listing-card-media">
-                  {cover ? (
-                    <img src={mediaUrl(API_BASE_URL, cover.url)} alt={localizedText(cover.alt, lang) || localizedText(listing.title, lang)} loading="lazy" />
-                  ) : (
-                    <span className="mkt-hint">{t('common.noImage')}</span>
-                  )}
-                  {live ? (
-                    <span style={css('position: absolute; top: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: #C2410C; color: #FFFFFF; font-size: 12px; font-weight: 700')}>
-                      {t('common.live')}
-                    </span>
-                  ) : null}
-                </Link>
-                <div style={css('padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1')}>
-                  <h3 style={css('margin: 0; font-size: 16px; font-weight: 700; line-height: 1.35; letter-spacing: 0.02em; text-transform: uppercase')}>
-                    <Link href={productPath(listing)} style={css('color: #15191E')}>
-                      {title}
-                    </Link>
-                  </h3>
-                  <p className="listing-card-meta">
-                    {methodLabel(lang, listing.listingMethod)}
-                    {listing.condition ? ` · ${conditionLabel(lang, listing.condition)}` : ''}
-                  </p>
-                  <p className="listing-card-meta">
-                    {listing.location.label ?? t('common.locationNotPublished')} · {postedLabel(listing.publishedAt, t)}
-                  </p>
-                  {price ? (
-                    <p style={css('margin: 0; font-size: 18px; font-weight: 800; color: #9A6B12; letter-spacing: -0.01em')}>
-                      {price.kind === 'starting' ? t('common.starting', { price: fmtMinor(price.minor) }) : fmtMinor(price.minor)}
-                    </p>
-                  ) : null}
-                  {live ? (
-                    <Link href={productPath(listing)} className="btn-primary" style={css('margin-top: auto; display: inline-flex; align-items: center; justify-content: center; height: 42px; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}>
-                      {t('common.bidNow')}
-                    </Link>
-                  ) : null}
-                </div>
-              </article>
-            );
-          })}
+          {(listings.data?.listings ?? []).map((listing) => (
+            <ProductListingCard key={listing.listingReference} listing={listing} />
+          ))}
         </div>
       </section>
 
