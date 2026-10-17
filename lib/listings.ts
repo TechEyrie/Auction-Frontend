@@ -226,6 +226,49 @@ export function conditionOptionsFor(method: ListingMethod): Condition[] {
   return ['new', 'like_new', 'used', 'refurbished'];
 }
 
+/** Category schema `item_condition` select values (hyphenated), distinct from listing `condition`. */
+export type ItemCondition = 'new' | 'like-new' | 'used';
+
+/**
+ * Map listing Basics condition to the category attribute `item_condition` when the schema defines it.
+ * Refurbished has no catalogue option; the closest valid value is used.
+ */
+export function mapListingConditionToItemCondition(condition: Condition | null | undefined): ItemCondition | null {
+  switch (condition) {
+    case 'new':
+      return 'new';
+    case 'like_new':
+      return 'like-new';
+    case 'used':
+      return 'used';
+    case 'refurbished':
+      return 'used';
+    default:
+      return null;
+  }
+}
+
+function attributeValueEmpty(value: unknown): boolean {
+  return value === undefined || value === null || value === '';
+}
+
+/**
+ * Before building the attribute save payload: copy Basics condition into `item_condition` when the
+ * schema requires it and Category details left the field empty. An explicit Category value wins.
+ */
+export function withSyncedItemCondition(
+  fields: AttributeField[],
+  attributes: Record<string, unknown>,
+  condition: Condition | null | undefined,
+): Record<string, unknown> {
+  const hasItemCondition = fields.some((field) => field.key === 'item_condition');
+  if (!hasItemCondition) return { ...attributes };
+  if (!attributeValueEmpty(attributes.item_condition)) return { ...attributes };
+  const mapped = mapListingConditionToItemCondition(condition);
+  if (mapped === null) return { ...attributes };
+  return { ...attributes, item_condition: mapped };
+}
+
 // ---------------------------------------------------------------------------
 // Category-dependent attributes
 // ---------------------------------------------------------------------------

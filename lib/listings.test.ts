@@ -9,6 +9,8 @@ import {
   beginSave,
   completeSave,
   conditionOptionsFor,
+  mapListingConditionToItemCondition,
+  withSyncedItemCondition,
   dependencySatisfied,
   initialSaveTrack,
   incompatibleAttributeKeys,
@@ -80,6 +82,28 @@ test('conditions are offered only where they mean something', () => {
   assert.deepEqual(conditionOptionsFor('enquiry'), ['not_applicable']);
   assert.ok(conditionOptionsFor('auction').includes('used'));
   assert.ok(!conditionOptionsFor('fixed_price').includes('not_applicable'));
+});
+
+test('basics condition maps to item_condition when category schema defines it', () => {
+  assert.equal(mapListingConditionToItemCondition('new'), 'new');
+  assert.equal(mapListingConditionToItemCondition('like_new'), 'like-new');
+  assert.equal(mapListingConditionToItemCondition('used'), 'used');
+  assert.equal(mapListingConditionToItemCondition('refurbished'), 'used');
+  assert.equal(mapListingConditionToItemCondition('not_applicable'), null);
+  assert.equal(mapListingConditionToItemCondition(null), null);
+
+  const itemConditionField = field({
+    key: 'item_condition',
+    type: 'select',
+    required: true,
+    options: [{ key: 'used', labelEn: 'Used' }],
+  });
+  const fields = [itemConditionField, field({ key: 'colour', type: 'text' })];
+
+  assert.deepEqual(withSyncedItemCondition(fields, {}, 'refurbished'), { item_condition: 'used' });
+  assert.deepEqual(withSyncedItemCondition(fields, { colour: 'red' }, 'new'), { colour: 'red', item_condition: 'new' });
+  assert.deepEqual(withSyncedItemCondition(fields, { item_condition: 'like-new' }, 'used'), { item_condition: 'like-new' });
+  assert.deepEqual(withSyncedItemCondition([field({ key: 'colour', type: 'text' })], {}, 'new'), {});
 });
 
 test('dependency gating decides what is shown, and only that', () => {

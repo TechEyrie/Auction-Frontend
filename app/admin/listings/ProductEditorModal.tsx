@@ -1,11 +1,22 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
+import { API_BASE_URL, apiFetch } from '../../../lib/api';
 import { css } from '../../../lib/css';
 import { formatBytes } from '../../../lib/admin';
 import {
+  firstListingErrorPath,
+  firstListingErrorSection,
+  listingFailureState,
+  listingFieldFocusId,
+  listingFieldInlineMessage,
+  missingRequiredAttributeLabels,
+  type ListingValidationAlert,
+} from '../../../lib/listingFieldErrors';
+import {
   attributePayload,
+  mapListingConditionToItemCondition,
+  withSyncedItemCondition,
   AUDIENCE_LABEL,
   AUDIENCES,
   CONDITION_LABEL,
@@ -30,7 +41,7 @@ import {
 } from '../../../lib/listings';
 import { BUSINESS_TIMEZONE, fmtBusinessDateTime } from '../../../lib/format';
 import type { SessionValue } from '../../../lib/session';
-import { Badge, ErrorNote, GhostButton, Hint, Label, Modal, PrimaryButton, Toggle } from '../ui';
+import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Modal, PrimaryButton, Toggle } from '../ui';
 import './listings.css';
 
 type Category = { key: string; name: string; parentKey: string | null; depth: number; listingMethods: ListingMethod[] };
@@ -145,7 +156,7 @@ function payloadOf(form: EditorForm, fields: AttributeField[]): Record<string, u
     locationKey: form.locationKey,
     title: { en: form.title.en, ar: form.title.ar },
     description: { en: form.description.en, ar: form.description.ar },
-    attributes: attributePayload(fields, form.attributes),
+    attributes: attributePayload(fields, withSyncedItemCondition(fields, form.attributes, form.condition)),
     media: mediaPayload(form.media),
     coverAssetId: form.coverAssetId,
     featured: form.featured,
@@ -155,12 +166,13 @@ function payloadOf(form: EditorForm, fields: AttributeField[]): Record<string, u
   };
 }
 
-function apiMessage(err: unknown): string {
-  if (err instanceof ApiRequestError) {
-    const fields = Object.entries(err.body.fieldErrors);
-    return fields.length > 0 ? `${err.message} (${fields.map(([key, value]) => `${key}: ${value}`).join('; ')})` : err.message;
-  }
-  return err instanceof Error ? err.message : String(err);
+function scrollToFirstListingError(fieldErrors: Record<string, string>): void {
+  const section = firstListingErrorSection(fieldErrors);
+  if (!section) return;
+  document.querySelector(`[data-listing-section="${section}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const path = firstListingErrorPath(fieldErrors);
+  const id = path ? listingFieldFocusId(path, 'modal') : null;
+  if (id) document.getElementById(id)?.focus({ preventScroll: true });
 }
 
 export default function ProductEditorModal({
@@ -201,6 +213,8 @@ export default function ProductEditorModal({
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [validationAlert, setValidationAlert] = useState<ListingValidationAlert | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmPublish, setConfirmPublish] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -247,7 +261,10 @@ export default function ProductEditorModal({
       setSchemaFields(response.schema?.fields ?? []);
       await loadAssets(response.listing.listingReference);
     } catch (err) {
-      setError(apiMessage(err));
+      const next = listingFailureState(err, { schemaFields: [] });
+      setFieldErrors(next.fieldErrors);
+      setValidationAlert(next.validationAlert);
+      setError(next.message);
     } finally {
       setLoading(false);
     }
@@ -261,6 +278,8 @@ export default function ProductEditorModal({
     setDeleteOpen(false);
     setDeleteReason('Removed by operator');
     setError(null);
+    setFieldErrors({});
+    setValidationAlert(null);
     setNotice(null);
     setProgress(null);
     if (mode === 'edit' && listingReference) {
@@ -284,10 +303,26 @@ export default function ProductEditorModal({
   const locales = requiredLocales(form.languageMode);
   const visible = visibleFields(schemaFields, form.attributes);
   const problems = localizedProblems({ title: form.title, description: form.description, languageMode: form.languageMode });
-  // Category details UI is hidden for now — do not block publish on schema fields.
-  const missingRequired: string[] = [];
-  void visible;
+  const missingRequired = missingRequiredAttributeLabels(visible, form.attributes);
+  const fieldErrorCtx = useMemo(() => ({ schemaFields }), [schemaFields]);
   const readyAssets = useMemo(() => assets.filter((asset) => asset.status === 'ready'), [assets]);
+
+  const applyListingFailure = useCallback(
+    (err: unknown, publishAttempt?: boolean) => {
+      const next = listingFailureState(err, fieldErrorCtx, { publishAttempt });
+      setFieldErrors(next.fieldErrors);
+      setValidationAlert(next.validationAlert);
+      setError(next.message);
+      if (Object.keys(next.fieldErrors).length > 0) {
+        queueMicrotask(() => scrollToFirstListingError(next.fieldErrors));
+      }
+    },
+    [fieldErrorCtx],
+  );
+
+  function inlineFieldError(path: string): string | null {
+    return listingFieldInlineMessage(fieldErrors, path, fieldErrorCtx);
+  }
 
   async function ensureDraft(): Promise<{ listingReference: string; version: number }> {
     const current = formRef.current;
@@ -360,13 +395,15 @@ export default function ProductEditorModal({
     event?.preventDefault();
     setBusy(true);
     setError(null);
+    setFieldErrors({});
+    setValidationAlert(null);
     setNotice(null);
     try {
       const saved = await saveAll();
       setNotice('Product saved.');
       onSaved(saved);
     } catch (err) {
-      setError(apiMessage(err));
+      applyListingFailure(err);
     } finally {
       setBusy(false);
     }
@@ -375,6 +412,8 @@ export default function ProductEditorModal({
   async function handlePublish(): Promise<void> {
     setBusy(true);
     setError(null);
+    setFieldErrors({});
+    setValidationAlert(null);
     setNotice(null);
     try {
       const saved = await saveAll();
@@ -390,7 +429,7 @@ export default function ProductEditorModal({
       setConfirmPublish(false);
       onSaved(published.listing);
     } catch (err) {
-      setError(apiMessage(err));
+      applyListingFailure(err, true);
     } finally {
       setBusy(false);
     }
@@ -416,7 +455,7 @@ export default function ProductEditorModal({
       setDeleteOpen(false);
       onDeleted?.(listing.listingReference);
     } catch (err) {
-      setError(apiMessage(err));
+      applyListingFailure(err);
     } finally {
       setBusy(false);
     }
@@ -466,7 +505,7 @@ export default function ProductEditorModal({
         request.send(file);
       });
     } catch (err) {
-      setError(apiMessage(err));
+      applyListingFailure(err);
     } finally {
       setBusy(false);
     }
@@ -561,14 +600,25 @@ export default function ProductEditorModal({
         </p>
       ) : (
         <form className="adm-form adm-form--modal" onSubmit={(event) => void handleSave(event)}>
-          <ErrorNote>{error}</ErrorNote>
+          {validationAlert ? (
+            <ErrorNote>
+              <span style={css('display: block; font-weight: 600; margin-bottom: 6px')}>{validationAlert.headline}</span>
+              <ul style={css('margin: 0; padding-left: 1.25rem')}>
+                {validationAlert.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </ErrorNote>
+          ) : (
+            <ErrorNote>{error}</ErrorNote>
+          )}
           {notice ? (
             <p className="adm-note" data-tone="good" style={css('margin: 0')}>
               {notice}
             </p>
           ) : null}
 
-          <section className="adm-section">
+          <section className="adm-section" data-listing-section="basics">
             <h3>Basics</h3>
             <p className="adm-section-hint">Audience, category, listing type, condition and location.</p>
             <div className="adm-grid adm-grid--2">
@@ -588,6 +638,7 @@ export default function ProductEditorModal({
                     </option>
                   ))}
                 </select>
+                <FieldError>{inlineFieldError('audience')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="pe-category">Category</Label>
@@ -605,6 +656,7 @@ export default function ProductEditorModal({
                     </option>
                   ))}
                 </select>
+                <FieldError>{inlineFieldError('categoryKey')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="pe-method">Listing method</Label>
@@ -615,10 +667,17 @@ export default function ProductEditorModal({
                   value={form.listingMethod}
             onChange={(event) => {
               const listingMethod = event.target.value as ListingMethod;
+              const condition = conditionOptionsFor(listingMethod)[0];
+              const mapped = mapListingConditionToItemCondition(condition);
+              const attributes =
+                schemaFields.some((field) => field.key === 'item_condition') && mapped !== null
+                  ? { ...form.attributes, item_condition: mapped }
+                  : form.attributes;
               setForm({
                 ...form,
                 listingMethod,
-                condition: conditionOptionsFor(listingMethod)[0],
+                condition,
+                attributes,
                 // Clear stale fixed price when leaving buy-now so auction saves do not revive it.
                 priceQar: listingMethod === 'fixed_price' ? form.priceQar : '',
               });
@@ -631,6 +690,7 @@ export default function ProductEditorModal({
             ))}
           </select>
           <Hint>Auction needs no price here — the auction engine sets bidding later. Fixed price requires a QAR amount.</Hint>
+          <FieldError>{inlineFieldError('listingMethod')}</FieldError>
         </div>
         {form.listingMethod === 'fixed_price' ? (
           <div>
@@ -647,6 +707,7 @@ export default function ProductEditorModal({
               placeholder="e.g. 450"
               required
             />
+            <FieldError>{inlineFieldError('priceMinor')}</FieldError>
           </div>
         ) : null}
               <div>
@@ -664,6 +725,7 @@ export default function ProductEditorModal({
                     </option>
                   ))}
                 </select>
+                <FieldError>{inlineFieldError('languageMode')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="pe-condition">Condition</Label>
@@ -672,7 +734,15 @@ export default function ProductEditorModal({
                   className="field"
                   disabled={busy || !mayManage}
                   value={form.condition ?? ''}
-                  onChange={(event) => setForm({ ...form, condition: event.target.value as Condition })}
+                  onChange={(event) => {
+                    const condition = event.target.value as Condition;
+                    const mapped = mapListingConditionToItemCondition(condition);
+                    const attributes =
+                      schemaFields.some((field) => field.key === 'item_condition') && mapped !== null
+                        ? { ...form.attributes, item_condition: mapped }
+                        : form.attributes;
+                    setForm({ ...form, condition, attributes });
+                  }}
                 >
                   {conditions.map((condition) => (
                     <option key={condition} value={condition}>
@@ -680,6 +750,8 @@ export default function ProductEditorModal({
                     </option>
                   ))}
                 </select>
+                <Hint>Also fills Category details → Condition (refurbished maps to Used).</Hint>
+                <FieldError>{inlineFieldError('condition')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="pe-location">Location</Label>
@@ -699,11 +771,12 @@ export default function ProductEditorModal({
                       </option>
                     ))}
                 </select>
+                <FieldError>{inlineFieldError('locationKey')}</FieldError>
               </div>
             </div>
           </section>
 
-          <section className="adm-section">
+          <section className="adm-section" data-listing-section="content">
             <h3>The ad</h3>
             <p className="adm-section-hint">Titles and descriptions shoppers see. Required languages follow the advertisement language above.</p>
             {locales.includes('en') ? (
@@ -716,6 +789,7 @@ export default function ProductEditorModal({
                   value={form.title.en ?? ''}
                   onChange={(event) => setForm({ ...form, title: { ...form.title, en: event.target.value || null } })}
                 />
+                <FieldError>{inlineFieldError('title.en')}</FieldError>
               </div>
             ) : null}
             {locales.includes('ar') ? (
@@ -729,6 +803,7 @@ export default function ProductEditorModal({
                   value={form.title.ar ?? ''}
                   onChange={(event) => setForm({ ...form, title: { ...form.title, ar: event.target.value || null } })}
                 />
+                <FieldError>{inlineFieldError('title.ar')}</FieldError>
               </div>
             ) : null}
             {locales.includes('en') ? (
@@ -742,6 +817,7 @@ export default function ProductEditorModal({
                   value={form.description.en ?? ''}
                   onChange={(event) => setForm({ ...form, description: { ...form.description, en: event.target.value || null } })}
                 />
+                <FieldError>{inlineFieldError('description.en')}</FieldError>
               </div>
             ) : null}
             {locales.includes('ar') ? (
@@ -756,25 +832,117 @@ export default function ProductEditorModal({
                   value={form.description.ar ?? ''}
                   onChange={(event) => setForm({ ...form, description: { ...form.description, ar: event.target.value || null } })}
                 />
+                <FieldError>{inlineFieldError('description.ar')}</FieldError>
               </div>
             ) : null}
           </section>
 
-          {/* Category details hidden for now — restore when attribute schemas are operator-facing.
-          <section className="adm-section">
+          <section className="adm-section" data-listing-section="attributes">
             <h3>Category details</h3>
             <p className="adm-section-hint">
               {form.categoryKey
                 ? schemaFields.length > 0
-                  ? 'Structured fields from this category’s published schema.'
+                  ? 'Structured fields from this category’s published attribute schema. Required fields must be set before publish.'
                   : 'This category has no published attribute schema yet.'
                 : 'Choose a category to load its detail fields.'}
             </p>
-            ...attribute fields...
+            {form.categoryKey && schemaFields.length === 0 ? (
+              <p className="adm-state">Nothing to fill for this category.</p>
+            ) : null}
+            {visible.length > 0 ? (
+              <div className="adm-grid adm-grid--2">
+                {visible.map((entry) => (
+                  <div key={entry.key} className={entry.adminOnly ? 'lw-admin-field' : undefined}>
+                    <Label htmlFor={`pe-attr-${entry.key}`}>
+                      {entry.labelEn}
+                      {entry.unit ? ` (${entry.unit})` : ''}
+                      {entry.required ? ' *' : ''}
+                      {entry.adminOnly ? ' · staff only' : ''}
+                    </Label>
+                    {entry.type === 'select' && (
+                      <select
+                        id={`pe-attr-${entry.key}`}
+                        className="field"
+                        disabled={busy || !mayManage}
+                        value={String(form.attributes[entry.key] ?? '')}
+                        onChange={(event) =>
+                          setForm({ ...form, attributes: { ...form.attributes, [entry.key]: event.target.value || null } })
+                        }
+                      >
+                        <option value="">Not set</option>
+                        {entry.options.map((option) => (
+                          <option key={option.key} value={option.key}>
+                            {option.labelEn}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {entry.type === 'boolean' && (
+                      <Toggle
+                        id={`pe-attr-${entry.key}`}
+                        label={form.attributes[entry.key] === true ? 'Yes' : form.attributes[entry.key] === false ? 'No' : 'Not set'}
+                        checked={form.attributes[entry.key] === true}
+                        onChange={(next) => setForm({ ...form, attributes: { ...form.attributes, [entry.key]: next } })}
+                      />
+                    )}
+                    {entry.type === 'multiselect' && (
+                      <select
+                        id={`pe-attr-${entry.key}`}
+                        className="field"
+                        multiple
+                        disabled={busy || !mayManage}
+                        value={Array.isArray(form.attributes[entry.key]) ? (form.attributes[entry.key] as string[]) : []}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            attributes: {
+                              ...form.attributes,
+                              [entry.key]: [...event.target.selectedOptions].map((option) => option.value),
+                            },
+                          })
+                        }
+                      >
+                        {entry.options.map((option) => (
+                          <option key={option.key} value={option.key}>
+                            {option.labelEn}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {(entry.type === 'text' || entry.type === 'number' || entry.type === 'date') && (
+                      <input
+                        id={`pe-attr-${entry.key}`}
+                        className="field"
+                        inputMode={entry.type === 'number' ? 'decimal' : undefined}
+                        type={entry.type === 'date' ? 'date' : 'text'}
+                        disabled={busy || !mayManage}
+                        value={String(form.attributes[entry.key] ?? '')}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            attributes: { ...form.attributes, [entry.key]: event.target.value === '' ? null : event.target.value },
+                          })
+                        }
+                      />
+                    )}
+                    {entry.helpEn ? <Hint>{entry.helpEn}</Hint> : null}
+                    {entry.key === 'item_condition' ? (
+                      <Hint>When empty, Basics → Condition fills this automatically.</Hint>
+                    ) : null}
+                    <FieldError>{inlineFieldError(`attributes.${entry.key}`)}</FieldError>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {missingRequired.length > 0 ? (
+              <p className="adm-note" data-tone="warn" style={css('margin: 12px 0 0')}>
+                Required before publish (category details): {missingRequired.join(', ')}
+              </p>
+            ) : null}
+            <FieldError>{inlineFieldError('attributes')}</FieldError>
           </section>
-          */}
 
-          <section className="adm-section">
+          <section className="adm-section" data-listing-section="media">
             <h3>Photos</h3>
             <p className="adm-section-hint">
               Upload JPEG, PNG or WebP. Choose a cover, reorder, and add alt text. At least one photo is required to publish.
@@ -897,9 +1065,10 @@ export default function ProductEditorModal({
                 </div>
               )}
             </div>
+            <FieldError>{inlineFieldError('media') ?? inlineFieldError('coverAssetId')}</FieldError>
           </section>
 
-          <section className="adm-section">
+          <section className="adm-section" data-listing-section="review">
             <h3>Staff options</h3>
             <div className="adm-grid adm-grid--2">
               <div>
@@ -935,11 +1104,13 @@ export default function ProductEditorModal({
               <li className={form.media.length > 0 ? 'lw-check ok' : 'lw-check bad'}>
                 {form.media.length > 0 ? `${form.media.length} image(s) attached` : 'At least one image required to publish'}
               </li>
-              {/* Category details check hidden with that section
               <li className={missingRequired.length === 0 ? 'lw-check ok' : 'lw-check bad'}>
-                {missingRequired.length === 0 ? 'Required category details are set' : `Missing: ${missingRequired.join(', ')}`}
+                {missingRequired.length === 0
+                  ? schemaFields.length > 0
+                    ? 'Required category details are set'
+                    : 'No category attribute schema (or none required)'
+                  : `Missing category details: ${missingRequired.join(', ')}`}
               </li>
-              */}
               {listing?.status === 'published' ? <li className="lw-check ok">Already published</li> : null}
             </ul>
             {mayManage && listing && listing.status !== 'published' && listing.status !== 'archived' ? (

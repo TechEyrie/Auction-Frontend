@@ -6,10 +6,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../../lib/api';
 import { css } from '../../../../lib/css';
 import { useSession } from '../../../../lib/session';
-import { fieldError, formatBytes } from '../../../../lib/admin';
+import { formatBytes } from '../../../../lib/admin';
+import {
+  firstListingErrorPath,
+  firstListingErrorSection,
+  listingApiErrorMessage,
+  listingFailureState,
+  listingFieldFocusId,
+  listingFieldInlineMessage,
+  missingRequiredAttributeLabels,
+  type ListingValidationAlert,
+} from '../../../../lib/listingFieldErrors';
 import { BUSINESS_TIMEZONE, fmtBusinessDateTime } from '../../../../lib/format';
 import {
   attributePayload,
+  mapListingConditionToItemCondition,
+  withSyncedItemCondition,
   AUDIENCE_LABEL,
   AUDIENCES,
   beginSave,
@@ -90,16 +102,19 @@ const STEP_LABEL: Record<Step, string> = {
   review: 'Publish',
 };
 
-function apiMessage(err: unknown): string {
-  if (err instanceof ApiRequestError) {
-    const fields = Object.entries(err.body.fieldErrors);
-    return fields.length > 0 ? `${err.message} (${fields.map(([key, value]) => `${key}: ${value}`).join('; ')})` : err.message;
-  }
-  return err instanceof Error ? err.message : String(err);
-}
-
-function fieldErrorsOf(err: unknown): Record<string, string> {
-  return err instanceof ApiRequestError ? err.body.fieldErrors : {};
+function scrollToFirstListingError(
+  fieldErrors: Record<string, string>,
+  onSection: (section: NonNullable<ReturnType<typeof firstListingErrorSection>>) => void,
+): void {
+  const section = firstListingErrorSection(fieldErrors);
+  if (!section) return;
+  onSection(section);
+  queueMicrotask(() => {
+    document.querySelector(`[data-listing-section="${section}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const path = firstListingErrorPath(fieldErrors);
+    const id = path ? listingFieldFocusId(path, 'wizard') : null;
+    if (id) document.getElementById(id)?.focus({ preventScroll: true });
+  });
 }
 
 function formFrom(listing: AdminListing): FormState {
@@ -133,7 +148,7 @@ function payloadOf(form: FormState, fields: AttributeField[]): Record<string, un
     locationKey: form.locationKey,
     title: { en: form.title.en, ar: form.title.ar },
     description: { en: form.description.en, ar: form.description.ar },
-    attributes: attributePayload(fields, form.attributes),
+    attributes: attributePayload(fields, withSyncedItemCondition(fields, form.attributes, form.condition)),
     media: mediaPayload(form.media),
     coverAssetId: form.coverAssetId,
     featured: form.featured,
@@ -169,6 +184,7 @@ export default function AdminListingWizardPage() {
   const [step, setStep] = useState<Step>('basics');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [banner, setBanner] = useState<string | null>(null);
+  const [validationAlert, setValidationAlert] = useState<ListingValidationAlert | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [reconciliation, setReconciliation] = useState<Reconciliation | null>(null);
   const [busy, setBusy] = useState(false);
@@ -206,7 +222,7 @@ export default function AdminListingWizardPage() {
       setLocations(locationResponse.locations);
       setSellers(sellerResponse.sellers);
     } catch (err) {
-      setLoadError(apiMessage(err));
+      setLoadError(listingApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -225,7 +241,7 @@ export default function AdminListingWizardPage() {
       });
       setAssets(response.assets);
     } catch (err) {
-      setAssetsError(apiMessage(err));
+      setAssetsError(listingApiErrorMessage(err));
     }
   }, [ref]);
 
@@ -265,19 +281,23 @@ export default function AdminListingWizardPage() {
         setSchemaChanged(false);
         return response.listing;
       } catch (err) {
-        const errors = fieldErrorsOf(err);
-        setFieldErrors(errors);
+        const next = listingFailureState(err, { schemaFields: fields });
+        setFieldErrors(next.fieldErrors);
+        setValidationAlert(next.validationAlert);
         const conflict = err instanceof ApiRequestError && err.status === 409;
         const details = err instanceof ApiRequestError ? (err.body.details as { currentVersion?: number }) : {};
         setTrack(
           completeSave(started, started.ticket, {
             ok: false,
             conflict,
-            message: apiMessage(err),
+            message: listingApiErrorMessage(err, { schemaFields: fields }),
             currentVersion: typeof details.currentVersion === 'number' ? details.currentVersion : null,
           }),
         );
-        if (!conflict) setBanner(apiMessage(err));
+        if (!conflict) {
+          setBanner(next.message);
+          scrollToFirstListingError(next.fieldErrors, setStep);
+        }
         return null;
       }
     },
@@ -343,7 +363,7 @@ export default function AdminListingWizardPage() {
       }
       setPendingCategory({ key: nextKey, version: published?.version ?? null, fields, dropped });
     } catch (err) {
-      setBanner(apiMessage(err));
+      setBanner(listingApiErrorMessage(err, { schemaFields: schema?.fields ?? [] }));
     }
   }
 
@@ -369,8 +389,10 @@ export default function AdminListingWizardPage() {
     if (!listing) return;
     setBusy(true);
     setFieldErrors({});
+    setValidationAlert(null);
     setBanner(null);
     setNotice(null);
+    const schemaFields = schema?.fields ?? [];
     try {
       const response = await apiFetch<{ listing: AdminListing; publicUrl: string }>(`/api/admin/listings/${ref}/publish`, {
         method: 'POST',
@@ -383,10 +405,13 @@ export default function AdminListingWizardPage() {
       setNotice(`Published. Public URL: ${response.publicUrl}`);
       setConfirmingPublish(false);
     } catch (err) {
-      setFieldErrors(fieldErrorsOf(err));
-      setBanner(apiMessage(err));
+      const next = listingFailureState(err, { schemaFields }, { publishAttempt: true });
+      setFieldErrors(next.fieldErrors);
+      setValidationAlert(next.validationAlert);
+      setBanner(next.message);
+      scrollToFirstListingError(next.fieldErrors, setStep);
       if (!(err instanceof ApiRequestError && err.status === 409)) setConfirmingPublish(false);
-      else setTrack((current) => ({ ...current, status: 'conflict', message: apiMessage(err) }));
+      else setTrack((current) => ({ ...current, status: 'conflict', message: listingApiErrorMessage(err, { schemaFields }) }));
     } finally {
       setBusy(false);
     }
@@ -412,7 +437,7 @@ export default function AdminListingWizardPage() {
       setNotice('Archived. It is out of public view; republish it to bring it back.');
       setArchiveReason('');
     } catch (err) {
-      setBanner(apiMessage(err));
+      setBanner(listingApiErrorMessage(err, { schemaFields: schema?.fields ?? [] }));
     } finally {
       setBusy(false);
     }
@@ -467,9 +492,12 @@ export default function AdminListingWizardPage() {
   const category = categories.find((entry) => entry.key === form?.categoryKey) ?? null;
   const fields = schema?.fields ?? [];
   const visible = form ? visibleFields(fields, form.attributes) : [];
-  const missingRequired = form
-    ? visible.filter((entry) => entry.required && (form.attributes[entry.key] === undefined || form.attributes[entry.key] === null || form.attributes[entry.key] === '')).map((entry) => entry.key)
-    : [];
+  const fieldErrorCtx = useMemo(() => ({ schemaFields: schema?.fields ?? [] }), [schema]);
+  const missingRequired = form ? missingRequiredAttributeLabels(visible, form.attributes) : [];
+
+  function inlineFieldError(path: string): string | null {
+    return listingFieldInlineMessage(fieldErrors, path, fieldErrorCtx);
+  }
 
   if (loading) {
     return (
@@ -519,7 +547,18 @@ export default function AdminListingWizardPage() {
           </>
         }
       >
-        <ErrorNote>{banner}</ErrorNote>
+        {validationAlert ? (
+          <ErrorNote>
+            <span style={css('display: block; font-weight: 600; margin-bottom: 6px')}>{validationAlert.headline}</span>
+            <ul style={css('margin: 0; padding-left: 1.25rem')}>
+              {validationAlert.items.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </ErrorNote>
+        ) : (
+          <ErrorNote>{banner}</ErrorNote>
+        )}
         {notice && (
           <p className="adm-note" data-tone="good" style={css('margin-bottom: 14px')}>
             {notice}
@@ -577,7 +616,7 @@ export default function AdminListingWizardPage() {
         </nav>
 
         {step === 'basics' && (
-          <div className="adm-form lw-step-panel">
+          <div className="adm-form lw-step-panel" data-listing-section="basics">
             <div className="adm-grid adm-grid--2">
               {/* Seller picker hidden for now — existing sellerReference is kept on the listing.
               <div>
@@ -614,7 +653,7 @@ export default function AdminListingWizardPage() {
                   ))}
                 </select>
                 <Hint>Attributes and location rules follow the category. Changing it revalidates stored values.</Hint>
-                <FieldError>{fieldError(fieldErrors, 'categoryKey')}</FieldError>
+                <FieldError>{inlineFieldError('categoryKey')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="w-audience">Audience</Label>
@@ -633,7 +672,7 @@ export default function AdminListingWizardPage() {
                   ))}
                 </select>
                 <Hint>Required before publish. This is the primary shopper filter, not a category.</Hint>
-                <FieldError>{fieldError(fieldErrors, 'audience')}</FieldError>
+                <FieldError>{inlineFieldError('audience')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="w-method">Listing method</Label>
@@ -646,7 +685,13 @@ export default function AdminListingWizardPage() {
                     const listingMethod = event.target.value as ListingMethod;
                     const allowed = conditionOptionsFor(listingMethod);
                     const condition: Condition | null = form.condition && allowed.includes(form.condition) ? form.condition : allowed[0] ?? null;
-                    setForm({ ...form, listingMethod, condition });
+                    const mapped = mapListingConditionToItemCondition(condition);
+                    const schemaFields = schema?.fields ?? [];
+                    const attributes =
+                      schemaFields.some((field) => field.key === 'item_condition') && mapped !== null
+                        ? { ...form.attributes, item_condition: mapped }
+                        : form.attributes;
+                    setForm({ ...form, listingMethod, condition, attributes });
                   }}
                 >
                   {(category?.listingMethods.length ? category.listingMethods : LISTING_METHODS).map((method) => (
@@ -656,7 +701,7 @@ export default function AdminListingWizardPage() {
                   ))}
                 </select>
                 <Hint>A published listing is not a live auction: the auction engine arrives in the next phase.</Hint>
-                <FieldError>{fieldError(fieldErrors, 'listingMethod')}</FieldError>
+                <FieldError>{inlineFieldError('listingMethod')}</FieldError>
               </div>
               {form.listingMethod === 'fixed_price' ? (
                 <div>
@@ -671,7 +716,7 @@ export default function AdminListingWizardPage() {
                     value={form.priceQar}
                     onChange={(event) => setForm({ ...form, priceQar: event.target.value })}
                   />
-                  <FieldError>{fieldError(fieldErrors, 'priceMinor')}</FieldError>
+                  <FieldError>{inlineFieldError('priceMinor')}</FieldError>
                 </div>
               ) : null}
               <div>
@@ -693,7 +738,16 @@ export default function AdminListingWizardPage() {
                   className="field"
                   value={form.condition ?? ''}
                   disabled={!mayManage}
-                  onChange={(event) => setForm({ ...form, condition: (event.target.value || null) as Condition | null })}
+                  onChange={(event) => {
+                    const condition = (event.target.value || null) as Condition | null;
+                    const mapped = mapListingConditionToItemCondition(condition);
+                    const schemaFields = schema?.fields ?? [];
+                    const attributes =
+                      schemaFields.some((field) => field.key === 'item_condition') && mapped !== null
+                        ? { ...form.attributes, item_condition: mapped }
+                        : form.attributes;
+                    setForm({ ...form, condition, attributes });
+                  }}
                 >
                   <option value="">Not stated</option>
                   {conditionOptionsFor(form.listingMethod).map((condition) => (
@@ -702,7 +756,8 @@ export default function AdminListingWizardPage() {
                     </option>
                   ))}
                 </select>
-                <FieldError>{fieldError(fieldErrors, 'condition')}</FieldError>
+                <Hint>Also fills Category details → Condition (refurbished maps to Used).</Hint>
+                <FieldError>{inlineFieldError('condition')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="w-location">Location</Label>
@@ -722,7 +777,7 @@ export default function AdminListingWizardPage() {
                   ))}
                 </select>
                 <Hint>The location&apos;s own precision policy decides what the public page shows.</Hint>
-                <FieldError>{fieldError(fieldErrors, 'locationKey')}</FieldError>
+                <FieldError>{inlineFieldError('locationKey')}</FieldError>
               </div>
               <div>
                 <Label htmlFor="w-featured">Featured</Label>
@@ -761,7 +816,7 @@ export default function AdminListingWizardPage() {
         )}
 
         {step === 'content' && (
-          <div className="adm-form lw-step-panel">
+          <div className="adm-form lw-step-panel" data-listing-section="content">
             <p className="lw-address">
               Public address <strong>/product/{(form.title.en ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'listing'}</strong>
             </p>
@@ -780,7 +835,7 @@ export default function AdminListingWizardPage() {
                     disabled={!mayManage}
                     onChange={(event) => setForm({ ...form, title: { ...form.title, [locale]: event.target.value } })}
                   />
-                  <FieldError>{fieldError(fieldErrors, `title.${locale}`)}</FieldError>
+                  <FieldError>{inlineFieldError(`title.${locale}`)}</FieldError>
                 </div>
                 <div>
                   <Label htmlFor={`description-${locale}`}>Description ({locale})</Label>
@@ -794,7 +849,7 @@ export default function AdminListingWizardPage() {
                     disabled={!mayManage}
                     onChange={(event) => setForm({ ...form, description: { ...form.description, [locale]: event.target.value } })}
                   />
-                  <FieldError>{fieldError(fieldErrors, `description.${locale}`)}</FieldError>
+                  <FieldError>{inlineFieldError(`description.${locale}`)}</FieldError>
                 </div>
               </div>
             ))}
@@ -827,7 +882,7 @@ export default function AdminListingWizardPage() {
         )}
 
         {step === 'attributes' && (
-          <div className="adm-form lw-step-panel">
+          <div className="adm-form lw-step-panel" data-listing-section="attributes">
             {!schema && (
               <p className="adm-state">
                 {form.categoryKey} has no published attribute schema, so this listing carries no structured attributes.
@@ -907,15 +962,18 @@ export default function AdminListingWizardPage() {
                       />
                     )}
                     {entry.helpEn && <Hint>{entry.helpEn}</Hint>}
-                    <FieldError>{fieldError(fieldErrors, `attributes.${entry.key}`)}</FieldError>
+                    {entry.key === 'item_condition' ? (
+                      <Hint>When empty, Basics → Condition fills this automatically.</Hint>
+                    ) : null}
+                    <FieldError>{inlineFieldError(`attributes.${entry.key}`)}</FieldError>
                   </div>
                 ))}
               </div>
             )}
             {missingRequired.length > 0 && (
               <ul className="lw-list">
-                {missingRequired.map((key) => (
-                  <li key={key}>{key} is required by this category&apos;s schema.</li>
+                {missingRequired.map((label) => (
+                  <li key={label}>{label} is required before publishing (category details).</li>
                 ))}
               </ul>
             )}
@@ -934,7 +992,7 @@ export default function AdminListingWizardPage() {
         )}
 
         {step === 'media' && (
-          <div className="adm-form lw-step-panel">
+          <div className="adm-form lw-step-panel" data-listing-section="media">
             <div className="lw-media-step">
               <label
                 className={mayManage ? 'lw-upload-zone' : 'lw-upload-zone lw-upload-zone--disabled'}
@@ -1109,7 +1167,7 @@ export default function AdminListingWizardPage() {
                   })}
                 </div>
               )}
-              <FieldError>{fieldError(fieldErrors, 'media') ?? fieldError(fieldErrors, 'coverAssetId')}</FieldError>
+              <FieldError>{inlineFieldError('media') ?? inlineFieldError('coverAssetId')}</FieldError>
             </div>
 
             <div className="lw-wizard-actions">
@@ -1127,7 +1185,7 @@ export default function AdminListingWizardPage() {
         )}
 
         {step === 'review' && (
-          <div className="adm-form lw-step-panel">
+          <div className="adm-form lw-step-panel" data-listing-section="review">
             <div className="adm-grid adm-grid--2">
               <div>
                 <div className="lbl">Record</div>
@@ -1166,7 +1224,9 @@ export default function AdminListingWizardPage() {
                 {form.media.length > 0 ? 'At least one image attached' : 'Publication needs at least one image'}
               </p>
               <p className={missingRequired.length === 0 ? 'lw-check ok' : 'lw-check bad'}>
-                {missingRequired.length === 0 ? 'Required attributes are set' : `Missing required attributes: ${missingRequired.join(', ')}`}
+                {missingRequired.length === 0
+                  ? 'Required category details are set'
+                  : `Missing category details: ${missingRequired.join(', ')}`}
               </p>
               {schemaChanged && <p className="lw-check bad">The category schema changed; save the attributes step first.</p>}
               {listing.status === 'published' && <p className="lw-check ok">Already published — public URL {listing.publicUrl}</p>}
