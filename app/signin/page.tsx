@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import PasswordStrength, { passwordFieldMessage } from '../../components/PasswordStrength';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { ApiRequestError } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
+import { evaluatePassword } from '../../lib/passwordPolicy';
 import { safeReturnTo } from '../../lib/returnTo';
 import { useSession } from '../../lib/session';
+import { useUiLocale } from '../../lib/UiLocaleProvider';
 import './signin.css';
 
 type FormState = {
@@ -42,6 +45,7 @@ function describeError(err: unknown): { message: string; fields: Record<string, 
 export default function SignInPage() {
   const router = useRouter();
   const session = useSession();
+  const { t } = useUiLocale();
   const [mode, setMode] = useState('in');
 
   useEffect(() => {
@@ -102,6 +106,12 @@ export default function SignInPage() {
 
   const submitRegister = (e: FormEvent) => {
     e.preventDefault();
+    const strength = evaluatePassword(form.password, { email: form.email.trim(), fullName: form.fullName.trim() });
+    if (!strength.acceptable) {
+      setError(t('password.blocked'));
+      setFieldErrors({ password: passwordFieldMessage(strength, t) });
+      return;
+    }
     void run(async () => {
       const result = await session.register({
         fullName: form.fullName.trim(),
@@ -277,10 +287,22 @@ export default function SignInPage() {
               <div>
                 <label htmlFor="pw2" className="lbl">Password</label>
                 <div style={css("position: relative")}>
-                  <input id="pw2" className="field" type={pwType} autoComplete="new-password" style={css("padding-right: 64px")} value={form.password} onChange={field('password')} aria-invalid={fieldErrors.password ? true : undefined} />
+                  <input
+                    id="pw2"
+                    className="field"
+                    type={pwType}
+                    autoComplete="new-password"
+                    style={css("padding-right: 64px")}
+                    value={form.password}
+                    onChange={field('password')}
+                    aria-invalid={fieldErrors.password ? true : undefined}
+                    aria-describedby="pw2-strength"
+                  />
                   <button type="button" onClick={togglePw} style={css("position: absolute; right: 4px; top: 4px; height: 44px; padding: 0 12px; border: 0; background: transparent; color: #9A6B12; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer")}>{pwBtn}</button>
                 </div>
-                <div style={css("font-size: 13px; color: #5B636B; margin-top: 6px")}>At least 8 characters.</div>
+                <div id="pw2-strength">
+                  <PasswordStrength password={form.password} email={form.email} fullName={form.fullName} />
+                </div>
                 {fieldError('password')}
               </div>
               <label style={css("display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 15px")}>

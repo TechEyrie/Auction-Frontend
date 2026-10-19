@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import AudiencePicker from '../../components/AudiencePicker';
+import CategoryTree from '../../components/CategoryTree';
 import ProductListingCard from '../../components/ProductListingCard';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
@@ -12,6 +13,7 @@ import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import { conditionLabel, methodLabel } from '../../lib/uiMessages';
+import { categoryChildren, categoryRoots } from '../../lib/catalog';
 import {
   applyBrowseChange,
   browseIsFiltered,
@@ -120,8 +122,8 @@ function BrowseContent() {
     router.push(href);
   }
 
-  // Sub-categories hidden for now; restore when client wants depth.
-  const roots = (categories.data?.categories ?? []).filter((category) => category.parentKey === null);
+  const allCategories = categories.data?.categories ?? [];
+  const roots = categoryRoots(allCategories);
   const page = listings.data?.page ?? state.page;
   const totalPages = listings.data?.totalPages ?? 1;
   const pages: Array<number | '…'> = [];
@@ -213,27 +215,13 @@ function BrowseContent() {
           <div>
             <span className="lbl">{t('browse.category')}</span>
             {categories.error && <p className="mkt-hint">{t('browse.categoriesError')}</p>}
-            <div style={css('display: flex; flex-direction: column; gap: 4px')}>
-              <button
-                type="button"
-                onClick={() => update({ category: '' })}
-                aria-pressed={state.category === ''}
-                style={css(`height: 42px; padding: 0 12px; border: 0; border-radius: 10px; text-align: left; font: inherit; font-size: 15px; cursor: pointer; background: ${state.category === '' ? '#F6EEDC' : 'transparent'}; color: ${state.category === '' ? '#7D5610' : '#2A3036'}; font-weight: ${state.category === '' ? 700 : 500}`)}
-              >
-                {t('browse.allCategories')}
-              </button>
-              {roots.map((root) => (
-                <button
-                  key={root.key}
-                  type="button"
-                  onClick={() => update({ category: root.key })}
-                  aria-pressed={state.category === root.key}
-                  style={css(`height: 42px; padding: 0 12px; border: 0; border-radius: 10px; text-align: left; font: inherit; font-size: 15px; cursor: pointer; background: ${state.category === root.key ? '#F6EEDC' : 'transparent'}; color: ${state.category === root.key ? '#7D5610' : '#2A3036'}; font-weight: ${state.category === root.key ? 700 : 500}`)}
-                >
-                  {root.name}
-                </button>
-              ))}
-            </div>
+            <CategoryTree
+              roots={roots}
+              childrenOf={(rootKey) => categoryChildren(allCategories, rootKey)}
+              selectedKey={state.category}
+              onSelect={(category) => update({ category })}
+              allLabel={t('browse.allCategories')}
+            />
           </div>
 
           <div>

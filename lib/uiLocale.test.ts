@@ -41,7 +41,7 @@ test('header, footer and chrome messages exist in both languages', () => {
   assert.equal(translate('en', 'nav.auction'), 'Auction');
   assert.equal(translate('ar', 'nav.auction'), 'المزاد');
   assert.equal(translate('ar', 'header.signOut'), 'تسجيل الخروج');
-  assert.equal(translate('en', 'common.bidNow'), 'Bid now');
+  assert.equal(translate('en', 'common.bidNow'), 'Bid Now');
   assert.equal(translate('ar', 'info.nextPrayer'), 'الصلاة القادمة');
   assert.equal(translate('en', 'common.daysAgo', { n: 3 }), '3 days ago');
   assert.deepEqual(Object.keys(MESSAGES.ar).sort(), Object.keys(MESSAGES.en).sort());

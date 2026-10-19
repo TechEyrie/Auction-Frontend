@@ -2,15 +2,20 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import AudiencePicker from '../../components/AudiencePicker';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
+import { categoryByKey, categoryChildren, categoryRoots } from '../../lib/catalog';
 import { EMPTY_BROWSE, METHOD_LABEL, browseQuery, parseBrowseState, type ListingMethod } from '../../lib/listings';
+import { CategoryTreeExpandControl } from '../../components/CategoryTree';
+import '../../components/category-tree.css';
 import './categories.css';
+
+const CATEGORY_KEY = /^[a-z][a-z0-9-]{1,59}$/;
 
 type Category = {
   key: string;
@@ -33,7 +38,9 @@ function CategoriesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const audience = parseBrowseState(new URLSearchParams(searchParams.toString())).audience;
+  const parentParam = firstValue(searchParams, 'parent').toLowerCase();
   const [query, setQuery] = useState('');
+  const [expandedRoots, setExpandedRoots] = useState<Set<string>>(() => new Set());
   const categories = useAsync<{ categories: Category[] }>(() => apiFetch<{ categories: Category[] }>('/api/catalog/categories', { cache: 'no-store' }), []);
 
   function browseHref(categoryKey: string): string {
@@ -41,15 +48,60 @@ function CategoriesContent() {
     return qs ? `/browse?${qs}` : '/browse';
   }
 
+  function categoriesHref(parent?: string): string {
+    const params = new URLSearchParams();
+    if (audience) params.set('audience', audience);
+    if (parent) params.set('parent', parent);
+    const qs = params.toString();
+    return qs ? `/categories?${qs}` : '/categories';
+  }
+
   const all = categories.data?.categories ?? [];
-  // Sub-categories hidden for now; restore when client wants depth.
-  const roots = all.filter((category) => category.parentKey === null);
+  const parentCat =
+    parentParam && CATEGORY_KEY.test(parentParam) ? categoryByKey(all, parentParam) : undefined;
+  const roots = categoryRoots(all);
   const q = query.trim().toLowerCase();
 
-  const matches = (category: Category): boolean =>
-    !q || category.name.toLowerCase().includes(q) || category.key.includes(q);
+  function categoryMatches(category: Category): boolean {
+    return !q || category.name.toLowerCase().includes(q) || category.key.includes(q);
+  }
 
-  const visible = roots.filter(matches);
+  function visibleChildrenForRoot(root: Category): Category[] {
+    const kids = categoryChildren(all, root.key);
+    if (!q) return kids;
+    if (categoryMatches(root)) return kids;
+    return kids.filter(categoryMatches);
+  }
+
+  const visibleRoots = roots.filter((root) => {
+    if (!q) return true;
+    if (categoryMatches(root)) return true;
+    return visibleChildrenForRoot(root).length > 0;
+  });
+
+  useEffect(() => {
+    if (!parentCat) return;
+    document.getElementById(`category-${parentCat.key}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [parentCat?.key]);
+
+  function toggleRootExpanded(rootKey: string): void {
+    setExpandedRoots((prev) => {
+      const next = new Set(prev);
+      if (next.has(rootKey)) next.delete(rootKey);
+      else next.add(rootKey);
+      return next;
+    });
+  }
+
+  function pushCategories(next: { audience?: '' | typeof audience; parent?: string }): void {
+    const params = new URLSearchParams();
+    const nextAudience = next.audience !== undefined ? next.audience : audience;
+    if (nextAudience) params.set('audience', nextAudience);
+    const parent = next.parent !== undefined ? next.parent : parentParam;
+    if (parent && CATEGORY_KEY.test(parent)) params.set('parent', parent);
+    const qs = params.toString();
+    router.push(qs ? `/categories?${qs}` : '/categories');
+  }
 
   return (
     <div style={css(PAGE_ROOT)}>
@@ -60,7 +112,14 @@ function CategoriesContent() {
         <div style={css('max-width: 1240px; margin: 0 auto; padding: 40px 24px 40px; display: flex; flex-wrap: wrap; gap: 24px; align-items: end; justify-content: space-between')}>
           <div>
             <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
-              <Link href="/">Home</Link> <span aria-hidden="true">/</span> Categories
+              <Link href="/">Home</Link> <span aria-hidden="true">/</span>{' '}
+              <Link href={categoriesHref()}>Categories</Link>
+              {parentCat && (
+                <>
+                  {' '}
+                  <span aria-hidden="true">/</span> {parentCat.name}
+                </>
+              )}
             </nav>
             <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4vw, 3rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>
               All categories
@@ -93,13 +152,7 @@ function CategoriesContent() {
           <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>Shop for</p>
           <AudiencePicker
             value={audience}
-            onChange={(next) => {
-              const params = new URLSearchParams(searchParams.toString());
-              if (next) params.set('audience', next);
-              else params.delete('audience');
-              const qs = params.toString();
-              router.push(qs ? `/categories?${qs}` : '/categories');
-            }}
+            onChange={(next) => pushCategories({ audience: next })}
           />
         </div>
         {categories.loading && (
@@ -117,7 +170,7 @@ function CategoriesContent() {
           </div>
         )}
 
-        {!categories.loading && !categories.error && visible.length === 0 && (
+        {!categories.loading && !categories.error && visibleRoots.length === 0 && (
           <div style={css('background: #FFFFFF; border: 1px dashed #DAD7D0; border-radius: 18px; padding: 48px 24px; text-align: center')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>
               {q ? `No category matches "${q}"` : 'No categories are published yet'}
@@ -135,30 +188,65 @@ function CategoriesContent() {
         )}
 
         <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px')}>
-          {visible.map((root) => (
-            <article key={root.key} style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 16px')}>
-              <div style={css('display: flex; gap: 14px; align-items: center')}>
-                <span style={css('flex: 0 0 48px; height: 48px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #7D5610')}>
-                  {root.name.slice(0, 1)}
-                </span>
-                <div style={css('min-width: 0; flex: 1')}>
-                  <h2 style={css('margin: 0; font-size: 18px; font-weight: 700')}>
-                    <Link href={browseHref(root.key)} style={css('color: #15191E')}>
-                      {root.name}
-                    </Link>
-                  </h2>
-                  <p className="mkt-hint" style={css('margin-top: 2px')}>
-                    {root.listingMethods.map((method) => METHOD_LABEL[method]).join(' · ')}
-                  </p>
+          {visibleRoots.map((root) => {
+            const kids = visibleChildrenForRoot(root);
+            const highlight = parentCat?.key === root.key;
+            const isExpanded = expandedRoots.has(root.key) || (Boolean(q) && kids.length > 0);
+            return (
+              <article
+                key={root.key}
+                id={highlight ? `category-${root.key}` : undefined}
+                style={css(
+                  `background: #FFFFFF; border: 1px solid ${highlight ? '#9A6B12' : '#E6E4DF'}; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 12px${highlight ? '; box-shadow: 0 0 0 1px rgba(154,107,18,.12)' : ''}`,
+                )}
+              >
+                <div style={css('display: flex; gap: 14px; align-items: flex-start')}>
+                  <span style={css('flex: 0 0 48px; height: 48px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #7D5610')}>
+                    {root.name.slice(0, 1)}
+                  </span>
+                  <div style={css('min-width: 0; flex: 1')}>
+                    <p className="mkt-hint" style={css('margin: 0 0 4px')}>
+                      {root.listingMethods.map((method) => METHOD_LABEL[method]).join(' · ')}
+                    </p>
+                    {root.description && <p className="mkt-hint" style={css('margin: 0 0 8px')}>{root.description}</p>}
+                    <nav className="category-tree category-tree--card" aria-label={root.name}>
+                      <div className="category-tree__group">
+                        <div className="category-tree__root-line">
+                          <Link href={browseHref(root.key)} className="category-tree__row category-tree__row--root">
+                            {root.name}
+                          </Link>
+                          {kids.length > 0 && (
+                            <CategoryTreeExpandControl
+                              expanded={isExpanded}
+                              onToggle={() => toggleRootExpanded(root.key)}
+                              label={root.name}
+                            />
+                          )}
+                        </div>
+                        {kids.length > 0 ? (
+                          isExpanded ? (
+                            <ul className="category-tree__children">
+                              {kids.map((child) => (
+                                <li key={child.key} className="category-tree__child-wrap">
+                                  <Link href={browseHref(child.key)} className="category-tree__row category-tree__row--child">
+                                    {child.name}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null
+                        ) : (
+                          <Link href={browseHref(root.key)} style={css('display: inline-block; margin-top: 4px; font-weight: 600; font-size: 14px')}>
+                            View all →
+                          </Link>
+                        )}
+                      </div>
+                    </nav>
+                  </div>
                 </div>
-              </div>
-              {root.description && <p className="mkt-hint">{root.description}</p>}
-              {/* Sub-categories hidden for now; restore when client wants depth. */}
-              <Link href={browseHref(root.key)} style={css('margin-top: auto; font-weight: 600; font-size: 14px')}>
-                View all in {root.name} →
-              </Link>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       </section>
 
@@ -181,6 +269,11 @@ function CategoriesContent() {
       <SiteFooter />
     </div>
   );
+}
+
+function firstValue(params: URLSearchParams, name: string): string {
+  const value = params.get(name);
+  return value === null ? '' : value.trim();
 }
 
 export default function CategoriesPage() {
