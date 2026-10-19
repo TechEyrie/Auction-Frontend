@@ -1,9 +1,4 @@
-export const PARENT_CATEGORY_IMAGES = new Set([
-  'vehicles',
-  'electronics',
-  'general',
-  'clothing',
-]);
+export const PARENT_CATEGORY_IMAGES = new Set<string>();
 
 export function parentCategoryImageSrc(parentCategoryKey: string): string {
   const key = parentCategoryKey.replace(/[^a-z0-9-]/gi, '').toLowerCase();

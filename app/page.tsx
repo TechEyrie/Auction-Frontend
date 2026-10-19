@@ -37,16 +37,6 @@ import './main.css';
  */
 
 const ICON: Record<string, string> = {
-  vehicles: 'M3 13l2-6h14l2 6v4H3z M5 17v2 M19 17v2 M3 13h18',
-  electronics: 'M7 3h10v18H7z M11 18h2',
-  services: 'M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9a4 4 0 0 1-2-2z',
-  family: 'M8 3l-5 3 2 4 3-1v12h8V9l3 1 2-4-5-3a4 4 0 0 1-8 0z',
-  sport: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M3 12h18 M12 3c3 3 3 15 0 18 M12 3c-3 3-3 15 0 18',
-  travel: 'M4 8h16v12H4z M9 8V5h6v3 M9 12v4 M15 12v4',
-  numbers: 'M5 9h14 M5 15h14 M10 4L8 20 M16 4l-2 16',
-  animals: 'M5 19C5 9 11 5 20 4c-1 9-5 15-15 15z M5 19l8-8',
-  antiques: 'M9 3h6 M10 3v3C7 7 5 10 5 14c0 4 3 7 7 7s7-3 7-7c0-4-2-7-5-8V3',
-  other: 'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',
   fallback: 'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',
 };
 
@@ -101,7 +91,10 @@ export default function HomePage() {
   );
   const recent = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?limit=8', { cache: 'no-store' }), []);
   const auctionListings = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?method=auction&limit=4', { cache: 'no-store' }), []);
-  const categories = useAsync<{ categories: Category[] }>(() => apiFetch<{ categories: Category[] }>('/api/catalog/categories', { cache: 'no-store' }), []);
+  const categories = useAsync<{ categories: Category[] }>(
+    () => apiFetch<{ categories: Category[] }>(`/api/catalog/categories?locale=${lang}`, { cache: 'no-store' }),
+    [lang],
+  );
   useLive(() => {
     featured.reload({ soft: true });
     featuredCarousel.reload({ soft: true });
@@ -112,11 +105,7 @@ export default function HomePage() {
 
   const heroListing = featured.data?.listings[0] ?? recent.data?.listings[0] ?? null;
   const heroImage = heroListing ? cardImage(heroListing, lang, t('common.listingImage')) : { url: null, alt: '' };
-  // Sub-categories hidden for now; restore when client wants depth.
-  // Property omitted so the six remaining roots stay on one desktop row.
-  const roots = (categories.data?.categories ?? [])
-    .filter((category) => category.parentKey === null)
-    .slice(0, 6);
+  const roots = (categories.data?.categories ?? []).filter((category) => category.parentKey === null);
   const recentListings = (recent.data?.listings ?? []).slice(0, 8);
   const auctionCards = (auctionListings.data?.listings ?? []).slice(0, 4);
   const endingSoonListings = endingSoon.data?.listings ?? [];

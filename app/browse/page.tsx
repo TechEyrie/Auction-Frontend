@@ -95,7 +95,10 @@ function BrowseContent() {
   }, [state]);
 
   const listings = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>(`/api/listings?${query}`, { cache: 'no-store' }), [query]);
-  const categories = useAsync<{ categories: Category[] }>(() => apiFetch<{ categories: Category[] }>('/api/catalog/categories', { cache: 'no-store' }), []);
+  const categories = useAsync<{ categories: Category[] }>(
+    () => apiFetch<{ categories: Category[] }>(`/api/catalog/categories?locale=${lang}`, { cache: 'no-store' }),
+    [lang],
+  );
   const locations = useAsync<{ locations: LocationOption[] }>(() => apiFetch<{ locations: LocationOption[] }>('/api/catalog/locations', { cache: 'no-store' }), []);
 
   const [searchText, setSearchText] = useState(state.q);
@@ -119,7 +122,7 @@ function BrowseContent() {
     const currentHref = browseQuery(state) ? `/browse?${browseQuery(state)}` : '/browse';
     if (href === currentHref) return;
     setFilterPending(true);
-    router.push(href);
+    router.push(href, { scroll: false });
   }
 
   const allCategories = categories.data?.categories ?? [];
@@ -135,7 +138,8 @@ function BrowseContent() {
   }
 
   const isUpdating = listings.loading || filterPending;
-  const resultListings = isUpdating ? [] : (listings.data?.listings ?? []);
+  const resultListings = listings.data?.listings ?? [];
+  const showInitialSkeleton = isUpdating && !listings.data;
   const showEmpty = !isUpdating && !listings.error && resultListings.length === 0;
 
   return (
@@ -207,7 +211,7 @@ function BrowseContent() {
         >
           <div style={css('display: flex; justify-content: space-between; align-items: center')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 20px; font-weight: 700")}>{t('browse.filters')}</h2>
-            <button type="button" onClick={() => router.push('/browse')} style={css('height: 36px; padding: 0 10px; border: 0; background: transparent; color: #9A6B12; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}>
+            <button type="button" onClick={() => router.push('/browse', { scroll: false })} style={css('height: 36px; padding: 0 10px; border: 0; background: transparent; color: #9A6B12; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}>
               {t('browse.clearAll')}
             </button>
           </div>
@@ -346,13 +350,13 @@ function BrowseContent() {
                   ? t('browse.emptyFiltered')
                   : t('browse.emptyNone')}
               </p>
-              <button type="button" onClick={() => router.push('/browse')} className="btn-primary" style={css('height: 46px; padding: 0 20px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+              <button type="button" onClick={() => router.push('/browse', { scroll: false })} className="btn-primary" style={css('height: 46px; padding: 0 20px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
                 {t('browse.clearFilters')}
               </button>
             </div>
           )}
 
-          {isUpdating ? (
+          {showInitialSkeleton ? (
             <>
               <span className="sr" role="status" aria-live="polite">
                 {loadingStatusLabel(state, t)}

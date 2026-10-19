@@ -35,8 +35,8 @@ test('hrefForGroup links to auction browse for parent category', () => {
   assert.equal(hrefForGroup('clothing'), '/browse?method=auction&category=clothing');
 });
 
-test('parentCategoryImageSrc maps known keys and falls back', () => {
-  assert.equal(parentCategoryImageSrc('vehicles'), '/calendar-parents/vehicles.jpg');
+test('parentCategoryImageSrc falls back without bundled parent images', () => {
+  assert.equal(parentCategoryImageSrc('glasses'), '/calendar-parents/fallback.jpg');
   assert.equal(parentCategoryImageSrc('unknown-category'), '/calendar-parents/fallback.jpg');
 });
 

@@ -201,7 +201,10 @@ export default function ProductPage() {
     },
     [id],
   );
-  const categories = useAsync<{ categories: Category[] }>(() => apiFetch<{ categories: Category[] }>('/api/catalog/categories', { cache: 'no-store' }), []);
+  const categories = useAsync<{ categories: Category[] }>(
+    () => apiFetch<{ categories: Category[] }>(`/api/catalog/categories?locale=${lang}`, { cache: 'no-store' }),
+    [lang],
+  );
 
   const categoryKey = listing.data?.listing.category.key ?? '';
   const schema = useAsync<{ schema: { version: number; fields: AttributeField[] } | null }>(

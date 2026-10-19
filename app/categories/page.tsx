@@ -9,6 +9,7 @@ import SiteHeader from '../../components/SiteHeader';
 import { apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
+import { useUiLocale } from '../../lib/UiLocaleProvider';
 import { categoryByKey, categoryChildren, categoryRoots } from '../../lib/catalog';
 import { EMPTY_BROWSE, METHOD_LABEL, browseQuery, parseBrowseState, type ListingMethod } from '../../lib/listings';
 import { CategoryTreeExpandControl } from '../../components/CategoryTree';
@@ -35,13 +36,17 @@ type Category = {
  * component state.
  */
 function CategoriesContent() {
+  const { lang } = useUiLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const audience = parseBrowseState(new URLSearchParams(searchParams.toString())).audience;
   const parentParam = firstValue(searchParams, 'parent').toLowerCase();
   const [query, setQuery] = useState('');
   const [expandedRoots, setExpandedRoots] = useState<Set<string>>(() => new Set());
-  const categories = useAsync<{ categories: Category[] }>(() => apiFetch<{ categories: Category[] }>('/api/catalog/categories', { cache: 'no-store' }), []);
+  const categories = useAsync<{ categories: Category[] }>(
+    () => apiFetch<{ categories: Category[] }>(`/api/catalog/categories?locale=${lang}`, { cache: 'no-store' }),
+    [lang],
+  );
 
   function browseHref(categoryKey: string): string {
     const qs = browseQuery({ ...EMPTY_BROWSE, audience, category: categoryKey });
