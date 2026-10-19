@@ -16,6 +16,7 @@ const OPTIONS: Array<{ value: '' | Audience; label: MessageKey }> = [
   { value: '', label: 'common.all' },
   { value: 'men', label: 'common.men' },
   { value: 'women', label: 'common.women' },
+  { value: 'unisex', label: 'common.unisex' },
 ];
 
 export default function AudiencePicker({ value, onChange, variant = 'hero' }: Props) {

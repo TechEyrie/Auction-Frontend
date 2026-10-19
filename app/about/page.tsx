@@ -15,7 +15,7 @@ export default function AboutPage() {
 
       {/* @generated */}
       <section style={css("background: #FFFFFF; border-bottom: 1px solid #E6E4DF")}>
-        <div style={css("max-width: 1240px; margin: 0 auto; padding: 64px 24px; display: flex; flex-wrap: wrap; gap: 48px; align-items: center")}>
+        <div style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 64px var(--mkt-gutter-x); display: flex; flex-wrap: wrap; gap: 48px; align-items: center")}>
           <div style={css("flex: 999 1 520px; min-width: 0")}>
             <p style={css("margin: 0 0 16px; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #9A6B12")}>About us</p>
             <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.4rem, 4.6vw, 3.8rem); letter-spacing: -0.035em; font-weight: 700; line-height: 1.05; max-width: 16ch")}>A trusted place to buy, sell and bid.</h1>
@@ -28,14 +28,14 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-      <section style={css("max-width: 1240px; margin: 0 auto; padding: 72px 24px 0; display: flex; flex-wrap: wrap; gap: 40px")}>
+      <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 72px var(--mkt-gutter-x) 0; display: flex; flex-wrap: wrap; gap: 40px")}>
         <h2 style={css("flex: 1 1 280px; margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 34px; letter-spacing: -0.02em; font-weight: 700; line-height: 1.15")}>Our story</h2>
         <div style={css("flex: 2 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 16px; font-size: 18px; color: #2A3036")}>
           <p style={css("margin: 0")}>Founded in [year], we started with a simple belief: buying and selling should feel fair, clear and personal — whether it's a family car, a rare watch or a piece of Gulf heritage.</p>
           <p style={css("margin: 0")}>Today, people use Araq & Kahraman to list items at a fixed price, or to put them under the hammer and let buyers compete. Every auction runs in the open, with every bid visible, and every seller can be verified.</p>
         </div>
       </section>
-      <section style={css("max-width: 1240px; margin: 0 auto; padding: 72px 24px 0")}>
+      <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 72px var(--mkt-gutter-x) 0")}>
         <h2 style={css("margin: 0 0 24px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 34px; letter-spacing: -0.02em; font-weight: 700")}>What we offer</h2>
         <div style={css("display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px")}>
           <article style={css("background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 20px; padding: 26px")}>
@@ -70,7 +70,7 @@ export default function AboutPage() {
           </article>
         </div>
       </section>
-      <section style={css("max-width: 1240px; margin: 0 auto; padding: 72px 24px 0")}>
+      <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 72px var(--mkt-gutter-x) 0")}>
         <div style={css("background: #15191E; color: #FFFFFF; border-radius: 24px; padding: clamp(28px, 4vw, 52px)")}>
           <h2 style={css("margin: 0 0 28px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 34px; letter-spacing: -0.02em; font-weight: 700")}>What we stand for</h2>
           <div style={css("display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px")}>
@@ -97,7 +97,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
-      <section id="careers" style={css("max-width: 1240px; margin: 0 auto; padding: 72px 24px 80px")}>
+      <section id="careers" style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 72px var(--mkt-gutter-x) 80px")}>
         <div style={css("background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 24px; padding: clamp(28px, 4vw, 48px); display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: space-between")}>
           <div style={css("flex: 1 1 460px; min-width: 0")}>
             <p style={css("margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #9A6B12")}>Careers</p>

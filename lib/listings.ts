@@ -16,9 +16,9 @@ export type ListingMethod = 'auction' | 'fixed_price' | 'enquiry';
 export type LanguageMode = 'en' | 'ar' | 'both';
 export type ListingStatus = 'draft' | 'published' | 'archived';
 export type Condition = 'new' | 'like_new' | 'used' | 'refurbished' | 'not_applicable';
-export type Audience = 'men' | 'women';
+export type Audience = 'men' | 'women' | 'unisex';
 
-export const AUDIENCES: Audience[] = ['men', 'women'];
+export const AUDIENCES: Audience[] = ['men', 'women', 'unisex'];
 export const LISTING_METHODS: ListingMethod[] = ['auction', 'fixed_price', 'enquiry'];
 export const LANGUAGE_MODES: LanguageMode[] = ['en', 'ar', 'both'];
 export const CONDITIONS: Condition[] = ['new', 'like_new', 'used', 'refurbished', 'not_applicable'];
@@ -46,6 +46,7 @@ export const LANGUAGE_MODE_LABEL: Record<LanguageMode, string> = {
 export const AUDIENCE_LABEL: Record<Audience, string> = {
   men: 'Men',
   women: 'Women',
+  unisex: 'Unisex',
 };
 
 export type AttributeOption = { key: string; labelEn: string };

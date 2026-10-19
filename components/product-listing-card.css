@@ -162,3 +162,11 @@
   background:#7D5610;
   color:#FFFFFF !important;
 }
+.plc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+@media (min-width:1100px){
+  .plc-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .plc__title{font-size:clamp(15px,1.25vw,20px)}
+  .plc__category{font-size:clamp(12px,0.9vw,15px)}
+  .plc__price-value{font-size:clamp(20px,1.7vw,28px)}
+  .plc__cta{height:44px;font-size:15px}
+}

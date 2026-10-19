@@ -878,7 +878,7 @@ export default function ProductPage() {
               View all →
             </Link>
           </div>
-          <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px')}>
+          <div className="plc-grid">
             {relatedListings.map((entry) => (
               <ProductListingCard key={entry.listingReference} listing={entry} />
             ))}

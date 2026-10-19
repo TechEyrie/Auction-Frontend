@@ -43,6 +43,7 @@ input:focus,select:focus,textarea:focus{outline:none}
 .mkt-state[data-state="error"]{border-style:solid;border-color:#E7C9C2;background:#FDF6F4;color:#8A2C11}
 .mkt-card-meta{margin:0;font-size:13px;color:#5B636B}
 .browse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+@media (min-width:1100px){.browse-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .browse-filters-toggle-wrap{display:none;width:100%}
 .browse-filters-toggle{
   width:100%;

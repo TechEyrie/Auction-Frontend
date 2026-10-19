@@ -664,7 +664,7 @@ export default function AdminListingWizardPage() {
                   disabled={!mayManage}
                   onChange={(event) => setForm({ ...form, audience: event.target.value as Audience | '' })}
                 >
-                  <option value="">Choose Men or Women…</option>
+                  <option value="">Choose Men, Women or Unisex…</option>
                   {AUDIENCES.map((entry) => (
                     <option key={entry} value={entry}>
                       {AUDIENCE_LABEL[entry]}

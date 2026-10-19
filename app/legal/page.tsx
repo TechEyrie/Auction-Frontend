@@ -58,7 +58,7 @@ export default function LegalPage() {
 
       {/* @generated */}
       <section style={css("background: #FFFFFF; border-bottom: 1px solid #E6E4DF")}>
-        <div style={css("max-width: 1240px; margin: 0 auto; padding: 44px 24px 0")}>
+        <div style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 44px var(--mkt-gutter-x) 0")}>
           <nav aria-label="Breadcrumb" style={css("font-size: 14px; color: #5B636B; margin-bottom: 10px")}>
             <Link href="/">Home</Link>
             {' '}
@@ -76,7 +76,7 @@ export default function LegalPage() {
           </div>
         </div>
       </section>
-      <div style={css("max-width: 1240px; margin: 0 auto; padding: 40px 24px 80px; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start")}>
+      <div style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 80px; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start")}>
         <nav aria-label="On this page" style={css("flex: 1 1 240px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 20px")}>
           <div style={css("font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5B636B; margin-bottom: 10px")}>On this page</div>
           <ol style={css("margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px")}>

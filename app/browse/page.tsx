@@ -144,7 +144,7 @@ function BrowseContent() {
       <SiteHeader active="buy" />
 
       <section style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
-        <div style={css('max-width: 1240px; margin: 0 auto; padding: 28px 24px 32px')}>
+        <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 28px var(--mkt-gutter-x) 32px')}>
           <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
             <Link href="/">{t('common.home')}</Link> <span aria-hidden="true">/</span> {t('browse.breadcrumb')}
           </nav>
@@ -188,7 +188,7 @@ function BrowseContent() {
         </div>
       </section>
 
-      <div className="browse-layout" style={css('max-width: 1240px; margin: 0 auto; padding: 32px 24px 72px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start')}>
+      <div className="browse-layout" style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 32px var(--mkt-gutter-x) 72px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start')}>
         <div className="browse-filters-toggle-wrap">
           <button
             type="button"
@@ -421,7 +421,7 @@ export default function BrowsePage() {
       fallback={
         <div style={css(PAGE_ROOT)}>
           <SiteHeader active="buy" />
-          <div style={css('max-width: 1240px; margin: 0 auto; padding: 32px 24px 72px')}>
+          <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 32px var(--mkt-gutter-x) 72px')}>
             <p className="browse-status-pulse" role="status" style={css('margin: 0 0 18px')}>
               {t('browse.loading')}
             </p>

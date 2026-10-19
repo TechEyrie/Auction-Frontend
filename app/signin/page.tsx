@@ -10,6 +10,7 @@ import { ApiRequestError } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { evaluatePassword } from '../../lib/passwordPolicy';
 import { safeReturnTo } from '../../lib/returnTo';
+import { otpauthQrDataUrl } from '../../lib/otpQr';
 import { useSession } from '../../lib/session';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import './signin.css';
@@ -60,6 +61,10 @@ export default function SignInPage() {
   const [mfaCode, setMfaCode] = useState('');
   const [mfaRecovery, setMfaRecovery] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [enrollStep, setEnrollStep] = useState<'qr' | 'recovery'>('qr');
+  const [totpSecret, setTotpSecret] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
 
   const field = (key: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
     const target = e.target as HTMLInputElement;
@@ -71,6 +76,37 @@ export default function SignInPage() {
     safeReturnTo(
       typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('returnTo'),
     );
+
+  const needsEnrollStart =
+    session.status === 'authenticated' && session.mfaRequired && !session.mfaEnabled && enrollStep !== 'recovery';
+
+  useEffect(() => {
+    if (!needsEnrollStart || totpSecret) return;
+    let cancelled = false;
+    setBusy(true);
+    setError(null);
+    void session
+      .enrollMfa()
+      .then(async ({ secret, otpauthUrl }) => {
+        if (cancelled) return;
+        setTotpSecret(secret);
+        setQrDataUrl(await otpauthQrDataUrl(otpauthUrl));
+        setEnrollStep('qr');
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          const described = describeError(err);
+          setError(described.message);
+          setFieldErrors(described.fields);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [needsEnrollStart, totpSecret, session]);
 
   /** `null` means "stay on this page" (used when a step still has to happen, e.g. MFA). */
   const run = async (action: () => Promise<string | null>) => {
@@ -120,8 +156,27 @@ export default function SignInPage() {
         termsAccepted: form.termsAccepted,
         returnTo: requestedReturnTo(),
       });
-      return result.returnTo;
+      return result.mfaRequired ? null : result.returnTo;
     });
+  };
+
+  const submitEnrollConfirm = (e: FormEvent) => {
+    e.preventDefault();
+    void run(async () => {
+      const codes = await session.confirmMfa(mfaCode.trim());
+      setRecoveryCodes(codes);
+      setMfaCode('');
+      setEnrollStep('recovery');
+      return null;
+    });
+  };
+
+  const finishEnroll = () => {
+    setTotpSecret('');
+    setQrDataUrl(null);
+    setRecoveryCodes([]);
+    setEnrollStep('qr');
+    router.push(requestedReturnTo());
   };
 
   const submitMfa = (e: FormEvent) => {
@@ -129,7 +184,9 @@ export default function SignInPage() {
     void run(async () => {
       if (mfaRecovery) {
         const remaining = await session.useRecoveryCode(mfaCode.trim());
-        setNotice(`Recovery code accepted. ${remaining} code(s) left.`);
+        setNotice(
+          `Recovery code accepted. ${remaining} code(s) left. If you lost your app, sign in with a recovery code then set up a new authenticator from this page.`,
+        );
       } else {
         await session.completeMfa(mfaCode.trim());
       }
@@ -139,6 +196,8 @@ export default function SignInPage() {
   };
 
   const mfaRequired = session.status === 'authenticated' && session.mfaRequired;
+  const mfaEnroll = (mfaRequired && !session.mfaEnabled) || (enrollStep === 'recovery' && recoveryCodes.length > 0);
+  const mfaChallenge = mfaRequired && session.mfaEnabled;
   const errorBlock = error ? (
     <p role="alert" style={css('margin: 0 0 18px; padding: 12px 14px; border: 1px solid #E7C6A2; border-radius: 12px; background: #FDF3E7; color: #8A3B05; font-size: 15px')}>{error}</p>
   ) : null;
@@ -177,7 +236,7 @@ export default function SignInPage() {
       <SiteHeader showSignIn={false} />
 
       {/* @generated */}
-      <div style={css("max-width: 1120px; margin: 0 auto; padding: 48px 24px 80px; display: flex; flex-wrap: wrap; gap: 0; align-items: stretch")}>
+      <div style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 48px var(--mkt-gutter-x) 80px; display: flex; flex-wrap: wrap; gap: 0; align-items: stretch")}>
         <section style={css("flex: 1 1 380px; min-width: 0; background: #15191E; color: #FFFFFF; border-radius: 24px 0 0 24px; padding: clamp(28px, 4vw, 48px); display: flex; flex-direction: column; gap: 24px")}>
           <img src="/logo.png" alt="Araq & Kahraman Auctions" width="120" height="120" style={css("width: 120px; height: 120px; object-fit: contain; display: block")} />
           <div>
@@ -206,7 +265,57 @@ export default function SignInPage() {
           </ul>
         </section>
         <section style={css("flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px)")}>
-          {mfaRequired ? (
+          {mfaEnroll ? (
+            <Fragment>
+            <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>Set up authenticator</h2>
+            <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>Two-step verification is required for your account. Scan the QR code with an authenticator app to continue.</p>
+            {errorBlock}
+            {enrollStep === 'qr' && (
+              totpSecret ? (
+              <form onSubmit={submitEnrollConfirm} style={css("display: flex; flex-direction: column; gap: 18px")}>
+                {qrDataUrl ? (
+                  <img src={qrDataUrl} alt="Authenticator QR code" width={200} height={200} style={css("align-self: center; border-radius: 12px; border: 1px solid #E6E4DF")} />
+                ) : null}
+                <p style={css("margin: 0; font-size: 14px; color: #5B636B; word-break: break-all")}>
+                  <span style={css("font-weight: 600; color: #15191E")}>Manual key: </span>
+                  {totpSecret}
+                </p>
+                <p style={css("margin: 0; font-size: 14px; color: #5B636B")}>
+                  Google Authenticator, Microsoft Authenticator, or any TOTP app.
+                </p>
+                <div>
+                  <label htmlFor="enroll-code" className="lbl">6-digit code</label>
+                  <input
+                    id="enroll-code"
+                    className="field"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value)}
+                    aria-invalid={error ? true : undefined}
+                  />
+                  {fieldError('code')}
+                </div>
+                <button type="submit" className="btn-primary" disabled={busy} style={css("height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer")}>{busyLabel ?? 'Confirm authenticator'}</button>
+              </form>
+              ) : (
+                <p style={css("margin: 0; font-size: 15px; color: #5B636B")}>{busyLabel ?? 'Preparing your QR code…'}</p>
+              )
+            )}
+            {enrollStep === 'recovery' && (
+              <div style={css("display: flex; flex-direction: column; gap: 18px")}>
+                <p style={css("margin: 0; font-size: 15px; color: #5B636B")}>Save these recovery codes somewhere safe. Each can be used once if you lose access to your app.</p>
+                <ul style={css("margin: 0; padding: 16px; list-style: none; background: #F3F1EC; border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8")}>
+                  {recoveryCodes.map((code) => (
+                    <li key={code}>{code}</li>
+                  ))}
+                </ul>
+                <button type="button" className="btn-primary" onClick={finishEnroll} style={css("height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer")}>Continue</button>
+              </div>
+            )}
+            </Fragment>
+          ) : mfaChallenge ? (
             <Fragment>
             <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>Two-step verification</h2>
             <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>Enter the 6-digit code from your authenticator app to finish signing in.</p>

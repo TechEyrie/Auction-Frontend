@@ -20,7 +20,7 @@ export default function SiteFooter({ minimal, safetyHref = '/help', careersHref 
   if (minimal) {
     return (
       <footer className="foot" style={css('background: #15191E; color: #C9CFCB')}>
-        <div style={css('max-width: 1240px; margin: 0 auto; padding: 24px 24px 28px; font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px')}>
+        <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 24px var(--mkt-gutter-x) 28px; font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px')}>
           <span>{t('footer.rights')}</span>
           <span style={css('display: flex; gap: 18px; flex-wrap: wrap')}>
             <Link href="/help">{t('footer.help')}</Link>
@@ -35,7 +35,7 @@ export default function SiteFooter({ minimal, safetyHref = '/help', careersHref 
 
   return (
     <footer className="foot" style={css('background: #15191E; color: #C9CFCB')}>
-      <div className="site-footer__grid" style={css('max-width: 1240px; margin: 0 auto; padding: 56px 24px 32px; display: flex; flex-wrap: wrap; gap: 40px 64px')}>
+      <div className="site-footer__grid" style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 56px var(--mkt-gutter-x) 32px; display: flex; flex-wrap: wrap; gap: 40px 64px')}>
         <div style={css('flex: 2 1 260px; min-width: 0')}>
           <div style={css('display: flex; align-items: center; gap: 14px')}>
             <img src="/logo.png" alt="" width={64} height={64} style={css('width: 64px; height: 64px; object-fit: contain; display: block')} />
@@ -66,7 +66,7 @@ export default function SiteFooter({ minimal, safetyHref = '/help', careersHref 
           <Link href="/legal">{t('footer.privacy')}</Link>
         </nav>
       </div>
-      <div style={css('max-width: 1240px; margin: 0 auto; padding: 20px 24px 32px; border-top: 1px solid #2F2A23; font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px')}>
+      <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 20px var(--mkt-gutter-x) 32px; border-top: 1px solid #2F2A23; font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px')}>
         <span>{t('footer.rights')}</span>
         <span>{t('footer.languages')}</span>
       </div>

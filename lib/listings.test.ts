@@ -250,7 +250,7 @@ test('audience round-trips in browse URLs', () => {
   const state = parseBrowseState(new URLSearchParams('audience=women&category=electronics'));
   assert.equal(state.audience, 'women');
   assert.equal(browseQuery(state), 'audience=women&category=electronics');
-  assert.equal(parseBrowseState(new URLSearchParams('audience=unisex')).audience, '');
+  assert.equal(parseBrowseState(new URLSearchParams('audience=unisex')).audience, 'unisex');
 });
 
 test('media ordering keeps the cover attached to a real image', () => {

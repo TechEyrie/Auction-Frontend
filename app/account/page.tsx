@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
-import { apiFetch } from '../../lib/api';
+import { ApiRequestError, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { fmtMinor } from '../../lib/format';
 import { productPath } from '../../lib/listings';
+import { otpauthQrDataUrl } from '../../lib/otpQr';
 import { orderSourceLabel, paymentStateLabel } from '../../lib/qatarPlaces';
 import { useSession } from '../../lib/session';
 import { useAsync } from '../../lib/useAsync';
@@ -43,6 +44,15 @@ export default function AccountPage() {
   );
   const [notice, setNotice] = useState<string | null>(null);
   const [bidListingByAuctionId, setBidListingByAuctionId] = useState<Record<string, string>>({});
+  const [mfaBusy, setMfaBusy] = useState(false);
+  const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaReplaceOpen, setMfaReplaceOpen] = useState(false);
+  const [mfaStep, setMfaStep] = useState<'verify' | 'qr' | 'recovery'>('verify');
+  const [mfaCurrentCode, setMfaCurrentCode] = useState('');
+  const [mfaNewCode, setMfaNewCode] = useState('');
+  const [mfaSecret, setMfaSecret] = useState('');
+  const [mfaQrDataUrl, setMfaQrDataUrl] = useState<string | null>(null);
+  const [mfaRecoveryCodes, setMfaRecoveryCodes] = useState<string[]>([]);
   const terms = useAsync<{ version: number; body: string }>(() => apiFetch('/api/content/terms'), []);
 
   useEffect(() => {
@@ -76,6 +86,57 @@ export default function AccountPage() {
   useEffect(() => {
     if (session.status === 'anonymous') router.replace('/signin?returnTo=/account');
   }, [session.status, router]);
+
+  useEffect(() => {
+    if (session.status === 'authenticated' && session.mfaRequired) {
+      router.replace('/signin?returnTo=/account');
+    }
+  }, [session.status, session.mfaRequired, router]);
+
+  const resetMfaReplace = () => {
+    setMfaReplaceOpen(false);
+    setMfaStep('verify');
+    setMfaCurrentCode('');
+    setMfaNewCode('');
+    setMfaSecret('');
+    setMfaQrDataUrl(null);
+    setMfaRecoveryCodes([]);
+    setMfaError(null);
+  };
+
+  const submitMfaReplaceStart = (e: FormEvent) => {
+    e.preventDefault();
+    setMfaBusy(true);
+    setMfaError(null);
+    void session
+      .enrollMfa(mfaCurrentCode.trim())
+      .then(async ({ secret, otpauthUrl }) => {
+        setMfaSecret(secret);
+        setMfaQrDataUrl(await otpauthQrDataUrl(otpauthUrl));
+        setMfaStep('qr');
+      })
+      .catch((err: unknown) => {
+        setMfaError(err instanceof ApiRequestError ? err.body.message : 'Could not start authenticator replacement');
+      })
+      .finally(() => setMfaBusy(false));
+  };
+
+  const submitMfaReplaceConfirm = (e: FormEvent) => {
+    e.preventDefault();
+    setMfaBusy(true);
+    setMfaError(null);
+    void session
+      .confirmMfa(mfaNewCode.trim())
+      .then((codes) => {
+        setMfaRecoveryCodes(codes);
+        setMfaNewCode('');
+        setMfaStep('recovery');
+      })
+      .catch((err: unknown) => {
+        setMfaError(err instanceof ApiRequestError ? err.body.message : 'That code was not accepted');
+      })
+      .finally(() => setMfaBusy(false));
+  };
 
   const accept = async (version: number) => {
     setNotice(null);
@@ -136,6 +197,79 @@ export default function AccountPage() {
               )}
               {notice ? <p role="status">{notice}</p> : null}
             </section>
+
+            {session.mfaEnabled ? (
+              <section style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 18px 20px; display: grid; gap: 12px')}>
+                <h2 style={css('margin: 0; font-size: 18px')}>Authenticator</h2>
+                <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
+                  Two-step verification is on for this account. To move to a new device, replace your authenticator with a fresh QR code.
+                </p>
+                {!mfaReplaceOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMfaReplaceOpen(true);
+                      setMfaStep('verify');
+                      setMfaError(null);
+                    }}
+                    style={css('justify-self: start; height: 42px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}
+                  >
+                    Replace authenticator
+                  </button>
+                ) : (
+                  <>
+                    {mfaError ? <p role="alert" style={css('margin: 0; color: #8A3B05')}>{mfaError}</p> : null}
+                    {mfaStep === 'verify' ? (
+                      <form onSubmit={submitMfaReplaceStart} style={css('display: grid; gap: 12px')}>
+                        <div>
+                          <label htmlFor="mfa-replace-current" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>Current authenticator or recovery code</label>
+                          <input id="mfa-replace-current" className="field" inputMode="text" autoComplete="one-time-code" value={mfaCurrentCode} onChange={(e) => setMfaCurrentCode(e.target.value)} />
+                        </div>
+                        <div style={css('display: flex; flex-wrap: wrap; gap: 10px')}>
+                          <button type="submit" disabled={mfaBusy} style={css('height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                            {mfaBusy ? 'Please wait…' : 'Continue'}
+                          </button>
+                          <button type="button" onClick={resetMfaReplace} style={css('height: 42px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : null}
+                    {mfaStep === 'qr' ? (
+                      <form onSubmit={submitMfaReplaceConfirm} style={css('display: grid; gap: 12px')}>
+                        {mfaQrDataUrl ? (
+                          <img src={mfaQrDataUrl} alt="Authenticator QR code" width={200} height={200} style={css('border-radius: 12px; border: 1px solid #E6E4DF')} />
+                        ) : null}
+                        <p style={css('margin: 0; font-size: 14px; color: #5B636B; word-break: break-all')}>
+                          <span style={css('font-weight: 600; color: #15191E')}>Manual key: </span>
+                          {mfaSecret}
+                        </p>
+                        <div>
+                          <label htmlFor="mfa-replace-new" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>6-digit code from the new app</label>
+                          <input id="mfa-replace-new" className="field" inputMode="numeric" maxLength={6} autoComplete="one-time-code" value={mfaNewCode} onChange={(e) => setMfaNewCode(e.target.value)} />
+                        </div>
+                        <button type="submit" disabled={mfaBusy} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                          {mfaBusy ? 'Please wait…' : 'Confirm new authenticator'}
+                        </button>
+                      </form>
+                    ) : null}
+                    {mfaStep === 'recovery' ? (
+                      <div style={css('display: grid; gap: 12px')}>
+                        <p style={css('margin: 0; font-size: 14px; color: #5B636B')}>Save these new recovery codes. Each works once if you lose your app.</p>
+                        <ul style={css('margin: 0; padding: 16px; list-style: none; background: #F3F1EC; border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8')}>
+                          {mfaRecoveryCodes.map((code) => (
+                            <li key={code}>{code}</li>
+                          ))}
+                        </ul>
+                        <button type="button" onClick={resetMfaReplace} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                          Done
+                        </button>
+                      </div>
+                    ) : null}
+                  </>
+                )}
+              </section>
+            ) : null}
 
             <section style={css('display: grid; gap: 10px')}>
               <h2 style={css('margin: 0')}>Your purchases</h2>

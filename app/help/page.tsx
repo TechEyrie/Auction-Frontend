@@ -106,7 +106,7 @@ export default function HelpPage() {
           </div>
         </div>
       </section>
-      <section style={css("max-width: 1240px; margin: 0 auto; padding: 48px 24px 0")}>
+      <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 48px var(--mkt-gutter-x) 0")}>
         <div style={css("display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px")}>
           {topics.map((t, i) => (
             <Fragment key={i}>
@@ -160,7 +160,7 @@ export default function HelpPage() {
           ))}
         </div>
       </section>
-      <section id="safety" style={css("max-width: 1240px; margin: 0 auto; padding: 72px 24px 0")}>
+      <section id="safety" style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 72px var(--mkt-gutter-x) 0")}>
         <div style={css("background: #15191E; color: #FFFFFF; border-radius: 24px; padding: clamp(28px, 4vw, 48px)")}>
           <div style={css("display: flex; gap: 14px; align-items: center; margin-bottom: 8px")}>
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D4A84B" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -182,7 +182,7 @@ export default function HelpPage() {
           </div>
         </div>
       </section>
-      <section style={css("max-width: 1240px; margin: 0 auto; padding: 48px 24px 80px")}>
+      <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 48px var(--mkt-gutter-x) 80px")}>
         <div style={css("background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 24px; padding: clamp(24px, 4vw, 40px); display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between")}>
           <div>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>Still need help?</h2>

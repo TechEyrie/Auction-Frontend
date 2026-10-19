@@ -31,7 +31,7 @@ export default function AuctionsPage() {
       <SiteHeader active="auctions" />
 
       <section style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
-        <div style={css('max-width: 1240px; margin: 0 auto; padding: 28px 24px 36px')}>
+        <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 28px var(--mkt-gutter-x) 36px')}>
           <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
             <Link href="/">{t('common.home')}</Link> <span aria-hidden="true">/</span> {t('auctions.breadcrumb')}
           </nav>
@@ -52,7 +52,7 @@ export default function AuctionsPage() {
         </div>
       </section>
 
-      <section style={css('max-width: 1240px; margin: 0 auto; padding: 40px 24px 24px')}>
+      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 24px')}>
         <div style={css('background: #F6EEDC; border-radius: 18px; padding: 20px')}>
           <h2 style={css('margin: 0 0 6px; font-size: 16px; font-weight: 700')}>{t('auctions.howTitle')}</h2>
           <ul style={css('margin: 0; padding-left: 20px; font-size: 14px; color: #3D3420; display: flex; flex-direction: column; gap: 4px')}>
@@ -63,7 +63,7 @@ export default function AuctionsPage() {
         </div>
       </section>
 
-      <section style={css('max-width: 1240px; margin: 0 auto; padding: 24px 24px 80px')}>
+      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 24px var(--mkt-gutter-x) 80px')}>
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 20px')}>
           <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; letter-spacing: -0.02em; font-weight: 700")}>
             {t('auctions.liveTitle')}
@@ -90,7 +90,7 @@ export default function AuctionsPage() {
           <p className="mkt-state">{t('auctions.empty')}</p>
         )}
 
-        <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
+        <div className="plc-grid">
           {(listings.data?.listings ?? []).map((listing) => (
             <ProductListingCard key={listing.listingReference} listing={listing} />
           ))}

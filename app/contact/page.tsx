@@ -101,7 +101,7 @@ export default function ContactPage() {
 
 
       {/* @generated */}
-      <section style={css("max-width: 1240px; margin: 0 auto; padding: 48px 24px 0")}>
+      <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 48px var(--mkt-gutter-x) 0")}>
         <nav aria-label="Breadcrumb" style={css("font-size: 14px; color: #5B636B; margin-bottom: 10px")}>
           <Link href="/">Home</Link>
           {' '}
@@ -115,7 +115,7 @@ export default function ContactPage() {
           .
         </p>
       </section>
-      <div style={css("max-width: 1240px; margin: 0 auto; padding: 32px 24px 80px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start")}>
+      <div style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 32px var(--mkt-gutter-x) 80px; display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start")}>
         <section style={css("flex: 999 1 540px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 22px; padding: clamp(22px, 3vw, 36px)")}>
           {sent && (
             <div role="status" style={css("padding: 20px; border: 1px solid #E3C78C; border-radius: 16px; background: #FBF7EE")}>

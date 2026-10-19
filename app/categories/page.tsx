@@ -109,7 +109,7 @@ function CategoriesContent() {
       <SiteHeader active="categories" />
 
       <section style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
-        <div style={css('max-width: 1240px; margin: 0 auto; padding: 40px 24px 40px; display: flex; flex-wrap: wrap; gap: 24px; align-items: end; justify-content: space-between')}>
+        <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 40px; display: flex; flex-wrap: wrap; gap: 24px; align-items: end; justify-content: space-between')}>
           <div>
             <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
               <Link href="/">Home</Link> <span aria-hidden="true">/</span>{' '}
@@ -147,7 +147,7 @@ function CategoriesContent() {
         </div>
       </section>
 
-      <section style={css('max-width: 1240px; margin: 0 auto; padding: 40px 24px 24px')}>
+      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 24px')}>
         <div style={css('margin-bottom: 28px; max-width: 520px')}>
           <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>Shop for</p>
           <AudiencePicker
@@ -250,7 +250,7 @@ function CategoriesContent() {
         </div>
       </section>
 
-      <section style={css('max-width: 1240px; margin: 0 auto; padding: 40px 24px 80px')}>
+      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 80px')}>
         <div style={css('background: #15191E; color: #FFFFFF; border-radius: 24px; padding: clamp(28px, 5vw, 48px); display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between')}>
           <div style={css('flex: 1 1 420px; min-width: 0')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.02em; font-weight: 700")}>
@@ -282,7 +282,7 @@ export default function CategoriesPage() {
       fallback={
         <div style={css(PAGE_ROOT)}>
           <SiteHeader active="categories" />
-          <p role="status" className="mkt-state" data-state="loading" style={css('max-width: 1240px; margin: 32px auto; padding: 18px')}>
+          <p role="status" className="mkt-state" data-state="loading" style={css('max-width: var(--mkt-shell-max); margin: 32px auto; padding: 18px')}>
             Loading categories…
           </p>
           <SiteFooter />

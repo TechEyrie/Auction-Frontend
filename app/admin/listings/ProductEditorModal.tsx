@@ -118,7 +118,7 @@ function priceMinorFromForm(form: EditorForm): number | null {
 
 function assertFormReady(form: EditorForm): void {
   if (!form.categoryKey || !form.audience) {
-    throw new Error('Choose audience (Men or Women) and category before saving or uploading photos.');
+    throw new Error('Choose audience (Men, Women or Unisex) and category before saving or uploading photos.');
   }
   if (form.listingMethod === 'fixed_price' && priceMinorFromForm(form) === null) {
     throw new Error('Enter a price in QAR for fixed-price listings (or switch Listing method to Auction).');
@@ -631,7 +631,7 @@ export default function ProductEditorModal({
                   value={form.audience}
                   onChange={(event) => setForm({ ...form, audience: event.target.value as Audience | '' })}
                 >
-                  <option value="">Choose Men or Women…</option>
+                  <option value="">Choose Men, Women or Unisex…</option>
                   {AUDIENCES.map((entry) => (
                     <option key={entry} value={entry}>
                       {AUDIENCE_LABEL[entry]}

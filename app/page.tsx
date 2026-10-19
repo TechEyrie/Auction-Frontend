@@ -6,6 +6,7 @@ import { Fragment, useState } from 'react';
 import AudiencePicker from '../components/AudiencePicker';
 import CategoryMenu from '../components/CategoryMenu';
 import LocalInfoBar from '../components/LocalInfoBar';
+import ProductCarousel from '../components/ProductCarousel';
 import ProductListingCard from '../components/ProductListingCard';
 import SiteFooter from '../components/SiteFooter';
 import SiteHeader from '../components/SiteHeader';
@@ -23,6 +24,7 @@ import {
   mediaUrl,
   productPath,
   type ListingMethod,
+  type Audience,
   type PublicListing,
 } from '../lib/listings';
 import './main.css';
@@ -36,10 +38,8 @@ import './main.css';
 
 const ICON: Record<string, string> = {
   vehicles: 'M3 13l2-6h14l2 6v4H3z M5 17v2 M19 17v2 M3 13h18',
-  'real-estate': 'M3 11l9-7 9 7v9H3z M9 20v-6h6v6',
   electronics: 'M7 3h10v18H7z M11 18h2',
   services: 'M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9a4 4 0 0 1-2-2z',
-  jobs: 'M3 8h18v12H3z M8 8V5h8v3 M3 13h18',
   family: 'M8 3l-5 3 2 4 3-1v12h8V9l3 1 2-4-5-3a4 4 0 0 1-8 0z',
   sport: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M3 12h18 M12 3c3 3 3 15 0 18 M12 3c-3 3-3 15 0 18',
   travel: 'M4 8h16v12H4z M9 8V5h6v3 M9 12v4 M15 12v4',
@@ -88,14 +88,24 @@ export default function HomePage() {
   const [auctionStep, setAuctionStep] = useState(0);
   const [search, setSearch] = useState('');
   const [heroCategory, setHeroCategory] = useState('');
-  const [heroAudience, setHeroAudience] = useState<'' | 'men' | 'women'>('');
+  const [heroAudience, setHeroAudience] = useState<'' | Audience>('');
 
   const featured = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?featured=true&limit=1', { cache: 'no-store' }), []);
+  const featuredCarousel = useAsync<ListingsResponse>(
+    () => apiFetch<ListingsResponse>('/api/listings?featured=true&sort=featured&limit=10', { cache: 'no-store' }),
+    [],
+  );
+  const endingSoon = useAsync<ListingsResponse>(
+    () => apiFetch<ListingsResponse>('/api/listings?endingSoonHours=2&limit=20', { cache: 'no-store' }),
+    [],
+  );
   const recent = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?limit=8', { cache: 'no-store' }), []);
   const auctionListings = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?method=auction&limit=4', { cache: 'no-store' }), []);
   const categories = useAsync<{ categories: Category[] }>(() => apiFetch<{ categories: Category[] }>('/api/catalog/categories', { cache: 'no-store' }), []);
   useLive(() => {
     featured.reload({ soft: true });
+    featuredCarousel.reload({ soft: true });
+    endingSoon.reload({ soft: true });
     recent.reload({ soft: true });
     auctionListings.reload({ soft: true });
   });
@@ -105,10 +115,12 @@ export default function HomePage() {
   // Sub-categories hidden for now; restore when client wants depth.
   // Property omitted so the six remaining roots stay on one desktop row.
   const roots = (categories.data?.categories ?? [])
-    .filter((category) => category.parentKey === null && category.key !== 'property')
+    .filter((category) => category.parentKey === null)
     .slice(0, 6);
   const recentListings = (recent.data?.listings ?? []).slice(0, 8);
   const auctionCards = (auctionListings.data?.listings ?? []).slice(0, 4);
+  const endingSoonListings = endingSoon.data?.listings ?? [];
+  const featuredCarouselListings = featuredCarousel.data?.listings ?? [];
 
   return (
     <div style={css(PAGE_ROOT)}>
@@ -175,6 +187,9 @@ export default function HomePage() {
               </Link>
               <Link href="/browse?audience=women" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
                 {t('home.womensListings')}
+              </Link>
+              <Link href="/browse?audience=unisex" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
+                {t('home.unisexListings')}
               </Link>
               <span style={css('font-size: 14px; color: #5B636B; margin-right: 4px')}>{t('home.popular')}</span>
               <Link href="/browse?q=land+cruiser" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
@@ -245,7 +260,34 @@ export default function HomePage() {
         </div>
       </section>
 
+      <ProductCarousel
+        title={t('home.endingSoonTitle')}
+        subtitle={t('home.endingSoonSub')}
+        listings={endingSoonListings}
+        emptyText={
+          endingSoon.error
+            ? t('home.endingSoonError', { error: endingSoon.error })
+            : endingSoon.loading
+              ? t('home.endingSoonLoading')
+              : t('home.endingSoonEmpty')
+        }
+        aria-label={t('home.endingSoonTitle')}
+        lang={lang}
+        imageFallbackAlt={t('common.listingImage')}
+      />
+
       <LocalInfoBar />
+
+      {featuredCarouselListings.length > 0 && (
+        <ProductCarousel
+          title={t('home.featuredCarouselTitle')}
+          subtitle={t('home.featuredCarouselSub')}
+          listings={featuredCarouselListings}
+          aria-label={t('home.featuredCarouselTitle')}
+          lang={lang}
+          imageFallbackAlt={t('common.listingImage')}
+        />
+      )}
 
       <section id="categories" className="home-section">
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 28px')}>
@@ -318,7 +360,7 @@ export default function HomePage() {
           <p className="mkt-state">{auctionListings.loading ? t('home.auctionsLoading') : t('home.auctionsEmpty')}</p>
         )}
 
-        <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
+        <div className="plc-grid">
           {auctionCards.map((listing) => {
             const image = cardImage(listing, lang, t('common.listingImage'));
             return (
@@ -409,7 +451,7 @@ export default function HomePage() {
           <p className="mkt-state">{recent.loading ? t('home.listingsLoading') : t('home.listingsEmpty')}</p>
         )}
 
-        <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px')}>
+        <div className="plc-grid">
           {recentListings.map((listing) => {
             const image = cardImage(listing, lang, t('common.listingImage'));
             return (
@@ -442,7 +484,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={css('max-width: 1240px; margin: 0 auto; padding: 56px 24px 80px')}>
+      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 56px var(--mkt-gutter-x) 80px')}>
         <div style={css('display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px')}>
           <div style={css('display: flex; gap: 14px')}>
             <span style={css('flex: 0 0 44px; height: 44px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center')}>

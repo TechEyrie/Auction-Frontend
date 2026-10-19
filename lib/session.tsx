@@ -69,9 +69,9 @@ export type SessionValue = {
     password: string;
     termsAccepted: boolean;
     returnTo?: string;
-  }) => Promise<{ returnTo: string }>;
+  }) => Promise<{ returnTo: string; mfaRequired: boolean }>;
   logout: () => Promise<void>;
-  enrollMfa: (currentPassword: string) => Promise<{ secret: string; otpauthUrl: string }>;
+  enrollMfa: (code?: string) => Promise<{ secret: string; otpauthUrl: string }>;
   confirmMfa: (code: string) => Promise<string[]>;
   completeMfa: (code: string) => Promise<void>;
   useRecoveryCode: (code: string) => Promise<number>;
@@ -175,10 +175,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       mfaRequired,
       mfaEnabled,
       capabilities,
-      async enrollMfa(currentPassword: string) {
+      async enrollMfa(code?: string) {
         return apiFetch<{ secret: string; otpauthUrl: string }>('/api/auth/mfa/enroll', {
           method: 'POST',
-          json: { currentPassword },
+          json: code ? { code } : {},
           headers: await ensureCsrfHeaders(),
         });
       },
@@ -209,8 +209,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           json: input,
           headers: await ensureCsrfHeaders(),
         });
-        await refresh();
-        return { returnTo: result.returnTo };
+        const sessionBody = await refresh();
+        // Stay on sign-in enroll when the session cookie is not yet visible to GET /session.
+        const mfaRequired =
+          sessionBody.mfaRequired ||
+          (Boolean(result.user) && !sessionBody.user && result.user.roles.includes('customer'));
+        return { returnTo: result.returnTo, mfaRequired };
       },
       async logout() {
         await apiFetch<{ ok: boolean }>('/api/auth/logout', {

@@ -17,12 +17,14 @@ const HOVER_CLOSE_DELAY_MS = 150;
 
 type MenuLinkId =
   | 'liveAuctions'
+  | 'auctionCalendar'
   | 'auctionListings'
   | 'howBidding'
   | 'browseAccessories'
   | 'allCategories'
   | 'forMen'
   | 'forWomen'
+  | 'forUnisex'
   | 'contactToSell'
   | 'aboutUs'
   | 'auctionProcess'
@@ -77,6 +79,7 @@ function buildNav(home?: boolean): NavItem[] {
       dot: true,
       links: [
         { id: 'liveAuctions', href: '/auctions', icon: 'live' },
+        { id: 'auctionCalendar', href: '/auction-calendar', icon: 'list' },
         { id: 'auctionListings', href: '/browse?method=auction', icon: 'list' },
         { id: 'howBidding', href: how, icon: 'gavel' },
       ],
@@ -89,6 +92,7 @@ function buildNav(home?: boolean): NavItem[] {
         { id: 'allCategories', href: '/categories', icon: 'grid' },
         { id: 'forMen', href: '/browse?audience=men', icon: 'user' },
         { id: 'forWomen', href: '/browse?audience=women', icon: 'users' },
+        { id: 'forUnisex', href: '/browse?audience=unisex', icon: 'users' },
       ],
     },
     {

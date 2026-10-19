@@ -36,7 +36,6 @@ const SECTIONS: Array<{ label: string; href: string; capability?: string }> = [
 
 function EnrollPanel() {
   const session = useSession();
-  const [password, setPassword] = useState('');
   const [secret, setSecret] = useState<string | null>(null);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +45,7 @@ function EnrollPanel() {
     event.preventDefault();
     setBusy(true);
     setError(null);
-    void session.enrollMfa(password)
+    void session.enrollMfa()
       .then((result) => setSecret(result.secret))
       .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Enrollment could not start'))
       .finally(() => setBusy(false));
@@ -68,8 +67,6 @@ function EnrollPanel() {
       {error && <p role="alert" style={css('margin: 0; color: #8A3B05')}>{error}</p>}
       {!secret ? (
         <form onSubmit={start} style={css('display: flex; flex-direction: column; gap: 12px')}>
-          <label htmlFor="enroll-pw">Current password</label>
-          <input id="enroll-pw" className="field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
           <button type="submit" disabled={busy} style={css('height: 48px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}>{busy ? 'Please wait…' : 'Show authenticator secret'}</button>
         </form>
       ) : (
