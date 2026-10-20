@@ -35,11 +35,10 @@ type PublicBidRow = {
   isMine?: boolean;
 };
 
-const ORDINAL_BID_LABELS = ['1st Bid', '2nd Bid', '3rd Bid'] as const;
-
-function bidDisplayLabel(index: number, bid: PublicBidRow): string {
-  if (bid.isMine) return 'YOU';
-  return ORDINAL_BID_LABELS[index] ?? `${index + 1}th Bid`;
+function bidDisplayLabel(bid: PublicBidRow): string {
+  const name = bid.bidderLabel.trim();
+  if (bid.isMine) return name ? `${name} (You)` : 'You';
+  return name || 'Bidder';
 }
 
 function compareTopBids(a: PublicBidRow, b: PublicBidRow): number {
@@ -346,7 +345,7 @@ export default function ProductPage() {
         const row: PublicBidRow = {
           sequence: nextSequence,
           amountMinor,
-          bidderLabel: '',
+          bidderLabel: session.user?.fullName ?? '',
           isMine: true,
           acceptedAt: new Date().toISOString(),
         };
@@ -699,12 +698,12 @@ export default function ProductPage() {
                       Recent bids
                     </div>
                     <ul style={css('list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px')}>
-                      {displayBids.map((bid, index) => (
+                      {displayBids.map((bid) => (
                         <li
                           key={bid.sequence}
                           style={css('display: flex; justify-content: space-between; gap: 12px; align-items: baseline; background: rgba(255,255,255,.55); border-radius: 12px; padding: 12px 14px')}
                         >
-                          <span style={css('font-weight: 600')}>{bidDisplayLabel(index, bid)}</span>
+                          <span style={css('font-weight: 600')}>{bidDisplayLabel(bid)}</span>
                           <span style={css('text-align: right')}>
                             <span style={css('display: block; font-weight: 700')}>{fmtMinor(bid.amountMinor)}</span>
                             <span className="mkt-hint" style={css('font-size: 13px')}>{relativeTimeLabel(bid.acceptedAt)}</span>

@@ -21,7 +21,7 @@ const DOCS: Record<string, { title: string; sections: [string, string][] }> = {
   privacy: { title: 'Privacy policy', sections: [
     ['What we collect', 'Your name, mobile number, email (if given), the ads you post, your bids, and messages sent through the site. We also collect basic device and usage data to keep the service running.'],
     ['How we use it', "To run your account, show your ads, process bids and payments, prevent fraud, and send you alerts you've asked for — such as outbid notices."],
-    ['What others can see', 'Buyers see your ad, your first name and your seller rating. Your mobile number is only shown when you choose to reveal it. Bidders appear by an anonymous bidder number.'],
+    ['What others can see', 'Buyers see your ad, your first name and your seller rating. Your mobile number is only shown when you choose to reveal it. Live bids show the bidder’s name.'],
     ['Who we share it with', 'Payment providers, SMS and email services, and authorities where the law requires. We never sell your personal data.'],
     ['How long we keep it', 'For as long as your account is open, then for [X] years where needed for legal or accounting reasons.'],
     ['Your choices', 'You can view, update or delete your details from your account, and turn off marketing messages at any time.'],

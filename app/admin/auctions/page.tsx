@@ -700,9 +700,8 @@ function AdminAuctionsContent() {
                       <tr key={row.sequence}>
                         <td>{row.sequence}</td>
                         <td className="wrap">
-                          <div style={css('font-weight: 600')}>{row.bidderLabel}</div>
+                          <div style={css('font-weight: 600')}>{row.fullName || row.bidderLabel}</div>
                           <div className="adm-hint">{row.userReference}</div>
-                          {row.fullName ? <div className="adm-hint">{row.fullName}</div> : null}
                         </td>
                         <td>{fmtMinor(row.amountMinor)}</td>
                         <td>{fmtBusinessDateTime(row.acceptedAt)}</td>
