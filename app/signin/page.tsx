@@ -65,6 +65,7 @@ export default function SignInPage() {
   const [totpSecret, setTotpSecret] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  const [verifyBusy, setVerifyBusy] = useState(false);
 
   const field = (key: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
     const target = e.target as HTMLInputElement;
@@ -77,8 +78,44 @@ export default function SignInPage() {
       typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('returnTo'),
     );
 
+  const emailVerified = session.user?.emailVerified === true;
+  const needsEmailVerify =
+    session.status === 'authenticated' && !emailVerified && !verifyBusy;
+
   const needsEnrollStart =
-    session.status === 'authenticated' && session.mfaRequired && !session.mfaEnabled && enrollStep !== 'recovery';
+    session.status === 'authenticated' &&
+    session.mfaRequired &&
+    !session.mfaEnabled &&
+    emailVerified &&
+    enrollStep !== 'recovery';
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('verifyEmail');
+    if (!token) return;
+    let cancelled = false;
+    setVerifyBusy(true);
+    setError(null);
+    void session
+      .verifyEmail(token)
+      .then(() => {
+        if (cancelled) return;
+        setNotice(t('email.verify.verified'));
+        const url = new URL(window.location.href);
+        url.searchParams.delete('verifyEmail');
+        window.history.replaceState({}, '', `${url.pathname}${url.search}`);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const described = describeError(err);
+        setError(described.message || t('email.verify.expired'));
+      })
+      .finally(() => {
+        if (!cancelled) setVerifyBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session, t]);
 
   useEffect(() => {
     if (!needsEnrollStart || totpSecret) return;
@@ -149,14 +186,23 @@ export default function SignInPage() {
       return;
     }
     void run(async () => {
-      const result = await session.register({
+      await session.register({
         fullName: form.fullName.trim(),
         email: form.email.trim(),
         password: form.password,
         termsAccepted: form.termsAccepted,
         returnTo: requestedReturnTo(),
       });
-      return result.mfaRequired ? null : result.returnTo;
+      setNotice(t('email.verify.checkInbox'));
+      return null;
+    });
+  };
+
+  const submitResendVerify = () => {
+    void run(async () => {
+      await session.resendVerificationEmail();
+      setNotice(t('email.verify.checkInbox'));
+      return null;
     });
   };
 
@@ -265,7 +311,23 @@ export default function SignInPage() {
           </ul>
         </section>
         <section style={css("flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px)")}>
-          {mfaEnroll ? (
+          {needsEmailVerify ? (
+            <Fragment>
+              <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>Verify your email</h2>
+              <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>{t('email.verify.checkInbox')}</p>
+              {errorBlock}
+              {notice && <p role="status" style={css("margin: 0 0 18px; padding: 12px 14px; border: 1px solid #CFE0C8; border-radius: 12px; background: #F2F8EF; color: #2F5D2A; font-size: 15px")}>{notice}</p>}
+              <button
+                type="button"
+                className="btn-primary"
+                disabled={busy}
+                onClick={submitResendVerify}
+                style={css("height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer")}
+              >
+                {busyLabel ?? t('email.verify.resend')}
+              </button>
+            </Fragment>
+          ) : mfaEnroll ? (
             <Fragment>
             <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>Set up authenticator</h2>
             <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>Two-step verification is required for your account. Scan the QR code with an authenticator app to continue.</p>
