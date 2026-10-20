@@ -21,7 +21,8 @@ const seen = new Set<string>();
 
 function ensure(): Socket {
   if (socket) return socket;
-  const next = io(API_BASE_URL, { withCredentials: true, transports: ['websocket'] });
+  const origin = /^https?:\/\//i.test(API_BASE_URL) ? API_BASE_URL : undefined;
+  const next = io(origin, { withCredentials: true, transports: ['websocket'] });
   next.on('connect', () => {
     next.emit('join', 'auctions');
     statusHandlers.forEach((fn) => fn(true));

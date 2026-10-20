@@ -10,23 +10,25 @@
 const DEV_API_BASE_URL = 'http://localhost:4000';
 
 /**
- * Production API host (Render). Used when the public env var is unset so Vercel never falls back
- * to same-origin `/api` rewrites aimed at localhost (that yields broken images and DNS errors).
+ * Production API host (Render). Used when the public env var is unset.
+ * Set NEXT_PUBLIC_API_BASE_URL=same-origin plus BACKEND_URL on Vercel so the
+ * browser talks to `/api` on the frontend host (first-party cookies / CSRF).
  */
 const PRODUCTION_API_BASE_URL = 'https://auction-backend-7zcn.onrender.com';
 
-function resolveApiBaseUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_API_BASE_URL;
+export function resolveApiBaseUrl(
+  raw = process.env.NEXT_PUBLIC_API_BASE_URL,
+  nodeEnv = process.env.NODE_ENV,
+): string {
   if (raw !== undefined) {
     const trimmed = raw.trim();
-    // Empty string = same-origin `/api` rewrites (local NEXT + BACKEND_URL).
-    // Never ship that mode to Vercel without a public BACKEND_URL — default to Render.
-    if (trimmed === '' && process.env.NODE_ENV === 'production') {
-      return PRODUCTION_API_BASE_URL;
-    }
-    return trimmed;
+    // Vercel cannot store an empty NEXT_PUBLIC_* value, so "same-origin" means
+    // fetch('/api/...') on the frontend host. Never treat it as a hostname.
+    if (!trimmed || trimmed === 'same-origin' || trimmed === '/') return '';
+    if (!/^https?:\/\//i.test(trimmed)) return '';
+    return trimmed.replace(/\/$/, '');
   }
-  if (process.env.NODE_ENV === 'development') return DEV_API_BASE_URL;
+  if (nodeEnv === 'development') return DEV_API_BASE_URL;
   return PRODUCTION_API_BASE_URL;
 }
 
