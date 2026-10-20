@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { CategoryIcon } from '../lib/categoryIcons';
 import './category-tree.css';
 
 export type CategoryTreeNode = {
   key: string;
   name: string;
+  icon?: string | null;
 };
 
 type CategoryTreeProps = {
@@ -121,7 +123,8 @@ export default function CategoryTree({
                 aria-pressed={rootSelected}
                 onClick={() => onSelect(root.key)}
               >
-                {root.name}
+                {root.icon ? <CategoryIcon icon={root.icon} size={18} /> : null}
+                <span>{root.name}</span>
               </button>
               {kids.length > 0 && (
                 <CategoryTreeExpandControl
@@ -143,7 +146,8 @@ export default function CategoryTree({
                         aria-pressed={childSelected}
                         onClick={() => onSelect(child.key)}
                       >
-                        {child.name}
+                        {child.icon ? <CategoryIcon icon={child.icon} size={18} /> : null}
+                        <span>{child.name}</span>
                       </button>
                     </li>
                   );

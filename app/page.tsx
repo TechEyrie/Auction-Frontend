@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useState } from 'react';
+import { appendPlaceQuery, useUiPlaceQueryKey } from '../lib/uiPlace';
 import AudiencePicker from '../components/AudiencePicker';
 import CategoryMenu from '../components/CategoryMenu';
 import LocalInfoBar from '../components/LocalInfoBar';
@@ -27,6 +28,7 @@ import {
   type Audience,
   type PublicListing,
 } from '../lib/listings';
+import { CategoryIcon } from '../lib/categoryIcons';
 import './main.css';
 
 /**
@@ -36,11 +38,7 @@ import './main.css';
  * inventory. Live auction lots link to bid pages; the search box performs a real, shareable search.
  */
 
-const ICON: Record<string, string> = {
-  fallback: 'M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z',
-};
-
-type Category = { key: string; name: string; parentKey: string | null; listingMethods: ListingMethod[] };
+type Category = { key: string; name: string; parentKey: string | null; icon: string | null; listingMethods: ListingMethod[] };
 type ListingsResponse = { listings: PublicListing[]; total: number };
 
 const AUCTION_STEPS: Array<{ id: number; title: MessageKey; description: MessageKey }> = [
@@ -79,18 +77,28 @@ export default function HomePage() {
   const [search, setSearch] = useState('');
   const [heroCategory, setHeroCategory] = useState('');
   const [heroAudience, setHeroAudience] = useState<'' | Audience>('');
+  const placeKey = useUiPlaceQueryKey();
 
-  const featured = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?featured=true&limit=1', { cache: 'no-store' }), []);
+  const featured = useAsync<ListingsResponse>(
+    () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?featured=true&limit=1'), { cache: 'no-store' }),
+    [placeKey],
+  );
   const featuredCarousel = useAsync<ListingsResponse>(
-    () => apiFetch<ListingsResponse>('/api/listings?featured=true&sort=featured&limit=10', { cache: 'no-store' }),
-    [],
+    () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?featured=true&sort=featured&limit=10'), { cache: 'no-store' }),
+    [placeKey],
   );
   const endingSoon = useAsync<ListingsResponse>(
-    () => apiFetch<ListingsResponse>('/api/listings?endingSoonHours=2&limit=20', { cache: 'no-store' }),
-    [],
+    () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?endingSoonHours=2&limit=20'), { cache: 'no-store' }),
+    [placeKey],
   );
-  const recent = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?limit=8', { cache: 'no-store' }), []);
-  const auctionListings = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?method=auction&limit=4', { cache: 'no-store' }), []);
+  const recent = useAsync<ListingsResponse>(
+    () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?limit=8'), { cache: 'no-store' }),
+    [placeKey],
+  );
+  const auctionListings = useAsync<ListingsResponse>(
+    () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?method=auction&limit=4'), { cache: 'no-store' }),
+    [placeKey],
+  );
   const categories = useAsync<{ categories: Category[] }>(
     () => apiFetch<{ categories: Category[] }>(`/api/catalog/categories?locale=${lang}`, { cache: 'no-store' }),
     [lang],
@@ -309,9 +317,7 @@ export default function HomePage() {
                 style={css('display: flex; flex-direction: column; gap: 14px; padding: 20px; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; color: #15191E; transition: border-color .15s, background .15s')}
               >
                 <span style={css('width: 44px; height: 44px; border-radius: 12px; background: #F3F1EC; display: flex; align-items: center; justify-content: center')}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A6B12" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d={ICON[category.key] ?? ICON.fallback}></path>
-                  </svg>
+                  <CategoryIcon icon={category.icon} size={22} />
                 </span>
                 <span>
                   <span style={css('display: block; font-weight: 600; font-size: 16px')}>{category.name}</span>

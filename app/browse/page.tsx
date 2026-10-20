@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import AudiencePicker from '../../components/AudiencePicker';
-import CategoryTree from '../../components/CategoryTree';
+import BrowseFilterBar, { clearBarFilterPatch } from '../../components/BrowseFilterBar';
 import ProductListingCard from '../../components/ProductListingCard';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
@@ -12,14 +12,12 @@ import { API_BASE_URL, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
-import { conditionLabel, methodLabel } from '../../lib/uiMessages';
-import { categoryChildren, categoryRoots } from '../../lib/catalog';
+import { categoryRoots } from '../../lib/catalog';
 import {
   applyBrowseChange,
   browseIsFiltered,
   browseQuery,
   coverImage,
-  LISTING_METHODS,
   parseBrowseState,
   mediaUrl,
   type BrowseState,
@@ -28,9 +26,7 @@ import {
 } from '../../lib/listings';
 import './browse.css';
 
-type Category = { key: string; name: string; parentKey: string | null; depth: number; listingMethods: ListingMethod[] };
-type LocationOption = { key: string; label: string; cityKey: string };
-
+type Category = { key: string; name: string; parentKey: string | null; depth: number; icon: string | null; listingMethods: ListingMethod[] };
 type ListingsResponse = {
   listings: PublicListing[];
   page: number;
@@ -87,6 +83,7 @@ function BrowseContent() {
     if (state.method) params.set('method', state.method);
     if (state.condition) params.set('condition', state.condition);
     if (state.city) params.set('city', state.city);
+    if (state.area) params.set('area', state.area);
     if (state.featured) params.set('featured', 'true');
     if (state.sort !== 'recent') params.set('sort', state.sort);
     params.set('page', String(state.page));
@@ -99,20 +96,21 @@ function BrowseContent() {
     () => apiFetch<{ categories: Category[] }>(`/api/catalog/categories?locale=${lang}`, { cache: 'no-store' }),
     [lang],
   );
-  const locations = useAsync<{ locations: LocationOption[] }>(() => apiFetch<{ locations: LocationOption[] }>('/api/catalog/locations', { cache: 'no-store' }), []);
-
   const [searchText, setSearchText] = useState(state.q);
   /** True from filter click until the matching listings request finishes — avoids stale cards during navigation. */
   const [filterPending, setFilterPending] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     setSearchText(state.q);
   }, [state.q]);
 
   useEffect(() => {
+    setFilterPending(true);
+  }, [query]);
+
+  useEffect(() => {
     if (!listings.loading) setFilterPending(false);
-  }, [listings.loading, query]);
+  }, [listings.loading]);
 
   /** Every filter change is navigation: the URL is the state, so reload and Back/Forward work. */
   function update(change: Partial<BrowseState>): void {
@@ -139,7 +137,7 @@ function BrowseContent() {
 
   const isUpdating = listings.loading || filterPending;
   const resultListings = listings.data?.listings ?? [];
-  const showInitialSkeleton = isUpdating && !listings.data;
+  const showInitialSkeleton = isUpdating;
   const showEmpty = !isUpdating && !listings.error && resultListings.length === 0;
 
   return (
@@ -192,118 +190,18 @@ function BrowseContent() {
         </div>
       </section>
 
-      <div className="browse-layout" style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 32px var(--mkt-gutter-x) 72px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start')}>
-        <div className="browse-filters-toggle-wrap">
-          <button
-            type="button"
-            className="browse-filters-toggle"
-            aria-expanded={filtersOpen}
-            onClick={() => setFiltersOpen((open) => !open)}
-          >
-            {filtersOpen ? t('browse.hideFilters') : t('browse.showFilters')}
-            {browseIsFiltered(state) ? t('browse.activeSuffix') : ''}
-          </button>
-        </div>
-        <aside
-          aria-label={t('browse.filters')}
-          className={filtersOpen ? 'browse-filters is-open' : 'browse-filters'}
-          style={css('flex: 1 1 260px; min-width: 0; max-width: 100%; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 26px')}
-        >
-          <div style={css('display: flex; justify-content: space-between; align-items: center')}>
-            <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 20px; font-weight: 700")}>{t('browse.filters')}</h2>
-            <button type="button" onClick={() => router.push('/browse', { scroll: false })} style={css('height: 36px; padding: 0 10px; border: 0; background: transparent; color: #9A6B12; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}>
-              {t('browse.clearAll')}
-            </button>
-          </div>
+      <div className="browse-layout" style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 32px var(--mkt-gutter-x) 72px')}>
+        <BrowseFilterBar
+          state={state}
+          onChange={update}
+          disabled={isUpdating}
+          allCategories={allCategories}
+          roots={roots}
+          categoriesError={Boolean(categories.error)}
+        />
 
-          <div>
-            <span className="lbl">{t('browse.category')}</span>
-            {categories.error && <p className="mkt-hint">{t('browse.categoriesError')}</p>}
-            <CategoryTree
-              roots={roots}
-              childrenOf={(rootKey) => categoryChildren(allCategories, rootKey)}
-              selectedKey={state.category}
-              onSelect={(category) => update({ category })}
-              allLabel={t('browse.allCategories')}
-            />
-          </div>
-
-          <div>
-            <span className="lbl">{t('browse.listingMethod')}</span>
-            <div style={css('display: flex; gap: 8px; flex-wrap: wrap')}>
-              {LISTING_METHODS.map((method) => {
-                const on = state.method === method;
-                return (
-                  <button
-                    key={method}
-                    type="button"
-                    onClick={() => update({ method: on ? '' : method })}
-                    aria-pressed={on}
-                    style={css(`height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid ${on ? '#15191E' : '#DAD7D0'}; background: ${on ? '#15191E' : '#FFFFFF'}; color: ${on ? '#FFFFFF' : '#2A3036'}`)}
-                  >
-                    {methodLabel(lang, method)}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <span className="lbl">{t('browse.condition')}</span>
-            <div style={css('display: flex; gap: 8px; flex-wrap: wrap')}>
-              {(['new', 'like_new', 'used', 'refurbished'] as const).map((condition) => {
-                const on = state.condition === condition;
-                return (
-                  <button
-                    key={condition}
-                    type="button"
-                    onClick={() => update({ condition: on ? '' : condition })}
-                    aria-pressed={on}
-                    style={css(`height: 40px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid ${on ? '#15191E' : '#DAD7D0'}; background: ${on ? '#15191E' : '#FFFFFF'}; color: ${on ? '#FFFFFF' : '#2A3036'}`)}
-                  >
-                    {conditionLabel(lang, condition)}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="loc" className="lbl">
-              {t('browse.city')}
-            </label>
-            <select id="loc" className="field" value={state.city} onChange={(event) => update({ city: event.target.value })} style={css('cursor: pointer')}>
-              <option value="">{t('browse.allCities')}</option>
-              {[...new Set((locations.data?.locations ?? []).map((location) => location.cityKey))].map((cityKey) => (
-                <option key={cityKey} value={cityKey}>
-                  {cityKey}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <span className="lbl">{t('browse.placement')}</span>
-            <button
-              type="button"
-              onClick={() => update({ featured: !state.featured })}
-              aria-pressed={state.featured}
-              style={css(`height: 42px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; border: 1px solid ${state.featured ? '#15191E' : '#DAD7D0'}; background: ${state.featured ? '#15191E' : '#FFFFFF'}; color: ${state.featured ? '#FFFFFF' : '#2A3036'}`)}
-            >
-              {t('browse.featuredOnly')}
-            </button>
-          </div>
-
-          <Link href="/auctions" style={css('display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 14px; background: #F6EEDC; color: #15191E')}>
-            <span style={css('font-size: 14px')}>
-              <strong style={css('display: block')}>{t('browse.auctionPromoTitle')}</strong>
-              {t('browse.auctionPromoBody')}
-            </span>
-          </Link>
-        </aside>
-
-        <main style={css('flex: 999 1 560px; min-width: 0')} aria-busy={isUpdating}>
-          <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px')}>
+        <main aria-busy={isUpdating}>
+          <div className="browse-results-meta">
             {isUpdating ? (
               <p className="browse-status-pulse" role="status" aria-live="polite">
                 {loadingStatusLabel(state, t)}
@@ -314,23 +212,9 @@ function BrowseContent() {
                 {browseIsFiltered(state) && <span className="mkt-hint">{t('browse.filtered')}</span>}
               </p>
             )}
-            <div style={css('display: flex; align-items: center; gap: 10px')}>
-              <label htmlFor="sort" style={css('font-size: 14px; color: #5B636B')}>
-                {t('browse.sortBy')}
-              </label>
-              <select
-                id="sort"
-                className="field"
-                value={state.sort}
-                disabled={isUpdating}
-                onChange={(event) => update({ sort: event.target.value as BrowseState['sort'] })}
-                style={css('width: auto; height: 42px; cursor: pointer')}
-              >
-                <option value="recent">{t('browse.sortRecent')}</option>
-                <option value="title">{t('browse.sortTitle')}</option>
-                <option value="featured">{t('browse.sortFeatured')}</option>
-              </select>
-            </div>
+            <Link href="/auctions" className="browse-auctions-link">
+              {t('browse.auctionPromoBody')}
+            </Link>
           </div>
 
           {listings.error && !isUpdating && (
@@ -350,7 +234,7 @@ function BrowseContent() {
                   ? t('browse.emptyFiltered')
                   : t('browse.emptyNone')}
               </p>
-              <button type="button" onClick={() => router.push('/browse', { scroll: false })} className="btn-primary" style={css('height: 46px; padding: 0 20px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+              <button type="button" onClick={() => update(clearBarFilterPatch())} className="btn-primary" style={css('height: 46px; padding: 0 20px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
                 {t('browse.clearFilters')}
               </button>
             </div>

@@ -1,17 +1,27 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { css } from '../lib/css';
-import { browseHrefForPlace, placeLabel, QATAR_PLACES } from '../lib/qatarPlaces';
+import { apiFetch } from '../lib/api';
+import { applyBrowseChange, browseQuery, parseBrowseState } from '../lib/listings';
+import { listingsQueryForPlace, placeToBrowsePatch } from '../lib/qatarPlaces';
 import { useSession } from '../lib/session';
+import {
+  catalogPlaceOptionKey,
+  parseCatalogPlaceOptionKey,
+  readStoredPlace,
+  writeStoredPlace,
+} from '../lib/uiPlace';
+import { useAsync } from '../lib/useAsync';
 import { useUiLocale } from '../lib/UiLocaleProvider';
 import type { MessageKey } from '../lib/uiMessages';
 
-const UI_CITY_STORAGE_KEY = 'araq-ui-city';
-const DEFAULT_CITY = 'Doha';
+const ALL_QATAR_PLACE_KEY = '';
 const HEADER_FLOAT_SCROLL_THRESHOLD = 16;
+
+type CatalogLocation = { key: string; cityKey: string; areaKey: string | null; label: string };
 
 const HOVER_CLOSE_DELAY_MS = 150;
 
@@ -312,13 +322,18 @@ export default function SiteHeader({
 }: Props) {
   const items = buildNav(home);
   const router = useRouter();
+  const pathname = usePathname();
   const session = useSession();
   const { lang, setLang, t } = useUiLocale();
   const signedInName = session.user?.fullName ?? null;
   const [menuOpen, setMenuOpen] = useState(false);
   const [headerFloating, setHeaderFloating] = useState(false);
-  const [selectedCity, setSelectedCity] = useState(DEFAULT_CITY);
+  const [selectedPlaceKey, setSelectedPlaceKey] = useState(ALL_QATAR_PLACE_KEY);
   const [cityMenu, setCityMenu] = useState<'desktop' | 'drawer' | null>(null);
+  const catalogLocations = useAsync<{ locations: CatalogLocation[] }>(
+    () => apiFetch<{ locations: CatalogLocation[] }>('/api/catalog/locations?country=QA', { cache: 'no-store' }),
+    [],
+  );
   const menuId = useId();
   const cityMenuId = useId();
   const cityRef = useRef<HTMLDivElement>(null);
@@ -384,10 +399,8 @@ export default function SiteHeader({
   }, [openNav]);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(UI_CITY_STORAGE_KEY);
-    if (stored && QATAR_PLACES.some((place) => place.value === stored)) {
-      setSelectedCity(stored);
-    }
+    const stored = readStoredPlace();
+    if (stored) setSelectedPlaceKey(catalogPlaceOptionKey(stored.cityKey, stored.areaKey || null));
   }, []);
 
   useEffect(() => {
@@ -423,12 +436,29 @@ export default function SiteHeader({
     setLang(lang === 'en' ? 'ar' : 'en');
   }
 
+  function selectedPlaceLabel(): string {
+    if (!selectedPlaceKey) return t('browse.allCities');
+    const match = catalogLocations.data?.locations.find(
+      (location) => catalogPlaceOptionKey(location.cityKey, location.areaKey) === selectedPlaceKey,
+    );
+    return match?.label ?? selectedPlaceKey;
+  }
+
   function handleCitySelect(value: string): void {
-    setSelectedCity(value);
-    window.localStorage.setItem(UI_CITY_STORAGE_KEY, value);
+    setSelectedPlaceKey(value);
+    const stored = value ? parseCatalogPlaceOptionKey(value) : null;
+    writeStoredPlace(stored);
     setCityMenu(null);
     setMenuOpen(false);
-    router.push(browseHrefForPlace(value));
+    const patch = placeToBrowsePatch(stored);
+    if (pathname === '/browse') {
+      const next = applyBrowseChange(parseBrowseState(new URLSearchParams(window.location.search)), patch);
+      const qs = browseQuery(next);
+      router.push(qs ? `/browse?${qs}` : '/browse');
+      return;
+    }
+    const qs = listingsQueryForPlace(stored);
+    router.push(qs ? `/browse?${qs}` : '/browse');
   }
 
   useEffect(() => {
@@ -720,27 +750,43 @@ export default function SiteHeader({
           onClick={() => setCityMenu((current) => (current === variant ? null : variant))}
         >
           <GlobeIcon />
-          <span className="site-header__location-label">{placeLabel(selectedCity)}</span>
+          <span className="site-header__location-label">{selectedPlaceLabel()}</span>
           <ChevronIcon />
         </button>
         {open ? (
           <div id={cityMenuId} className={panelClass} role="listbox" aria-label={t('header.selectCity')}>
-            {QATAR_PLACES.map((place) => (
-              <button
-                key={place.value}
-                type="button"
-                role="option"
-                aria-selected={place.value === selectedCity}
-                className={
-                  place.value === selectedCity
-                    ? 'site-header__location-option is-selected'
-                    : 'site-header__location-option'
-                }
-                onClick={() => handleCitySelect(place.value)}
-              >
-                {place.label}
-              </button>
-            ))}
+            <button
+              type="button"
+              role="option"
+              aria-selected={selectedPlaceKey === ALL_QATAR_PLACE_KEY}
+              className={
+                selectedPlaceKey === ALL_QATAR_PLACE_KEY
+                  ? 'site-header__location-option is-selected'
+                  : 'site-header__location-option'
+              }
+              onClick={() => handleCitySelect(ALL_QATAR_PLACE_KEY)}
+            >
+              {t('browse.allCities')}
+            </button>
+            {(catalogLocations.data?.locations ?? []).map((location) => {
+              const optionKey = catalogPlaceOptionKey(location.cityKey, location.areaKey);
+              return (
+                <button
+                  key={location.key}
+                  type="button"
+                  role="option"
+                  aria-selected={optionKey === selectedPlaceKey}
+                  className={
+                    optionKey === selectedPlaceKey
+                      ? 'site-header__location-option is-selected'
+                      : 'site-header__location-option'
+                  }
+                  onClick={() => handleCitySelect(optionKey)}
+                >
+                  {location.label}
+                </button>
+              );
+            })}
           </div>
         ) : null}
       </div>

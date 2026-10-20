@@ -21,32 +21,11 @@ export const QATAR_PLACES: readonly { value: string; label: string }[] = [
   { value: 'Dukhan', label: 'Dukhan' },
 ];
 
-/** Browse `city` param values that match catalog `cityKey` (see backend location seed). */
-const PLACE_CITY_KEYS: Record<string, string> = {
-  Doha: 'doha',
-  'Abu Hamour': 'doha',
-  'Al Sadd, Doha': 'doha',
-  'West Bay, Doha': 'doha',
-  'The Pearl, Doha': 'doha',
-  'Katara, Doha': 'doha',
-  'Old Airport, Doha': 'doha',
-  'Al Waab, Doha': 'doha',
-  'Bin Mahmoud, Doha': 'doha',
-  Lusail: 'lusail',
-  'Al Wakrah': 'al-wakrah',
-};
-
 export function placeLabel(value: string): string {
   return QATAR_PLACES.find((place) => place.value === value)?.label ?? value;
 }
 
-/** Prefer real `city` browse filter when catalog supports it; otherwise text search. */
-export function browseHrefForPlace(placeValue: string): string {
-  const cityKey = PLACE_CITY_KEYS[placeValue];
-  if (cityKey) return `/browse?city=${cityKey}`;
-  const label = placeLabel(placeValue);
-  return `/browse?q=${encodeURIComponent(label)}`;
-}
+export { listingsQueryForPlace, placeToBrowsePatch } from './uiPlace';
 
 export function paymentStateLabel(state: string): string {
   switch (state) {

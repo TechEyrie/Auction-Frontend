@@ -9,6 +9,7 @@ import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
 import { type PublicListing } from '../../lib/listings';
 import { useLive } from '../../lib/live';
+import { appendPlaceQuery, useUiPlaceQueryKey } from '../../lib/uiPlace';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import './auctions.css';
 
@@ -22,7 +23,11 @@ type ListingsResponse = { listings: PublicListing[]; total: number };
  */
 export default function AuctionsPage() {
   const { t } = useUiLocale();
-  const listings = useAsync<ListingsResponse>(() => apiFetch<ListingsResponse>('/api/listings?method=auction&limit=24', { cache: 'no-store' }), []);
+  const placeKey = useUiPlaceQueryKey();
+  const listings = useAsync<ListingsResponse>(
+    () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?method=auction&limit=24'), { cache: 'no-store' }),
+    [placeKey],
+  );
   useLive(() => listings.reload());
 
   return (

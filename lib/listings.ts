@@ -438,6 +438,7 @@ export type BrowseState = {
   method: '' | ListingMethod;
   condition: '' | Condition;
   city: string;
+  area: string;
   featured: boolean;
   sort: 'recent' | 'title' | 'featured';
   page: number;
@@ -450,6 +451,7 @@ export const EMPTY_BROWSE: BrowseState = {
   method: '',
   condition: '',
   city: '',
+  area: '',
   featured: false,
   sort: 'recent',
   page: 1,
@@ -476,6 +478,7 @@ export function parseBrowseState(params: URLSearchParams): BrowseState {
   const method = firstValue(params, 'method');
   const condition = firstValue(params, 'condition');
   const city = firstValue(params, 'city').toLowerCase();
+  const area = firstValue(params, 'area').toLowerCase();
   const featured = firstValue(params, 'featured') === 'true';
   const sort = firstValue(params, 'sort');
   const page = Number.parseInt(firstValue(params, 'page'), 10);
@@ -486,6 +489,7 @@ export function parseBrowseState(params: URLSearchParams): BrowseState {
     method: (LISTING_METHODS as string[]).includes(method) ? (method as ListingMethod) : '',
     condition: (CONDITIONS as string[]).includes(condition) ? (condition as Condition) : '',
     city: /^[a-z][a-z0-9-]{1,59}$/.test(city) ? city : '',
+    area: /^[a-z][a-z0-9-]{1,59}$/.test(area) ? area : '',
     featured,
     sort: sort === 'title' || sort === 'featured' ? sort : 'recent',
     page: Number.isFinite(page) && page >= 1 && page <= 1000 ? page : 1,
@@ -501,6 +505,7 @@ export function browseQuery(state: BrowseState): string {
   if (state.method) params.set('method', state.method);
   if (state.condition) params.set('condition', state.condition);
   if (state.city) params.set('city', state.city);
+  if (state.area) params.set('area', state.area);
   if (state.featured) params.set('featured', 'true');
   if (state.sort !== 'recent') params.set('sort', state.sort);
   if (state.page > 1) params.set('page', String(state.page));
@@ -522,6 +527,7 @@ export function applyBrowseChange(state: BrowseState, change: Partial<BrowseStat
     change.method === undefined &&
     change.condition === undefined &&
     change.city === undefined &&
+    change.area === undefined &&
     change.featured === undefined &&
     change.sort === undefined;
   if (!onlyPageChanged) next.page = 1;
@@ -529,7 +535,7 @@ export function applyBrowseChange(state: BrowseState, change: Partial<BrowseStat
 }
 
 export function browseIsFiltered(state: BrowseState): boolean {
-  return Boolean(state.q || state.audience || state.category || state.method || state.condition || state.city || state.featured);
+  return Boolean(state.q || state.audience || state.category || state.method || state.condition || state.city || state.area || state.featured);
 }
 
 // ---------------------------------------------------------------------------

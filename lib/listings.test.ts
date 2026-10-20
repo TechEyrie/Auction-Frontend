@@ -210,6 +210,7 @@ test('browse state round-trips through a canonical URL', () => {
     method: 'auction',
     condition: '',
     city: '',
+    area: '',
     featured: false,
     sort: 'title',
     page: 3,
@@ -220,7 +221,7 @@ test('browse state round-trips through a canonical URL', () => {
 
 test('a malformed URL is repaired instead of trusted', () => {
   const state = parseBrowseState(
-    new URLSearchParams('sort=random&page=-4&limit=999&method=raffle&condition=exploded&category=A&city=%20&featured=maybe'),
+    new URLSearchParams('sort=random&page=-4&limit=999&method=raffle&condition=exploded&category=A&city=%20&area=%20&featured=maybe'),
   );
   assert.equal(state.sort, 'recent');
   assert.equal(state.page, 1);
@@ -228,6 +229,7 @@ test('a malformed URL is repaired instead of trusted', () => {
   assert.equal(state.condition, '');
   assert.equal(state.category, '');
   assert.equal(state.city, '');
+  assert.equal(state.area, '');
   assert.equal(state.featured, false);
   assert.equal(browseQuery(state), '');
 
@@ -251,6 +253,15 @@ test('audience round-trips in browse URLs', () => {
   assert.equal(state.audience, 'women');
   assert.equal(browseQuery(state), 'audience=women&category=electronics');
   assert.equal(parseBrowseState(new URLSearchParams('audience=unisex')).audience, 'unisex');
+});
+
+test('city and area round-trip in browse URLs', () => {
+  const state = parseBrowseState(new URLSearchParams('city=doha&area=al-sadd&category=vehicles'));
+  assert.equal(state.city, 'doha');
+  assert.equal(state.area, 'al-sadd');
+  assert.equal(browseQuery(state), 'category=vehicles&city=doha&area=al-sadd');
+  assert.equal(parseBrowseState(new URLSearchParams('area=West-Bay')).area, 'west-bay');
+  assert.equal(parseBrowseState(new URLSearchParams('area=a')).area, '');
 });
 
 test('media ordering keeps the cover attached to a real image', () => {

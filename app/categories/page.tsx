@@ -11,6 +11,7 @@ import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import { categoryByKey, categoryChildren, categoryRoots } from '../../lib/catalog';
+import { CategoryIcon } from '../../lib/categoryIcons';
 import { EMPTY_BROWSE, METHOD_LABEL, browseQuery, parseBrowseState, type ListingMethod } from '../../lib/listings';
 import { CategoryTreeExpandControl } from '../../components/CategoryTree';
 import '../../components/category-tree.css';
@@ -24,6 +25,7 @@ type Category = {
   description: string | null;
   parentKey: string | null;
   depth: number;
+  icon: string | null;
   listingMethods: ListingMethod[];
 };
 
@@ -206,8 +208,8 @@ function CategoriesContent() {
                 )}
               >
                 <div style={css('display: flex; gap: 14px; align-items: flex-start')}>
-                  <span style={css('flex: 0 0 48px; height: 48px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #7D5610')}>
-                    {root.name.slice(0, 1)}
+                  <span style={css('flex: 0 0 48px; height: 48px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center')}>
+                    <CategoryIcon icon={root.icon} size={26} />
                   </span>
                   <div style={css('min-width: 0; flex: 1')}>
                     <p className="mkt-hint" style={css('margin: 0 0 4px')}>
