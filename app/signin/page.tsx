@@ -424,7 +424,7 @@ export default function SignInPage() {
               <div>
                 <div style={css("display: flex; justify-content: space-between; align-items: baseline")}>
                   <label htmlFor="pw" className="lbl">Password</label>
-                  <Link href="/help" style={css("font-size: 14px; font-weight: 600")}>Forgot password?</Link>
+                  <Link href="/forgot-password" style={css("font-size: 14px; font-weight: 600")}>Forgot password?</Link>
                 </div>
                 <div style={css("position: relative")}>
                   <input id="pw" className="field" type={pwType} autoComplete="current-password" style={css("padding-right: 64px")} value={form.password} onChange={field('password')} aria-invalid={fieldErrors.password ? true : undefined} />

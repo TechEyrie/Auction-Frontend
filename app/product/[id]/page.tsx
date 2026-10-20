@@ -646,7 +646,15 @@ export default function ProductPage() {
                   {data.title.ar}
                 </p>
               )}
-              <p style={css('margin: 8px 0 0; font-size: 14px; color: #5B636B')}>
+              <p style={css('margin: 8px 0 0; font-size: 15px; font-weight: 600; color: #15191E')}>
+                {data.seller.displayName}
+                {data.seller.verificationBadge ? (
+                  <span style={css('margin-left: 8px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #9A6B12')}>
+                    Verified
+                  </span>
+                ) : null}
+              </p>
+              <p style={css('margin: 6px 0 0; font-size: 14px; color: #5B636B')}>
                 {data.location.label ?? 'Location not published'} · {postedLabel(data.publishedAt)} · Ad {data.listingReference}
               </p>
             </div>
@@ -746,14 +754,13 @@ export default function ProductPage() {
                   </form>
                 ) : null}
                 {auctionLive && !session.user ? (
-                  <p style={css('margin: 0')}>
-                    <Link
-                      href={`/signin?returnTo=${encodeURIComponent(productReturnTo)}`}
-                      style={css('font-weight: 700; color: #9A6B12')}
-                    >
-                      Sign in to place a bid
-                    </Link>
-                  </p>
+                  <Link
+                    href={`/signin?returnTo=${encodeURIComponent(productReturnTo)}`}
+                    className="btn-primary"
+                    style={css('display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; box-sizing: border-box')}
+                  >
+                    Sign in to place a bid
+                  </Link>
                 ) : null}
                 {bidMessage ? (
                   <p role="status" style={css('margin: 0; font-weight: 600')}>{bidMessage}</p>
@@ -842,6 +849,10 @@ export default function ProductPage() {
             )}
 
             <div style={css('display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px')}>
+              <div style={css('background: #FBFAF7; border: 1px solid #EEECE7; border-radius: 12px; padding: 10px 12px')}>
+                <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Seller</div>
+                <div style={css('font-weight: 600')}>{data.seller.displayName}</div>
+              </div>
               <div style={css('background: #FBFAF7; border: 1px solid #EEECE7; border-radius: 12px; padding: 10px 12px')}>
                 <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Category</div>
                 <div style={css('font-weight: 600')}>{category?.name ?? data.category.key}</div>

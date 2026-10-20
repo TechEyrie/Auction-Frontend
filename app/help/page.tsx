@@ -30,7 +30,7 @@ const FAQS = [
   { t: 'pay', q: 'Are there fees when I win an auction?', a: "A buyer's premium of [X]% is added to the winning bid. It's shown on the listing before you bid." },
   { t: 'pay', q: 'How do I pay after I win?', a: "After you win, you'll receive an invoice with payment options. Payment is due within [X] days." },
   { t: 'account', q: 'How do I verify my mobile number?', a: 'When you sign up we text you a code. Enter it to verify. Verified accounts get a badge that buyers and sellers trust.' },
-  { t: 'account', q: 'I forgot my password', a: "On the sign-in page, tap Forgot password and enter your mobile number. We'll text you a reset code." },
+  { t: 'account', q: 'I forgot my password', a: "On the sign-in page, tap Forgot password and enter your email address. We'll send you a reset link (not SMS)." },
   { t: 'safe', q: 'How do I report a suspicious ad?', a: 'Open the ad and tap Report it at the bottom of the page, or contact us directly. Our team reviews every report.' },
 ];
 

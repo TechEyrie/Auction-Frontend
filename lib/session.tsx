@@ -72,6 +72,8 @@ export type SessionValue = {
   }) => Promise<{ returnTo: string; mfaRequired: boolean; emailVerified: boolean }>;
   verifyEmail: (token: string) => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   enrollMfa: (code?: string) => Promise<{ secret: string; otpauthUrl: string }>;
   confirmMfa: (code: string) => Promise<string[]>;
@@ -232,6 +234,20 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         await apiFetch<{ ok: boolean }>('/api/auth/email/resend', {
           method: 'POST',
           json: {},
+          headers: await ensureCsrfHeaders(),
+        });
+      },
+      async forgotPassword(email) {
+        await apiFetch<{ ok: boolean }>('/api/auth/password/forgot', {
+          method: 'POST',
+          json: { identifier: email },
+          headers: await ensureCsrfHeaders(),
+        });
+      },
+      async resetPassword(token, password) {
+        await apiFetch<{ ok: boolean }>('/api/auth/password/reset', {
+          method: 'POST',
+          json: { token, password },
           headers: await ensureCsrfHeaders(),
         });
       },
