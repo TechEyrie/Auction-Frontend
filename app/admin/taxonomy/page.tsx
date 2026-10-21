@@ -6,6 +6,7 @@ import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
 import { useAsync } from '../../../lib/useAsync';
 import { fieldError } from '../../../lib/admin';
+import { mediaUrl } from '../../../lib/listings';
 import { CategoryIcon } from '../../../lib/categoryIcons';
 import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Panel, PrimaryButton, StateBlock, TableWrap } from '../ui';
 
@@ -230,7 +231,7 @@ export default function AdminTaxonomyPage() {
                     <td>
                       {category.imageUrl ? (
                         <img
-                          src={`${API_BASE_URL}${category.imageUrl}`}
+                          src={mediaUrl(API_BASE_URL, category.imageUrl)}
                           alt=""
                           width={36}
                           height={36}
@@ -383,7 +384,7 @@ export default function AdminTaxonomyPage() {
               <Hint>One JPEG, PNG or WebP image for calendar chips and other surfaces. Replaces any existing photo.</Hint>
               {(() => {
                 const category = categories.find((item) => item.key === editing);
-                const preview = category?.imageUrl ? `${API_BASE_URL}${category.imageUrl}` : null;
+                const preview = category?.imageUrl ? mediaUrl(API_BASE_URL, category.imageUrl) : null;
                 return preview ? (
                   <img src={preview} alt="" style={css('margin-top: 10px; max-width: 200px; border-radius: 8px; display: block')} />
                 ) : (

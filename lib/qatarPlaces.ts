@@ -30,11 +30,11 @@ export { listingsQueryForPlace, placeToBrowsePatch } from './uiPlace';
 export function paymentStateLabel(state: string): string {
   switch (state) {
     case 'awaiting_payment':
-      return 'Awaiting payment';
+      return 'Payment on delivery — details needed';
     case 'paid':
-      return 'Paid';
+      return 'COD confirmed';
     case 'failed':
-      return 'Payment failed';
+      return 'Could not confirm order — try again';
     default:
       return state.replaceAll('_', ' ');
   }

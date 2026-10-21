@@ -77,6 +77,7 @@ export default function AdminListingsPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<AdminListing | null>(null);
   const [deleteReason, setDeleteReason] = useState('Removed by operator');
+  const [duplicateTarget, setDuplicateTarget] = useState<AdminListing | null>(null);
 
   const list = useAsync<ListingPage>(
     () =>
@@ -145,6 +146,29 @@ export default function AdminListingsPage() {
     } catch (err) {
       setError(apiMessage(err));
       list.reload();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function confirmDuplicate(): Promise<void> {
+    if (!duplicateTarget) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const response = await apiFetch<{ listing: AdminListing }>(
+        `/api/admin/listings/${duplicateTarget.listingReference}/duplicate`,
+        { method: 'POST', json: {}, headers: session.authHeaders() },
+      );
+      setDuplicateTarget(null);
+      setNotice(`Duplicated as new draft ${response.listing.listingReference}. The original is unchanged.`);
+      setEditorMode('edit');
+      setEditorRef(response.listing.listingReference);
+      setEditorOpen(true);
+      list.reload();
+    } catch (err) {
+      setError(apiMessage(err));
     } finally {
       setBusy(false);
     }
@@ -342,6 +366,19 @@ export default function AdminListingsPage() {
                             Publish
                           </button>
                         )}
+                        {mayManage && listing.moderation.state !== 'blocked' && (
+                          <button
+                            type="button"
+                            className="adm-link-btn"
+                            disabled={busy}
+                            onClick={() => {
+                              setDuplicateTarget(listing);
+                              setError(null);
+                            }}
+                          >
+                            Duplicate as unsold
+                          </button>
+                        )}
                         {mayManage && listing.status !== 'archived' && (
                           <button
                             type="button"
@@ -411,7 +448,35 @@ export default function AdminListingsPage() {
           setNotice(`Deleted ${listingRef}.`);
           list.reload();
         }}
+        onDuplicated={(listing) => {
+          setNotice(`Duplicated as new draft ${listing.listingReference}. The original is unchanged.`);
+          setEditorMode('edit');
+          setEditorRef(listing.listingReference);
+          setEditorOpen(true);
+          list.reload();
+        }}
       />
+
+      <Modal
+        open={duplicateTarget !== null}
+        onClose={() => !busy && setDuplicateTarget(null)}
+        title="Duplicate as unsold"
+        subtitle={duplicateTarget ? `Ad ${duplicateTarget.listingReference}` : undefined}
+        size="sm"
+        footer={
+          <>
+            <GhostButton type="button" disabled={busy} onClick={() => setDuplicateTarget(null)}>Cancel</GhostButton>
+            <PrimaryButton type="button" disabled={busy} onClick={() => void confirmDuplicate()}>
+              Duplicate
+            </PrimaryButton>
+          </>
+        }
+      >
+        <p style={css('margin: 0; line-height: 1.5')}>
+          This creates a new draft copy with fresh reference and photos. Availability is reset to unsold.
+          The original product, its sale history, auctions and orders stay exactly as they are.
+        </p>
+      </Modal>
 
       <Modal
         open={deleteTarget !== null}

@@ -80,6 +80,8 @@ export type SessionValue = {
   enrollMfa: (code?: string) => Promise<{ secret: string; otpauthUrl: string }>;
   confirmMfa: (code: string) => Promise<string[]>;
   completeMfa: (code: string) => Promise<void>;
+  completeLoginOtp: (code: string) => Promise<void>;
+  resendLoginOtp: () => Promise<void>;
   useRecoveryCode: (code: string) => Promise<number>;
 };
 
@@ -269,6 +271,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           headers: await ensureCsrfHeaders(),
         });
         await refresh();
+      },
+      async completeLoginOtp(code) {
+        await apiFetch<{ ok: boolean }>('/api/auth/login/otp', {
+          method: 'POST',
+          json: { code },
+          headers: await ensureCsrfHeaders(),
+        });
+        await refresh();
+      },
+      async resendLoginOtp() {
+        await apiFetch<{ ok: boolean }>('/api/auth/login/otp/resend', {
+          method: 'POST',
+          json: {},
+          headers: await ensureCsrfHeaders(),
+        });
       },
       async useRecoveryCode(code) {
         const result = await apiFetch<{ ok: boolean; remainingRecoveryCodes: number }>(

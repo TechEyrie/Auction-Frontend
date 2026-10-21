@@ -11,7 +11,6 @@ import { ApiRequestError } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { evaluatePassword } from '../../lib/passwordPolicy';
 import { safeReturnTo } from '../../lib/returnTo';
-import { otpauthQrDataUrl } from '../../lib/otpQr';
 import { useSession } from '../../lib/session';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import './signin.css';
@@ -62,10 +61,6 @@ export default function SignInPage() {
   const [mfaCode, setMfaCode] = useState('');
   const [mfaRecovery, setMfaRecovery] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [enrollStep, setEnrollStep] = useState<'qr' | 'recovery'>('qr');
-  const [totpSecret, setTotpSecret] = useState('');
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [verifyBusy, setVerifyBusy] = useState(false);
 
   const field = (key: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
@@ -82,13 +77,6 @@ export default function SignInPage() {
   const emailVerified = session.user?.emailVerified === true;
   const needsEmailVerify =
     session.status === 'authenticated' && !emailVerified && !verifyBusy;
-
-  const needsEnrollStart =
-    session.status === 'authenticated' &&
-    session.mfaRequired &&
-    !session.mfaEnabled &&
-    emailVerified &&
-    enrollStep !== 'recovery';
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('verifyEmail');
@@ -117,34 +105,6 @@ export default function SignInPage() {
       cancelled = true;
     };
   }, [session, t]);
-
-  useEffect(() => {
-    if (!needsEnrollStart || totpSecret) return;
-    let cancelled = false;
-    setBusy(true);
-    setError(null);
-    void session
-      .enrollMfa()
-      .then(async ({ secret, otpauthUrl }) => {
-        if (cancelled) return;
-        setTotpSecret(secret);
-        setQrDataUrl(await otpauthQrDataUrl(otpauthUrl));
-        setEnrollStep('qr');
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          const described = describeError(err);
-          setError(described.message);
-          setFieldErrors(described.fields);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setBusy(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [needsEnrollStart, totpSecret, session]);
 
   /** `null` means "stay on this page" (used when a step still has to happen, e.g. MFA). */
   const run = async (action: () => Promise<string | null>) => {
@@ -207,23 +167,21 @@ export default function SignInPage() {
     });
   };
 
-  const submitEnrollConfirm = (e: FormEvent) => {
+  const submitLoginOtp = (e: FormEvent) => {
     e.preventDefault();
     void run(async () => {
-      const codes = await session.confirmMfa(mfaCode.trim());
-      setRecoveryCodes(codes);
+      await session.completeLoginOtp(mfaCode.trim());
       setMfaCode('');
-      setEnrollStep('recovery');
-      return null;
+      return requestedReturnTo();
     });
   };
 
-  const finishEnroll = () => {
-    setTotpSecret('');
-    setQrDataUrl(null);
-    setRecoveryCodes([]);
-    setEnrollStep('qr');
-    router.push(requestedReturnTo());
+  const submitResendLoginOtp = () => {
+    void run(async () => {
+      await session.resendLoginOtp();
+      setNotice(t('loginOtp.sent'));
+      return null;
+    });
   };
 
   const submitMfa = (e: FormEvent) => {
@@ -243,7 +201,7 @@ export default function SignInPage() {
   };
 
   const mfaRequired = session.status === 'authenticated' && session.mfaRequired;
-  const mfaEnroll = (mfaRequired && !session.mfaEnabled) || (enrollStep === 'recovery' && recoveryCodes.length > 0);
+  const loginOtpRequired = mfaRequired && !session.mfaEnabled;
   const mfaChallenge = mfaRequired && session.mfaEnabled;
   const errorBlock = error ? (
     <p role="alert" style={css('margin: 0 0 18px; padding: 12px 14px; border: 1px solid #E7C6A2; border-radius: 12px; background: #FDF3E7; color: #8A3B05; font-size: 15px')}>{error}</p>
@@ -328,55 +286,30 @@ export default function SignInPage() {
                 {busyLabel ?? t('email.verify.resend')}
               </button>
             </Fragment>
-          ) : mfaEnroll ? (
+          ) : loginOtpRequired ? (
             <Fragment>
-            <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>Set up authenticator</h2>
-            <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>Two-step verification is required for your account. Scan the QR code with an authenticator app to continue.</p>
+            <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>{t('loginOtp.title')}</h2>
+            <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>{t('loginOtp.sent')}</p>
             {errorBlock}
-            {enrollStep === 'qr' && (
-              totpSecret ? (
-              <form onSubmit={submitEnrollConfirm} style={css("display: flex; flex-direction: column; gap: 18px")}>
-                {qrDataUrl ? (
-                  <img src={qrDataUrl} alt="Authenticator QR code" width={200} height={200} style={css("align-self: center; border-radius: 12px; border: 1px solid #E6E4DF")} />
-                ) : null}
-                <p style={css("margin: 0; font-size: 14px; color: #5B636B; word-break: break-all")}>
-                  <span style={css("font-weight: 600; color: #15191E")}>Manual key: </span>
-                  {totpSecret}
-                </p>
-                <p style={css("margin: 0; font-size: 14px; color: #5B636B")}>
-                  Google Authenticator, Microsoft Authenticator, or any TOTP app.
-                </p>
-                <div>
-                  <label htmlFor="enroll-code" className="lbl">6-digit code</label>
-                  <input
-                    id="enroll-code"
-                    className="field"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    value={mfaCode}
-                    onChange={(e) => setMfaCode(e.target.value)}
-                    aria-invalid={error ? true : undefined}
-                  />
-                  {fieldError('code')}
-                </div>
-                <button type="submit" className="btn-primary" disabled={busy} style={css("height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer")}>{busyLabel ?? 'Confirm authenticator'}</button>
-              </form>
-              ) : (
-                <p style={css("margin: 0; font-size: 15px; color: #5B636B")}>{busyLabel ?? 'Preparing your QR code…'}</p>
-              )
-            )}
-            {enrollStep === 'recovery' && (
-              <div style={css("display: flex; flex-direction: column; gap: 18px")}>
-                <p style={css("margin: 0; font-size: 15px; color: #5B636B")}>Save these recovery codes somewhere safe. Each can be used once if you lose access to your app.</p>
-                <ul style={css("margin: 0; padding: 16px; list-style: none; background: #F3F1EC; border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8")}>
-                  {recoveryCodes.map((code) => (
-                    <li key={code}>{code}</li>
-                  ))}
-                </ul>
-                <button type="button" className="btn-primary" onClick={finishEnroll} style={css("height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer")}>Continue</button>
+            {notice && <p role="status" style={css("margin: 0 0 18px; padding: 12px 14px; border: 1px solid #CFE0C8; border-radius: 12px; background: #F2F8EF; color: #2F5D2A; font-size: 15px")}>{notice}</p>}
+            <form onSubmit={submitLoginOtp} style={css("display: flex; flex-direction: column; gap: 18px")}>
+              <div>
+                <label htmlFor="login-otp" className="lbl">{t('loginOtp.code')}</label>
+                <input
+                  id="login-otp"
+                  className="field"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  aria-invalid={error ? true : undefined}
+                />
+                {fieldError('code')}
               </div>
-            )}
+              <button type="submit" className="btn-primary" disabled={busy} style={css("height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer")}>{busyLabel ?? 'Verify and continue'}</button>
+              <button type="button" onClick={submitResendLoginOtp} disabled={busy} style={css("align-self: flex-start; border: 0; background: transparent; padding: 4px; color: #9A6B12; font: inherit; font-weight: 700; cursor: pointer")}>{t('loginOtp.resend')}</button>
+            </form>
             </Fragment>
           ) : mfaChallenge ? (
             <Fragment>

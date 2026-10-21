@@ -6,13 +6,14 @@ import { FormEvent, useEffect, useState } from 'react';
 import CheckoutDetailsFields, { type CheckoutDetails } from '../../../../components/CheckoutDetailsFields';
 import SiteFooter from '../../../../components/SiteFooter';
 import SiteHeader from '../../../../components/SiteHeader';
-import { apiFetch } from '../../../../lib/api';
+import { API_BASE_URL, apiFetch } from '../../../../lib/api';
 import { css, PAGE_ROOT } from '../../../../lib/css';
 import { fmtMinor } from '../../../../lib/format';
-import { productPath } from '../../../../lib/listings';
+import { coverImage, mediaUrl, productPath, type PublicListing } from '../../../../lib/listings';
 import { orderSourceLabel, paymentStateLabel } from '../../../../lib/qatarPlaces';
 import { useSession } from '../../../../lib/session';
 import { useAsync } from '../../../../lib/useAsync';
+import '../checkout.css';
 
 type Order = {
   orderReference: string;
@@ -36,6 +37,17 @@ export default function AccountOrderPage() {
   const order = useAsync<{ order: Order }>(
     () => apiFetch<{ order: Order }>(`/api/orders/${encodeURIComponent(orderReference)}`, { headers: session.authHeaders() }),
     [orderReference, session.status],
+  );
+  const listingRef = order.data?.order.listingReference;
+  const listing = useAsync<{ listing: PublicListing } | null>(
+    () => {
+      if (!listingRef) return Promise.resolve(null);
+      return apiFetch<{ listing: PublicListing }>(`/api/listings/${encodeURIComponent(listingRef)}`, {
+        headers: session.authHeaders(),
+        cache: 'no-store',
+      }).catch(() => null);
+    },
+    [listingRef, session.status],
   );
   const [fulfillment, setFulfillment] = useState<CheckoutDetails>(emptyFulfillment());
   const [message, setMessage] = useState<string | null>(null);
@@ -80,10 +92,10 @@ export default function AccountOrderPage() {
         headers: session.authHeaders(),
         json: { orderReference },
       });
-      setMessage(result.message ?? 'Payment recorded. This item is yours.');
+      setMessage(result.message ?? 'Order confirmed for cash on delivery. Pay when the item is handed over.');
       order.reload();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Payment was not recorded');
+      setMessage(err instanceof Error ? err.message : 'Could not confirm your order. Try again.');
     } finally {
       setBusy(false);
     }
@@ -93,125 +105,127 @@ export default function AccountOrderPage() {
   const sourceLabel = orderSourceLabel(order.data?.order.source);
   const needsPayment =
     order.data?.order.paymentState === 'awaiting_payment' || order.data?.order.paymentState === 'failed';
+  const cover = listing.data?.listing ? coverImage(listing.data.listing) : null;
+  const imageSrc = cover ? mediaUrl(API_BASE_URL, cover) : null;
 
   return (
     <div style={css(PAGE_ROOT)}>
       <SiteHeader />
-      <main style={css('max-width: 960px; margin: 0 auto; padding: 28px 24px 72px')}>
-        <nav style={css('font-size: 14px; color: #5B636B; margin-bottom: 18px')}>
+      <main className="checkout-page">
+        <nav className="checkout-crumb" aria-label="Breadcrumb">
           <Link href="/account">Your account</Link>
-          <span style={css('margin: 0 6px')}>/</span>
+          <span aria-hidden="true">/</span>
           <span>Checkout</span>
         </nav>
 
         {order.error ? (
-          <p role="alert" style={css('padding: 16px; border-radius: 14px; background: #FDF6F4; border: 1px solid #E7C9C2; color: #8A2C11')}>
+          <p role="alert" className="checkout-alert">
             {order.error}{' '}
-            <button type="button" onClick={() => order.reload()} style={css('font: inherit; font-weight: 600; cursor: pointer; border: 0; background: transparent; color: #9A6B12')}>
+            <button type="button" onClick={() => order.reload()} className="adm-link-btn" style={css('font: inherit; font-weight: 600; cursor: pointer; border: 0; background: transparent; color: #9A6B12')}>
               Retry
             </button>
           </p>
         ) : null}
 
-        {!order.data && !order.error ? (
-          <p style={css('color: #5B636B')}>Loading your checkout…</p>
-        ) : null}
+        {!order.data && !order.error ? <p className="checkout-state">Loading your checkout…</p> : null}
 
         {order.data ? (
-          <div style={css('display: grid; gap: 22px; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr)')} className="checkout-layout">
-            <section style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 22px; padding: 28px 26px; display: grid; gap: 18px; min-width: 0')}>
-              <div style={css('display: grid; gap: 8px')}>
-                <p style={css('margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #9A6B12')}>
-                  {sourceLabel}
-                </p>
-                <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(26px, 3vw, 34px); line-height: 1.15")}>
-                  {title}
-                </h1>
-                <p style={css('margin: 0; color: #5B636B')}>
-                  {paymentStateLabel(order.data.order.paymentState)}
-                  {' · '}
-                  <Link href={productPath({ listingReference: order.data.order.listingReference })} style={css('font-weight: 600')}>
-                    View listing
-                  </Link>
+          <>
+            <header className="checkout-hero">
+              <div>
+                <p className="checkout-hero__kicker">{sourceLabel}</p>
+                <h1>{title}</h1>
+                <p>
+                  {needsPayment
+                    ? 'Enter your delivery details. You pay in cash when the item is handed over — no card is charged now.'
+                    : 'This order is confirmed for cash on delivery. Pay when you receive the item.'}
                 </p>
               </div>
+              <span className="checkout-hero__badge">{needsPayment ? 'Pay on delivery' : 'COD confirmed'}</span>
+            </header>
 
-              {needsPayment ? (
-                <form onSubmit={(event) => void pay(event)} style={css('display: grid; gap: 18px')}>
-                  <div style={css('display: grid; gap: 6px')}>
-                    <h2 style={css('margin: 0; font-size: 18px')}>Delivery details</h2>
-                    <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
-                      Where should our team arrange pickup or handover for this item?
-                    </p>
-                  </div>
-                  <CheckoutDetailsFields value={fulfillment} onChange={setFulfillment} idPrefix="order" />
-                  <div style={css('padding: 14px 16px; border-radius: 14px; background: #F6EEDC; color: #3D3420; font-size: 14px')}>
-                    Confirm and pay records this purchase against the server total. No live card gateway is connected yet.
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={busy}
-                    className="btn-primary"
-                    style={css('justify-self: start; height: 52px; padding: 0 22px; border: 0; border-radius: 14px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}
-                  >
-                    {busy ? 'Processing…' : `Confirm and pay · ${fmtMinor(order.data.order.winningPriceMinor)}`}
-                  </button>
-                </form>
-              ) : (
-                <div style={css('padding: 18px; border-radius: 16px; background: #F2F8F2; border: 1px solid #CBE0CB; display: grid; gap: 8px')}>
-                  <p style={css('margin: 0; font-weight: 700; color: #1F5B2B')}>This purchase is paid</p>
-                  <p style={css('margin: 0; color: #3D3420')}>
-                    Thank you. The listing is marked sold. You can find it again under Your purchases on your account.
+            <div className="checkout-layout">
+              <section className="checkout-panel">
+                <div>
+                  <p className="checkout-status">
+                    {paymentStateLabel(order.data.order.paymentState)}
+                    {' · '}
+                    <Link href={productPath({ listingReference: order.data.order.listingReference })}>View listing</Link>
                   </p>
-                  {order.data.order.fulfillment ? (
-                    <p style={css('margin: 8px 0 0; color: #5B636B; font-size: 14px')}>
-                      {order.data.order.fulfillment.fullName} · {order.data.order.fulfillment.city}
-                      {order.data.order.fulfillment.address ? ` · ${order.data.order.fulfillment.address}` : ''}
+                </div>
+
+                {needsPayment ? (
+                  <form onSubmit={(event) => void pay(event)} style={css('display: grid; gap: 18px')}>
+                    <div>
+                      <h2 className="checkout-panel__title">Delivery details</h2>
+                      <p className="checkout-panel__lede">
+                        Name, phone, city and address so our team can arrange handover in Qatar.
+                      </p>
+                    </div>
+                    <CheckoutDetailsFields value={fulfillment} onChange={setFulfillment} idPrefix="order" />
+                    <div className="checkout-note">
+                      Submitting confirms your order for cash on delivery. You will pay the total when you receive the item.
+                    </div>
+                    <button type="submit" disabled={busy} className="btn-primary checkout-submit">
+                      {busy ? 'Confirming…' : `Confirm order · ${fmtMinor(order.data.order.winningPriceMinor)} due on delivery`}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="checkout-success">
+                    <div className="checkout-success__icon" aria-hidden="true">✓</div>
+                    <h2>Order confirmed for cash on delivery</h2>
+                    <p>
+                      Thank you. Pay the total when the item is handed over. The listing is marked sold. You can find this order under Your purchases.
                     </p>
-                  ) : null}
-                </div>
-              )}
+                    {order.data.order.fulfillment ? (
+                      <p className="checkout-success__meta">
+                        {order.data.order.fulfillment.fullName} · {order.data.order.fulfillment.city}
+                        {order.data.order.fulfillment.address ? ` · ${order.data.order.fulfillment.address}` : ''}
+                      </p>
+                    ) : null}
+                    <Link href="/account" className="btn-primary checkout-submit" style={css('display: inline-flex; align-items: center; justify-content: center; width: auto; padding: 0 22px')}>
+                      Back to account
+                    </Link>
+                  </div>
+                )}
 
-              {message ? (
-                <p role="status" style={css('margin: 0; padding: 12px 14px; border-radius: 12px; background: #FBFAF7; border: 1px solid #E6E4DF')}>
-                  {message}
+                {message ? (
+                  <p role="status" className="checkout-flash">
+                    {message}
+                  </p>
+                ) : null}
+              </section>
+
+              <aside>
+                <div className="checkout-summary">
+                  <h2>Order summary</h2>
+                  <div className="checkout-product">
+                    <div className="checkout-product__media">
+                      {imageSrc ? <img src={imageSrc} alt="" /> : null}
+                    </div>
+                    <div>
+                      <p className="checkout-product__title">{title}</p>
+                      <p className="checkout-product__type">{sourceLabel}</p>
+                    </div>
+                  </div>
+                  <div className="checkout-row">
+                    <span>Payment</span>
+                    <strong>Cash on delivery</strong>
+                  </div>
+                  <div className="checkout-rule" />
+                  <div className="checkout-total">
+                    <span>Total due</span>
+                    <strong>{fmtMinor(order.data.order.winningPriceMinor)}</strong>
+                  </div>
+                </div>
+                <p className="checkout-aside-note" style={css('margin-top: 14px')}>
+                  Inspect before you settle in person. Our team helps arrange handover — contact details are never published on the listing.
                 </p>
-              ) : null}
-            </section>
-
-            <aside style={css('display: grid; gap: 14px; align-content: start; min-width: 0')}>
-              <div style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 22px; padding: 22px; display: grid; gap: 14px')}>
-                <h2 style={css('margin: 0; font-size: 16px; letter-spacing: .04em; text-transform: uppercase; color: #5B636B')}>
-                  Order summary
-                </h2>
-                <div style={css('display: flex; justify-content: space-between; gap: 12px; align-items: baseline')}>
-                  <span style={css('color: #5B636B')}>Item</span>
-                  <strong style={css('text-align: right')}>{title}</strong>
-                </div>
-                <div style={css('display: flex; justify-content: space-between; gap: 12px')}>
-                  <span style={css('color: #5B636B')}>Type</span>
-                  <strong>{sourceLabel}</strong>
-                </div>
-                <div style={css('height: 1px; background: #E6E4DF')} />
-                <div style={css('display: flex; justify-content: space-between; gap: 12px; align-items: baseline')}>
-                  <span style={css("font-family: 'Schibsted Grotesk', sans-serif; font-size: 18px; font-weight: 700")}>Total</span>
-                  <span style={css("font-family: 'Schibsted Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: #9A6B12")}>
-                    {fmtMinor(order.data.order.winningPriceMinor)}
-                  </span>
-                </div>
-              </div>
-              <div style={css('padding: 16px 18px; border-radius: 18px; background: #FBFAF7; border: 1px solid #EEECE7; color: #5B636B; font-size: 14px')}>
-                Inspect before you settle in person. Our team helps arrange handover — contact details are never published on the listing.
-              </div>
-            </aside>
-          </div>
+              </aside>
+            </div>
+          </>
         ) : null}
       </main>
-      <style>{`
-        @media (max-width: 820px) {
-          .checkout-layout { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
       <SiteFooter />
     </div>
   );

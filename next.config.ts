@@ -3,15 +3,14 @@ import type { NextConfig } from 'next';
 const backendOrigin = process.env.BACKEND_URL ?? 'http://localhost:4000';
 
 /**
- * Proxy /api → backend when the browser uses a same-origin API base
- * (`NEXT_PUBLIC_API_BASE_URL=same-origin` plus `BACKEND_URL` on Vercel).
- * Skip rewriting to localhost in production builds — Vercel cannot reach private/loopback hosts
- * (DNS_HOSTNAME_RESOLVED_PRIVATE) and that broke listing images on auction-frontend-rouge.
+ * Proxy /api → backend for same-origin image/API URLs (local `next dev`/`next start`).
+ * On the VPS, nginx already sends /api to :4000, so these rewrites are unused in the browser.
+ * Skip only on Vercel: a production rewrite to loopback fails DNS there.
  */
 const nextConfig: NextConfig = {
   async rewrites() {
     const isLoopback = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(backendOrigin);
-    if (process.env.NODE_ENV === 'production' && isLoopback) {
+    if (process.env.VERCEL && isLoopback) {
       return [];
     }
     return [

@@ -10,12 +10,10 @@
 const DEV_API_BASE_URL = 'http://localhost:4000';
 
 /**
- * Production API host (Render). Used when the public env var is unset.
- * Set NEXT_PUBLIC_API_BASE_URL=same-origin plus BACKEND_URL on Vercel so the
- * browser talks to `/api` on the frontend host (first-party cookies / CSRF).
+ * Production default is same-origin (`/api/...`) so VPS nginx and a local
+ * `next start` rewrite can reach the real backend. Split-host APIs must set
+ * NEXT_PUBLIC_API_BASE_URL explicitly (never bake localhost into a public build).
  */
-const PRODUCTION_API_BASE_URL = 'https://auction-backend-7zcn.onrender.com';
-
 export function resolveApiBaseUrl(
   raw = process.env.NEXT_PUBLIC_API_BASE_URL,
   nodeEnv = process.env.NODE_ENV,
@@ -29,7 +27,7 @@ export function resolveApiBaseUrl(
     return trimmed.replace(/\/$/, '');
   }
   if (nodeEnv === 'development') return DEV_API_BASE_URL;
-  return PRODUCTION_API_BASE_URL;
+  return '';
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();

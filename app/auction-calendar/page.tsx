@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useMemo } from 'react';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
-import { apiFetch } from '../../lib/api';
+import { API_BASE_URL, apiFetch } from '../../lib/api';
 import {
   type AuctionCalendarResponse,
   buildMondayFirstGrid,
@@ -16,6 +16,7 @@ import {
   shiftMonth,
   yearMonthFromDateKey,
 } from '../../lib/auctionCalendar';
+import { mediaUrl } from '../../lib/listings';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { qatarDateKey } from '../../lib/prayerTimes';
 import { useAsync } from '../../lib/useAsync';
@@ -174,12 +175,12 @@ function AuctionCalendarContent() {
                           <Link href={hrefForGroup(group.parentCategoryKey, cell.date)} className="ac-chip">
                             <span className="ac-chip-photo" aria-hidden="true">
                               <img
-                                src={group.imageUrl || '/calendar-parents/fallback.jpg'}
+                                src={group.imageUrl ? mediaUrl(API_BASE_URL, group.imageUrl) : '/calendar-parents/fallback.jpg'}
                                 alt={group.parentCategoryName}
                                 loading="lazy"
                                 onError={(event) => {
                                   const img = event.currentTarget;
-                                  if (!img.src.endsWith('/calendar-parents/fallback.jpg')) {
+                                  if (!img.src.includes('/calendar-parents/fallback.jpg')) {
                                     img.src = '/calendar-parents/fallback.jpg';
                                   }
                                 }}

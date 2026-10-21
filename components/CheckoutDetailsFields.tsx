@@ -24,8 +24,8 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
       : QATAR_PLACES;
 
   return (
-    <div style={css('display: grid; gap: 14px')}>
-      <label style={css('display: grid; gap: 6px; font-size: 14px; font-weight: 600; color: #2A3036')}>
+    <div className="checkout-fields">
+      <label className="checkout-label">
         <span>Full name</span>
         <input
           id={`${idPrefix}-fullName`}
@@ -39,7 +39,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
           onChange={(event) => onChange({ ...value, fullName: event.target.value })}
         />
       </label>
-      <label style={css('display: grid; gap: 6px; font-size: 14px; font-weight: 600; color: #2A3036')}>
+      <label className="checkout-label">
         <span>Phone</span>
         <input
           id={`${idPrefix}-phone`}
@@ -54,7 +54,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
           onChange={(event) => onChange({ ...value, phone: event.target.value })}
         />
       </label>
-      <label style={css('display: grid; gap: 6px; font-size: 14px; font-weight: 600; color: #2A3036')}>
+      <label className="checkout-label">
         <span>City / area</span>
         <select
           id={`${idPrefix}-city`}
@@ -75,10 +75,11 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
           ))}
         </select>
       </label>
-      <label style={css('display: grid; gap: 6px; font-size: 14px; font-weight: 600; color: #2A3036')}>
+      <label className="checkout-label">
         <span>Address</span>
         <textarea
           id={`${idPrefix}-address`}
+          className="checkout-textarea"
           name="address"
           required
           minLength={6}
@@ -87,7 +88,6 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
           value={value.address}
           onChange={(event) => onChange({ ...value, address: event.target.value })}
           placeholder="Building, street, landmark"
-          style={css('width: 100%; min-height: 88px; border: 1px solid #DAD7D0; border-radius: 10px; padding: 12px; font: inherit; font-size: 15px; color: #15191E; background: #FFFFFF; resize: vertical')}
         />
       </label>
     </div>

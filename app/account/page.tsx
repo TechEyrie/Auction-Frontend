@@ -274,7 +274,7 @@ export default function AccountPage() {
             <section style={css('display: grid; gap: 10px')}>
               <h2 style={css('margin: 0')}>Your purchases</h2>
               <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
-                Auction wins and buy-now items you reserved. Open checkout to finish payment, or reopen a paid purchase.
+                Auction wins and buy-now items you reserved. Enter delivery details to confirm cash on delivery, or reopen a COD-confirmed order.
               </p>
               {account.data.orders.length === 0 ? (
                 <p style={css('margin: 0; padding: 16px; border-radius: 14px; border: 1px dashed #DAD7D0; background: #FBFAF7; color: #5B636B')}>
@@ -314,7 +314,7 @@ export default function AccountPage() {
                                 : 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #DAD7D0; background: #FFFFFF; color: #15191E; font-weight: 700; white-space: nowrap',
                             )}
                           >
-                            {needsPay ? 'Complete payment' : 'View purchase'}
+                            {needsPay ? 'Enter delivery details' : 'View order'}
                           </Link>
                         </div>
                       </li>

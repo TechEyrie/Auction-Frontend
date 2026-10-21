@@ -187,6 +187,7 @@ export default function ProductEditorModal({
   onClose,
   onSaved,
   onDeleted,
+  onDuplicated,
 }: {
   open: boolean;
   mode: 'add' | 'edit';
@@ -199,6 +200,7 @@ export default function ProductEditorModal({
   onClose: () => void;
   onSaved: (listing: AdminListing) => void;
   onDeleted?: (listingReference: string) => void;
+  onDuplicated?: (listing: AdminListing) => void;
 }) {
   const [form, setForm] = useState<EditorForm>(emptyForm());
   const formRef = useRef(form);
@@ -219,6 +221,7 @@ export default function ProductEditorModal({
   const [confirmPublish, setConfirmPublish] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState('Removed by operator');
+  const [duplicateOpen, setDuplicateOpen] = useState(false);
 
   const loadAssets = useCallback(async (listingRef: string) => {
     const response = await apiFetch<{ assets: Asset[] }>(
@@ -435,6 +438,25 @@ export default function ProductEditorModal({
     }
   }
 
+  async function handleDuplicate(): Promise<void> {
+    if (!listing || listing.moderation.state === 'blocked') return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const response = await apiFetch<{ listing: AdminListing }>(
+        `/api/admin/listings/${listing.listingReference}/duplicate`,
+        { method: 'POST', json: {}, headers: session.authHeaders() },
+      );
+      setDuplicateOpen(false);
+      onDuplicated?.(response.listing);
+    } catch (err) {
+      applyListingFailure(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleDelete(event?: FormEvent): Promise<void> {
     event?.preventDefault();
     if (!listing || listing.status === 'archived') return;
@@ -564,6 +586,18 @@ export default function ProductEditorModal({
       footer={
         <>
           <div style={css('display: flex; flex-wrap: wrap; gap: 8px; align-items: center')}>
+            {mayManage && listing && listing.moderation.state !== 'blocked' ? (
+              <GhostButton
+                type="button"
+                disabled={busy || loading}
+                onClick={() => {
+                  setDuplicateOpen(true);
+                  setError(null);
+                }}
+              >
+                Duplicate as unsold
+              </GhostButton>
+            ) : null}
             {mayManage && listing && listing.status !== 'archived' ? (
               <GhostButton
                 type="button"
@@ -1126,6 +1160,27 @@ export default function ProductEditorModal({
           </section>
         </form>
       )}
+    </Modal>
+
+    <Modal
+      open={duplicateOpen}
+      onClose={() => !busy && setDuplicateOpen(false)}
+      title="Duplicate as unsold"
+      subtitle={listing ? `Ad ${listing.listingReference}` : undefined}
+      size="sm"
+      footer={
+        <>
+          <GhostButton type="button" disabled={busy} onClick={() => setDuplicateOpen(false)}>Cancel</GhostButton>
+          <PrimaryButton type="button" disabled={busy} onClick={() => void handleDuplicate()}>
+            Duplicate
+          </PrimaryButton>
+        </>
+      }
+    >
+      <p style={css('margin: 0; line-height: 1.5')}>
+        This creates a new draft copy with fresh reference and photos. Availability is reset to unsold.
+        The original product, its sale history, auctions and orders stay exactly as they are.
+      </p>
     </Modal>
 
     <Modal

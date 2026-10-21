@@ -1,7 +1,16 @@
 #!/bin/sh
 set -e
-SRC=/srv/araqandkahraman/frontend/deploy/nginx/araqandkahramanauctions.qa.conf
+DIR=/srv/araqandkahraman/frontend/deploy/nginx
 DEST=/etc/nginx/sites-available/araqandkahramanauctions.qa.conf
+CERT=/etc/letsencrypt/live/araqandkahramanauctions.qa/fullchain.pem
+KEY=/etc/letsencrypt/live/araqandkahramanauctions.qa/privkey.pem
+
+if test -f "$CERT" && test -f "$KEY"; then
+  SRC="$DIR/araqandkahramanauctions.qa.conf"
+else
+  SRC="$DIR/araqandkahramanauctions.qa.http.conf"
+fi
+
 test -f "$SRC"
 mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled
 cp "$SRC" "$DEST"

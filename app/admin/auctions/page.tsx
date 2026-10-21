@@ -128,7 +128,7 @@ function AdminAuctionsContent() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState({ search: '' });
-  const [selectedRef, setSelectedRef] = useState<string | null>(null);
+  const selectedRef = searchParams.get('listing');
 
   const [openModal, setOpenModal] = useState(false);
   const [openTarget, setOpenTarget] = useState<AdminListing | null>(null);
@@ -226,7 +226,6 @@ function AdminAuctionsContent() {
 
   const selectProduct = useCallback(
     (ref: string) => {
-      setSelectedRef(ref);
       setNotice(null);
       const params = new URLSearchParams(searchParams.toString());
       params.set('listing', ref);
@@ -236,19 +235,11 @@ function AdminAuctionsContent() {
   );
 
   const closeHistoryModal = useCallback(() => {
-    setSelectedRef(null);
     const params = new URLSearchParams(searchParams.toString());
     params.delete('listing');
     const qs = params.toString();
     router.replace(qs ? `/admin/auctions?${qs}` : '/admin/auctions', { scroll: false });
   }, [router, searchParams]);
-
-  useEffect(() => {
-    const listing = searchParams.get('listing');
-    if (listing && listing !== selectedRef) {
-      setSelectedRef(listing);
-    }
-  }, [searchParams, selectedRef]);
 
   const applyFilters = (event: FormEvent) => {
     event.preventDefault();
@@ -506,7 +497,7 @@ function AdminAuctionsContent() {
       </Panel>
 
       <Modal
-        open={selectedRef !== null}
+        open={Boolean(selectedRef)}
         onClose={closeHistoryModal}
         title="Auction history"
         size="lg"
