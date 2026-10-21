@@ -1,0 +1,68 @@
+# Required GitHub secrets:
+#   VPS_HOST      — VPS hostname or IP
+#   VPS_USER      — SSH user on the VPS
+#   VPS_SSH_KEY   — Private key (PEM) for SSH deploy
+#   APP_ENV       — optional; unused for frontend deploy (backend only; VPS creds above are enough here)
+#
+# CD is independent of CI (no needs: ci).
+
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf 'Host vps\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  StrictHostKeyChecking accept-new\n' \
+            "$VPS_HOST" "$VPS_USER" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Ensure remote paths
+        run: |
+          ssh vps 'mkdir -p /srv/araqandkahraman/frontend'
+
+      - name: Sync application to VPS
+        run: |
+          rsync -avz --delete \
+            --exclude 'node_modules' \
+            --exclude '.next' \
+            --exclude '.git' \
+            --exclude '.env*.local' \
+            --exclude '.cd-sim' \
+            -e ssh \
+            ./ vps:/srv/araqandkahraman/frontend/
+
+      - name: Docker Compose up
+        run: |
+          ssh vps 'cd /srv/araqandkahraman/frontend && docker compose -f docker-compose.prod.yml up -d --build'
+
+      - name: Install nginx site config (best-effort)
+        run: |
+          ssh vps 'set -e
+          cd /srv/araqandkahraman/frontend
+          SRC=deploy/nginx/araqandkahramanauctions.qa.conf
+          DEST=/etc/nginx/sites-available/araqandkahramanauctions.qa.conf
+          if ! sudo -n cp "$SRC" "$DEST" 2>/dev/null; then
+            echo "skip: cannot sudo cp nginx config"
+            exit 0
+          fi
+          sudo -n ln -sfn "$DEST" /etc/nginx/sites-enabled/araqandkahramanauctions.qa.conf
+          sudo -n nginx -t && sudo -n systemctl reload nginx'

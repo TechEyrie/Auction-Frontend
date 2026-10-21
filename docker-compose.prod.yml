@@ -1,0 +1,11 @@
+# Production Next.js frontend only (API on host :4000 via nginx).
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_API_BASE_URL: same-origin
+    ports:
+      - ${WEB_BIND:-127.0.0.1:3000}:3000
+    restart: unless-stopped
