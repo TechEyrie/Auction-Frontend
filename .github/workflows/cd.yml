@@ -54,15 +54,8 @@ jobs:
         run: |
           ssh vps 'cd /srv/araqandkahraman/frontend && docker compose -f docker-compose.prod.yml up -d --build'
 
-      - name: Install nginx site config (best-effort)
+      # VPS as root once:
+      # printf '%s\n' 'deploy ALL=(root) NOPASSWD: /srv/araqandkahraman/frontend/deploy/install-nginx.sh' > /etc/sudoers.d/araq-nginx && chmod 440 /etc/sudoers.d/araq-nginx
+      - name: Install nginx site config
         run: |
-          ssh vps 'set -e
-          cd /srv/araqandkahraman/frontend
-          SRC=deploy/nginx/araqandkahramanauctions.qa.conf
-          DEST=/etc/nginx/sites-available/araqandkahramanauctions.qa.conf
-          if ! sudo -n cp "$SRC" "$DEST" 2>/dev/null; then
-            echo "skip: cannot sudo cp nginx config"
-            exit 0
-          fi
-          sudo -n ln -sfn "$DEST" /etc/nginx/sites-enabled/araqandkahramanauctions.qa.conf
-          sudo -n nginx -t && sudo -n systemctl reload nginx'
+          ssh vps 'chmod +x /srv/araqandkahraman/frontend/deploy/install-nginx.sh && sudo -n /srv/araqandkahraman/frontend/deploy/install-nginx.sh'
