@@ -66,7 +66,7 @@ export default function LegalPage() {
             {" Legal"}
           </nav>
           <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4vw, 3rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>{docTitle}</h1>
-          <p style={css("margin: 8px 0 24px; color: #5B636B")}>Last updated [date] · Written in plain language</p>
+          <p style={css("margin: 8px 0 24px; color: #5B636B")}>Last updated 21 October 2026 · Written in plain language</p>
           <div role="tablist" aria-label="Document" style={css("display: flex; gap: 4px")}>
             {tabs.map((t, i) => (
               <Fragment key={i}>

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePassword } from './passwordPolicy.ts';
+import { evaluatePassword, generatePassword } from './passwordPolicy.ts';
 
 test('create-account passwords must be 10+ characters and not common', () => {
   assert.equal(evaluatePassword('').acceptable, false);
@@ -9,6 +9,14 @@ test('create-account passwords must be 10+ characters and not common', () => {
   assert.equal(evaluatePassword('BuyerPass12').acceptable, true);
   assert.equal(evaluatePassword('correct horse 1').label === 'too-weak' || evaluatePassword('correct horse 1').acceptable, true);
   assert.equal(evaluatePassword('correct horse 1').acceptable, true);
+});
+
+test('generated passwords meet the policy at the chosen length', () => {
+  for (const length of [12, 16, 24]) {
+    const password = generatePassword(length);
+    assert.equal(password.length, length);
+    assert.equal(evaluatePassword(password).acceptable, true);
+  }
 });
 
 test('name and email tokens cannot be the password', () => {

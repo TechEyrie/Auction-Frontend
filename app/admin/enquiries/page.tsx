@@ -5,7 +5,15 @@ import { css } from '../../../lib/css';
 import { useAsync } from '../../../lib/useAsync';
 import { Badge, GhostButton, PageHeader, Panel, StateBlock, TableWrap } from '../ui';
 
-type Enquiry = { reference: string; name: string; email: string; subject: string; message: string; status: string };
+type Enquiry = {
+  reference: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  listingReference?: string | null;
+  status: string;
+};
 
 export default function AdminEnquiriesPage() {
   const inbox = useAsync<{ enquiries: Enquiry[] }>(() => apiFetch('/api/admin/enquiries'), []);
@@ -27,6 +35,7 @@ export default function AdminEnquiriesPage() {
               <thead>
                 <tr>
                   <th scope="col">Reference</th>
+                  <th scope="col">Listing</th>
                   <th scope="col">From</th>
                   <th scope="col">Subject</th>
                   <th scope="col">Message</th>
@@ -37,6 +46,13 @@ export default function AdminEnquiriesPage() {
                 {(inbox.data?.enquiries ?? []).map((item) => (
                   <tr key={item.reference}>
                     <td>{item.reference}</td>
+                    <td className="wrap">
+                      {item.listingReference ? (
+                        <a href={`/product/${encodeURIComponent(item.listingReference)}`}>{item.listingReference}</a>
+                      ) : (
+                        <span className="adm-hint">—</span>
+                      )}
+                    </td>
                     <td className="wrap">
                       <div style={css('font-weight: 600')}>{item.name}</div>
                       <div className="adm-hint">{item.email}</div>

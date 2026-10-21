@@ -214,6 +214,7 @@ test('browse state round-trips through a canonical URL', () => {
     featured: false,
     sort: 'title',
     page: 3,
+    endsOn: '',
   });
   assert.equal(browseQuery(state), 'q=patrol&category=vehicles&method=auction&sort=title&page=3');
   assert.equal(browseQuery(parseBrowseState(new URLSearchParams(''))), '', 'the default state has an empty query string');
@@ -253,6 +254,14 @@ test('audience round-trips in browse URLs', () => {
   assert.equal(state.audience, 'women');
   assert.equal(browseQuery(state), 'audience=women&category=electronics');
   assert.equal(parseBrowseState(new URLSearchParams('audience=unisex')).audience, 'unisex');
+});
+
+test('endsOn round-trips in browse URLs and invalid values are dropped', () => {
+  const state = parseBrowseState(new URLSearchParams('method=auction&category=watches&endsOn=2026-10-22'));
+  assert.equal(state.endsOn, '2026-10-22');
+  assert.equal(browseQuery(state), 'category=watches&method=auction&endsOn=2026-10-22');
+  assert.equal(parseBrowseState(new URLSearchParams('endsOn=not-a-date')).endsOn, '');
+  assert.equal(applyBrowseChange(state, { endsOn: '2026-10-23' }).page, 1);
 });
 
 test('city and area round-trip in browse URLs', () => {

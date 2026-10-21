@@ -12,7 +12,6 @@ import {
   calendarQuery,
   formatAuctionCalendarEndTime,
   hrefForGroup,
-  parentCategoryImageSrc,
   parseCalendarYearMonth,
   shiftMonth,
   yearMonthFromDateKey,
@@ -172,10 +171,10 @@ function AuctionCalendarContent() {
                     <ul className="ac-events">
                       {groups.map((group) => (
                         <li key={group.parentCategoryKey}>
-                          <Link href={hrefForGroup(group.parentCategoryKey)} className="ac-chip">
+                          <Link href={hrefForGroup(group.parentCategoryKey, cell.date)} className="ac-chip">
                             <span className="ac-chip-photo" aria-hidden="true">
                               <img
-                                src={parentCategoryImageSrc(group.parentCategoryKey)}
+                                src={group.imageUrl || '/calendar-parents/fallback.jpg'}
                                 alt={group.parentCategoryName}
                                 loading="lazy"
                                 onError={(event) => {

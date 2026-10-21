@@ -13,6 +13,7 @@ import { useAsync } from '../../../lib/useAsync';
 import { fmtBusinessDateTime, fmtMinor, qarToMinor, relativeTimeLabel } from '../../../lib/format';
 import { useSession } from '../../../lib/session';
 import { useUiLocale } from '../../../lib/UiLocaleProvider';
+import { localizedText } from '../../../lib/uiLocale';
 import {
   AUDIENCE_LABEL,
   listingDetailApiPath,
@@ -175,7 +176,7 @@ export default function ProductPage() {
   const [shotIdx, setShotIdx] = useState(0);
   const [tab, setTab] = useState<'description' | 'specifications' | 'location'>('description');
   const session = useSession();
-  const { lang } = useUiLocale();
+  const { lang, t } = useUiLocale();
   const [amountQar, setAmountQar] = useState('');
   const [bidMessage, setBidMessage] = useState<string | null>(null);
   const [bidCooldownUntil, setBidCooldownUntil] = useState<number | null>(null);
@@ -378,6 +379,14 @@ export default function ProductPage() {
   }, [id]);
 
   const data = listing.data?.listing ?? null;
+  const displayTitle = useMemo(
+    () => (data ? localizedText(data.title, lang, data.listingReference) : ''),
+    [data, lang],
+  );
+  const displayDescription = useMemo(
+    () => (data ? localizedText(data.description, lang, '') : ''),
+    [data, lang],
+  );
   const media = data?.media ?? [];
   const shot = media[Math.min(shotIdx, Math.max(0, media.length - 1))] ?? null;
 
@@ -496,7 +505,7 @@ export default function ProductPage() {
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>{`${data.title.en ?? data.title.ar ?? 'Listing'} — Araq & Kahraman Auctions`}</title>
+      <title>{`${displayTitle || 'Listing'} — Araq & Kahraman Auctions`}</title>
       <SiteHeader active="buy" navCurrent={false} />
 
       <nav className="product-breadcrumb" aria-label="Breadcrumb">
@@ -510,7 +519,7 @@ export default function ProductPage() {
             </>
           )}
           <span aria-hidden="true">/</span>
-          <span>{data.title.en ?? data.listingReference}</span>
+          <span>{displayTitle || data.listingReference}</span>
       </nav>
 
       <div className="product-layout">
@@ -520,7 +529,7 @@ export default function ProductPage() {
             {shot ? (
               <img
                 src={mediaUrl(API_BASE_URL, shot.url)}
-                alt={shot.alt.en ?? shot.alt.ar ?? (data.title.en ?? 'Listing photo')}
+                alt={localizedText(shot.alt, lang) || localizedText(data.title, lang, 'Listing photo')}
               />
             ) : (
               <span style={css('color: #5B636B')}>No image published for this listing</span>
@@ -542,7 +551,7 @@ export default function ProductPage() {
                   aria-label={`Show photo ${index + 1}`}
                   aria-pressed={index === shotIdx}
                 >
-                  <img src={mediaUrl(API_BASE_URL, entry.url)} alt={entry.alt.en ?? ''} loading="lazy" />
+                  <img src={mediaUrl(API_BASE_URL, entry.url)} alt={localizedText(entry.alt, lang)} loading="lazy" />
                 </button>
               ))}
             </div>
@@ -567,17 +576,13 @@ export default function ProductPage() {
           <div className="product-tabs-body">
             {tab === 'description' && (
               <div style={css('max-width: 72ch; color: #2A3036; display: flex; flex-direction: column; gap: 14px')}>
-                {(data.description.en ?? data.description.ar ?? '').split('\n').filter(Boolean).map((paragraph, index) => (
-                  <p key={index} style={css('margin: 0')}>
-                    {paragraph}
-                  </p>
-                ))}
-                {data.languageMode === 'both' && data.description.ar && (
-                  <p dir="rtl" style={css('margin: 0')}>
-                    {data.description.ar}
-                  </p>
-                )}
-                {!data.description.en && !data.description.ar && <p style={css('margin: 0')}>No description was published.</p>}
+                {displayDescription
+                  ? displayDescription.split('\n').filter(Boolean).map((paragraph, index) => (
+                      <p key={index} style={css('margin: 0')}>
+                        {paragraph}
+                      </p>
+                    ))
+                  : <p style={css('margin: 0')}>No description was published.</p>}
               </div>
             )}
 
@@ -638,13 +643,8 @@ export default function ProductPage() {
                 {data.audience ? ` · For ${AUDIENCE_LABEL[data.audience].toLowerCase()}` : ''}
               </div>
               <h1 style={css("margin: 6px 0 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2")}>
-                {data.title.en ?? data.title.ar}
+                {displayTitle}
               </h1>
-              {data.languageMode !== 'en' && data.title.ar && data.languageMode === 'both' && (
-                <p dir="rtl" style={css('margin: 6px 0 0; font-size: 20px; color: #2A3036')}>
-                  {data.title.ar}
-                </p>
-              )}
               <p style={css('margin: 8px 0 0; font-size: 15px; font-weight: 600; color: #15191E')}>
                 {data.seller.displayName}
                 {data.seller.verificationBadge ? (
@@ -842,8 +842,15 @@ export default function ProductPage() {
                 ) : null}
               </div>
             ) : (
-              <div style={css('padding: 14px 16px; border-radius: 14px; background: #FBFAF7; border: 1px solid #EEECE7; color: #3D3420')}>
-                <p className="mkt-hint" style={css('margin: 0')}>This is an enquiry listing. Contact our team through the marketplace intake flow.</p>
+              <div style={css('padding: 14px 16px; border-radius: 14px; background: #FBFAF7; border: 1px solid #EEECE7; color: #3D3420; display: grid; gap: 12px')}>
+                <p className="mkt-hint" style={css('margin: 0')}>This listing is enquiry-only. There is no bid or buy-now checkout on this item.</p>
+                <Link
+                  href={`/contact?ref=${encodeURIComponent(data.listingReference)}`}
+                  className="btn-primary"
+                  style={css('display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; box-sizing: border-box; justify-self: start')}
+                >
+                  {t('common.enquire')}
+                </Link>
               </div>
             )}
 

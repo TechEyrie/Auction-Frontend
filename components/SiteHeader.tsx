@@ -17,9 +17,15 @@ import {
 import { useAsync } from '../lib/useAsync';
 import { useUiLocale } from '../lib/UiLocaleProvider';
 import type { MessageKey } from '../lib/uiMessages';
+import { HeaderSearchDrawerTrigger, HeaderSearchOverlay } from './HeaderSearchOverlay';
 
 const ALL_QATAR_PLACE_KEY = '';
 const HEADER_FLOAT_SCROLL_THRESHOLD = 16;
+
+const LANGUAGE_OPTIONS: ReadonlyArray<{ id: 'en' | 'ar'; label: string; code: string }> = [
+  { id: 'en', label: 'English', code: 'EN' },
+  { id: 'ar', label: 'العربية', code: 'AR' },
+];
 
 type CatalogLocation = { key: string; cityKey: string; areaKey: string | null; label: string };
 
@@ -99,7 +105,6 @@ function buildNav(home?: boolean): NavItem[] {
       labelKey: 'nav.accessories',
       links: [
         { id: 'browseAccessories', href: '/browse?q=accessories', icon: 'search' },
-        { id: 'allCategories', href: '/categories', icon: 'grid' },
         { id: 'forMen', href: '/browse?audience=men', icon: 'user' },
         { id: 'forWomen', href: '/browse?audience=women', icon: 'users' },
         { id: 'forUnisex', href: '/browse?audience=unisex', icon: 'users' },
@@ -327,16 +332,20 @@ export default function SiteHeader({
   const { lang, setLang, t } = useUiLocale();
   const signedInName = session.user?.fullName ?? null;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [headerFloating, setHeaderFloating] = useState(false);
   const [selectedPlaceKey, setSelectedPlaceKey] = useState(ALL_QATAR_PLACE_KEY);
   const [cityMenu, setCityMenu] = useState<'desktop' | 'drawer' | null>(null);
+  const [langMenu, setLangMenu] = useState<'desktop' | 'drawer' | null>(null);
   const catalogLocations = useAsync<{ locations: CatalogLocation[] }>(
     () => apiFetch<{ locations: CatalogLocation[] }>('/api/catalog/locations?country=QA', { cache: 'no-store' }),
     [],
   );
   const menuId = useId();
   const cityMenuId = useId();
+  const langMenuId = useId();
   const cityRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const [openNav, setOpenNav] = useState<string | null>(null);
   const [navAlign, setNavAlign] = useState<'start' | 'end'>('start');
@@ -432,8 +441,29 @@ export default function SiteHeader({
     return () => document.removeEventListener('keydown', onKey);
   }, [cityMenu]);
 
-  function handleLangToggle(): void {
-    setLang(lang === 'en' ? 'ar' : 'en');
+  useEffect(() => {
+    if (langMenu !== 'desktop') return;
+    const onPointer = (event: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(event.target as Node)) {
+        setLangMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', onPointer);
+    return () => document.removeEventListener('mousedown', onPointer);
+  }, [langMenu]);
+
+  useEffect(() => {
+    if (langMenu !== 'desktop') return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setLangMenu(null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [langMenu]);
+
+  function handleLangSelect(next: 'en' | 'ar'): void {
+    setLangMenu(null);
+    if (next !== lang) setLang(next);
   }
 
   function selectedPlaceLabel(): string {
@@ -477,9 +507,19 @@ export default function SiteHeader({
 
   useEffect(() => {
     setMenuOpen(false);
+    setSearchOpen(false);
     setCityMenu(null);
     closeNav();
   }, [active, home]);
+
+  function openSearchOverlay() {
+    setSearchOpen(true);
+  }
+
+  function openSearchFromDrawer() {
+    setMenuOpen(false);
+    setSearchOpen(true);
+  }
 
   useEffect(() => {
     if (!menuOpen) setDrawerSection(null);
@@ -747,7 +787,10 @@ export default function SiteHeader({
           aria-expanded={open}
           aria-haspopup="listbox"
           aria-controls={open ? cityMenuId : undefined}
-          onClick={() => setCityMenu((current) => (current === variant ? null : variant))}
+          onClick={() => {
+            setLangMenu(null);
+            setCityMenu((current) => (current === variant ? null : variant));
+          }}
         >
           <GlobeIcon />
           <span className="site-header__location-label">{selectedPlaceLabel()}</span>
@@ -793,26 +836,59 @@ export default function SiteHeader({
     );
   }
 
-  function renderLangControl() {
+  function renderLangControl(variant: 'desktop' | 'drawer') {
+    const open = langMenu === variant;
+    const panelClass =
+      variant === 'desktop' ? 'site-header__location-panel' : 'site-header__location-panel site-header__location-panel--drawer';
     return (
-      <button
-        type="button"
-        onClick={handleLangToggle}
-        aria-label={t('header.switchLanguage')}
-        className="site-header__pill site-header__lang"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="site-header__pill-icon">
-          <path
-            d="M5 6h6.2L8.2 18H5.8L5 6zM14.5 9.5c1.6 0 2.8 1.1 2.8 2.6 0 1.8-1.4 2.9-3.5 2.9h-.6v1.5h-1.8V9.5h2.1zm-.3 1.6h-.8v2.3h.7c.9 0 1.4-.4 1.4-1.1 0-.7-.5-1.2-1.3-1.2z"
-            fill="currentColor"
-          />
-          <path d="M18 6v2h-2v1.2H18V11h1.2V8h2V6.8h-2V6H18z" fill="currentColor" />
-        </svg>
-        <span className="site-header__lang-text">
-          <span className="site-header__lang-primary">{t('header.langName')}</span>
-          <span className="site-header__lang-code" aria-hidden="true">{t('header.langCode')}</span>
-        </span>
-      </button>
+      <div className="site-header__lang-wrap" ref={variant === 'desktop' ? langRef : undefined}>
+        <button
+          type="button"
+          className="site-header__pill site-header__lang"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-controls={open ? langMenuId : undefined}
+          aria-label={t('header.selectLanguage')}
+          onClick={() => {
+            setCityMenu(null);
+            setLangMenu((current) => (current === variant ? null : variant));
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="site-header__pill-icon">
+            <path
+              d="M5 6h6.2L8.2 18H5.8L5 6zM14.5 9.5c1.6 0 2.8 1.1 2.8 2.6 0 1.8-1.4 2.9-3.5 2.9h-.6v1.5h-1.8V9.5h2.1zm-.3 1.6h-.8v2.3h.7c.9 0 1.4-.4 1.4-1.1 0-.7-.5-1.2-1.3-1.2z"
+              fill="currentColor"
+            />
+            <path d="M18 6v2h-2v1.2H18V11h1.2V8h2V6.8h-2V6H18z" fill="currentColor" />
+          </svg>
+          <span className="site-header__lang-text">
+            <span className="site-header__lang-primary">{t('header.langName')}</span>
+            <span className="site-header__lang-code" aria-hidden="true">{t('header.langCode')}</span>
+          </span>
+          <ChevronIcon />
+        </button>
+        {open ? (
+          <div id={langMenuId} className={panelClass} role="listbox" aria-label={t('header.selectLanguage')}>
+            {LANGUAGE_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="option"
+                aria-selected={lang === option.id}
+                className={
+                  lang === option.id ? 'site-header__location-option is-selected' : 'site-header__location-option'
+                }
+                onClick={() => handleLangSelect(option.id)}
+              >
+                <span className="site-header__lang-text">
+                  <span className="site-header__lang-primary">{option.label}</span>
+                  <span className="site-header__lang-code" aria-hidden="true">{option.code}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
     );
   }
 
@@ -827,14 +903,14 @@ export default function SiteHeader({
 
         <div className="site-header__actions">
           <div className="site-header__utilities site-header__utilities--desktop">
-            <Link href="/browse" className="site-header__icon-btn" aria-label={t('header.search')}>
+            <button type="button" className="site-header__icon-btn" aria-label={t('header.search')} onClick={openSearchOverlay}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
                 <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
-            </Link>
+            </button>
             {renderLocationControl('desktop')}
-            {renderLangControl()}
+            {renderLangControl('desktop')}
           </div>
           <div className="site-header__actions-desktop">{desktopAccount}</div>
           <div className="site-header__actions-mobile">{authButton}</div>
@@ -865,17 +941,20 @@ export default function SiteHeader({
                 ✕
               </button>
             </div>
+            <HeaderSearchDrawerTrigger onOpen={openSearchFromDrawer} />
             <nav aria-label={t('header.mobileNav')} className="site-header__drawer-nav">
               {items.map((item) => renderDrawerNavItem(item))}
             </nav>
             <div className="site-header__drawer-utilities">
               {renderLocationControl('drawer')}
-              {renderLangControl()}
+              {renderLangControl('drawer')}
             </div>
             {drawerAccount ? <div className="site-header__drawer-foot">{drawerAccount}</div> : null}
           </div>
         </div>
       ) : null}
+
+      <HeaderSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

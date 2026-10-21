@@ -56,6 +56,8 @@ export type SessionValue = {
   refresh: () => Promise<void>;
   /** Double-submit CSRF header for admin mutations made outside this provider. */
   authHeaders: () => Record<string, string>;
+  /** Ensures a CSRF token is loaded before guest or authed POST mutations. */
+  ensureCsrfHeaders: () => Promise<Record<string, string>>;
   login: (input: {
     identifier: string;
     password: string;
@@ -199,6 +201,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         await refresh();
       },
       authHeaders: mutatingHeaders,
+      ensureCsrfHeaders,
       async login(input) {
         const result = await apiFetch<{ user: SessionUser; mfaRequired: boolean; returnTo: string }>(
           '/api/auth/login',

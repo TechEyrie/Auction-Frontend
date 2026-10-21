@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Fragment, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import PasswordGenerator from '../../components/PasswordGenerator';
 import PasswordStrength, { passwordFieldMessage } from '../../components/PasswordStrength';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
@@ -471,6 +472,14 @@ export default function SignInPage() {
                   />
                   <button type="button" onClick={togglePw} style={css("position: absolute; right: 4px; top: 4px; height: 44px; padding: 0 12px; border: 0; background: transparent; color: #9A6B12; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer")}>{pwBtn}</button>
                 </div>
+                <PasswordGenerator
+                  email={form.email}
+                  fullName={form.fullName}
+                  onGenerate={(password) => {
+                    setForm((current) => ({ ...current, password }));
+                    setShowPw(true);
+                  }}
+                />
                 <div id="pw2-strength">
                   <PasswordStrength password={form.password} email={form.email} fullName={form.fullName} />
                 </div>

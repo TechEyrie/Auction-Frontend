@@ -251,6 +251,47 @@ export function evaluatePassword(password: string, ctx: PasswordContext = {}): P
   return { score, label: labelFor(score), acceptable, issues, classes };
 }
 
+export const PASSWORD_GENERATE_LENGTHS = [12, 16, 20, 24, 32] as const;
+export const PASSWORD_GENERATE_DEFAULT = 16;
+
+const GEN_LOWER = 'abcdefghijkmnopqrstuvwxyz';
+const GEN_UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+const GEN_DIGIT = '23456789';
+const GEN_SYMBOL = '!@#$%^&*-_=+?';
+const GEN_POOL = GEN_LOWER + GEN_UPPER + GEN_DIGIT + GEN_SYMBOL;
+
+function randomIndex(max: number): number {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0]! % max;
+}
+
+function randomChar(alphabet: string): string {
+  return alphabet[randomIndex(alphabet.length)]!;
+}
+
+function shuffle(chars: string[]): void {
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const j = randomIndex(i + 1);
+    const current = chars[i]!;
+    chars[i] = chars[j]!;
+    chars[j] = current;
+  }
+}
+
+/** Cryptographically random password that satisfies `evaluatePassword` for the chosen length. */
+export function generatePassword(length = PASSWORD_GENERATE_DEFAULT, ctx: PasswordContext = {}): string {
+  const n = Math.min(PASSWORD_MAX_LENGTH, Math.max(PASSWORD_MIN_LENGTH, Math.trunc(length)));
+  for (let attempt = 0; attempt < 32; attempt += 1) {
+    const chars = [randomChar(GEN_LOWER), randomChar(GEN_UPPER), randomChar(GEN_DIGIT), randomChar(GEN_SYMBOL)];
+    while (chars.length < n) chars.push(randomChar(GEN_POOL));
+    shuffle(chars);
+    const password = chars.join('');
+    if (evaluatePassword(password, ctx).acceptable) return password;
+  }
+  throw new Error('Could not generate an acceptable password');
+}
+
 export function passwordPolicyMessage(result: PasswordStrength): string {
   const first = result.issues[0];
   if (first) return passwordIssueMessage(first);

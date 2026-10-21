@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { apiFetch, ApiRequestError } from '../../../lib/api';
+import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
 import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
 import { useAsync } from '../../../lib/useAsync';
@@ -64,6 +64,8 @@ type Category = {
   order: number;
   listingMethods: ListingMethod[];
   attributeSchemaVersion: number | null;
+  imageAssetId: string | null;
+  imageUrl: string | null;
   active: boolean;
   hierarchyVersion: number;
   labels: { en: { name: string; description: string | null }; ar?: { name: string; description: string | null } | null };
@@ -208,6 +210,7 @@ export default function AdminTaxonomyPage() {
               <thead>
                 <tr>
                   <th scope="col">Key</th>
+                  <th scope="col">Photo</th>
                   <th scope="col">Name</th>
                   <th scope="col">Depth</th>
                   <th scope="col">Listing methods</th>
@@ -223,6 +226,19 @@ export default function AdminTaxonomyPage() {
                     <td style={css(`padding-left: ${14 + category.depth * 22}px`)}>
                       {category.depth > 0 ? '↳ ' : ''}
                       {category.key}
+                    </td>
+                    <td>
+                      {category.imageUrl ? (
+                        <img
+                          src={`${API_BASE_URL}${category.imageUrl}`}
+                          alt=""
+                          width={36}
+                          height={36}
+                          style={css('object-fit: cover; border-radius: 6px; display: block')}
+                        />
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td className="wrap">
                       <span style={css('display: inline-flex; align-items: center; gap: 8px')}>
@@ -360,6 +376,90 @@ export default function AdminTaxonomyPage() {
             </label>
             <PrimaryButton disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</PrimaryButton>
           </form>
+
+          {mayEdit && editing && (
+            <div style={css('margin-top: 18px; border-top: 1px solid #E6E4DF; padding-top: 16px')}>
+              <h3 style={css("margin: 0 0 8px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 16px; font-weight: 700")}>Category photo</h3>
+              <Hint>One JPEG, PNG or WebP image for calendar chips and other surfaces. Replaces any existing photo.</Hint>
+              {(() => {
+                const category = categories.find((item) => item.key === editing);
+                const preview = category?.imageUrl ? `${API_BASE_URL}${category.imageUrl}` : null;
+                return preview ? (
+                  <img src={preview} alt="" style={css('margin-top: 10px; max-width: 200px; border-radius: 8px; display: block')} />
+                ) : (
+                  <p className="adm-note" style={css('margin-top: 10px')}>No photo yet.</p>
+                );
+              })()}
+              <div className="adm-actions" style={css('margin-top: 12px')}>
+                <label className={busy ? 'lw-upload-zone lw-upload-zone--disabled' : 'lw-upload-zone'} style={css('flex: 1; min-width: 200px')}>
+                  <p className="lw-upload-zone__title">Upload or replace photo</p>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="lw-upload-zone__input"
+                    disabled={busy}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = '';
+                      if (!file || !editing) return;
+                      setBusy(true);
+                      setError(null);
+                      void new Promise<void>((resolve) => {
+                        const request = new XMLHttpRequest();
+                        request.open('POST', `${API_BASE_URL}/api/admin/categories/${editing}/image`);
+                        request.withCredentials = true;
+                        request.setRequestHeader('content-type', file.type || 'application/octet-stream');
+                        for (const [name, value] of Object.entries(session.authHeaders())) request.setRequestHeader(name, value);
+                        request.onload = () => {
+                          if (request.status === 201) {
+                            setNotice(`${editing} photo updated.`);
+                            list.reload();
+                          } else {
+                            try {
+                              const body = JSON.parse(request.responseText) as { error?: { message?: string } };
+                              setError(body.error?.message ?? `Upload failed with status ${request.status}`);
+                            } catch {
+                              setError(`Upload failed with status ${request.status}`);
+                            }
+                          }
+                          resolve();
+                        };
+                        request.onerror = () => {
+                          setError('The upload could not reach the server.');
+                          resolve();
+                        };
+                        request.send(file);
+                      }).finally(() => setBusy(false));
+                    }}
+                  />
+                </label>
+                {categories.find((item) => item.key === editing)?.imageUrl ? (
+                  <GhostButton
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError(null);
+                      try {
+                        await apiFetch(`/api/admin/categories/${editing}/image`, {
+                          method: 'DELETE',
+                          headers: session.authHeaders(),
+                          json: { reason: 'Removed category photo' },
+                        });
+                        setNotice(`${editing} photo removed.`);
+                        list.reload();
+                      } catch (err) {
+                        setError(apiMessage(err));
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    Remove photo
+                  </GhostButton>
+                ) : null}
+              </div>
+            </div>
+          )}
 
           <form
             className="adm-form"

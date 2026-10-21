@@ -4,7 +4,7 @@ import Link from 'next/link';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { css, PAGE_ROOT } from '../../lib/css';
-import { CAREERS_EMAIL } from '../../lib/siteContact';
+import { CONTACT_EMAIL } from '../../lib/siteContact';
 import './about.css';
 
 export default function AboutPage() {
@@ -31,7 +31,7 @@ export default function AboutPage() {
       <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 72px var(--mkt-gutter-x) 0; display: flex; flex-wrap: wrap; gap: 40px")}>
         <h2 style={css("flex: 1 1 280px; margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 34px; letter-spacing: -0.02em; font-weight: 700; line-height: 1.15")}>Our story</h2>
         <div style={css("flex: 2 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 16px; font-size: 18px; color: #2A3036")}>
-          <p style={css("margin: 0")}>Founded in [year], we started with a simple belief: buying and selling should feel fair, clear and personal — whether it's a family car, a rare watch or a piece of Gulf heritage.</p>
+          <p style={css("margin: 0")}>Founded in 2026, we started with a simple belief: buying and selling should feel fair, clear and personal — whether it's a family car, a rare watch or a piece of Gulf heritage.</p>
           <p style={css("margin: 0")}>Today, people use Araq & Kahraman to list items at a fixed price, or to put them under the hammer and let buyers compete. Every auction runs in the open, with every bid visible, and every seller can be verified.</p>
         </div>
       </section>
@@ -105,8 +105,8 @@ export default function AboutPage() {
             <p style={css("margin: 10px 0 0; color: #5B636B; font-size: 17px; max-width: 54ch")}>We're always glad to hear from auctioneers, valuers, engineers, designers and customer-care people who care about getting the details right.</p>
             <p style={css("margin: 14px 0 0; font-size: 16px")}>
               {"Send your CV to "}
-              <a href={`mailto:${CAREERS_EMAIL}`} style={css("font-weight: 700; color: #9A6B12")}>
-                {CAREERS_EMAIL}
+              <a href={`mailto:${CONTACT_EMAIL}`} style={css("font-weight: 700; color: #9A6B12")}>
+                {CONTACT_EMAIL}
               </a>
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function AboutPage() {
       </section>
 {/* @end-generated */}
 
-      <SiteFooter careersHref="#careers" />
+      <SiteFooter />
     </div>
   );
 }

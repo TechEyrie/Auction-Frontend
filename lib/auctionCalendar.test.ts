@@ -31,8 +31,11 @@ test('parseCalendarYearMonth reads search params with fallback', () => {
   assert.deepEqual(parseCalendarYearMonth(new URLSearchParams('month=13'), fallback), fallback);
 });
 
-test('hrefForGroup links to auction browse for parent category', () => {
-  assert.equal(hrefForGroup('clothing'), '/browse?method=auction&category=clothing');
+test('hrefForGroup links to auction browse for parent category and civil day', () => {
+  assert.equal(
+    hrefForGroup('clothing', '2026-10-22'),
+    '/browse?method=auction&category=clothing&endsOn=2026-10-22',
+  );
 });
 
 test('parentCategoryImageSrc falls back without bundled parent images', () => {

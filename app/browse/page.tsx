@@ -86,6 +86,7 @@ function BrowseContent() {
     if (state.area) params.set('area', state.area);
     if (state.featured) params.set('featured', 'true');
     if (state.sort !== 'recent') params.set('sort', state.sort);
+    if (state.endsOn) params.set('endsOn', state.endsOn);
     params.set('page', String(state.page));
     params.set('limit', '12');
     return params.toString();
@@ -157,6 +158,11 @@ function BrowseContent() {
               </h1>
               <p style={css('margin: 8px 0 0; color: #5B636B')}>
                 {t('browse.lead')}
+                {state.endsOn ? (
+                  <span className="mkt-hint" style={css('display: block; margin-top: 6px')}>
+                    {t('browse.endingOn', { date: state.endsOn })}
+                  </span>
+                ) : null}
               </p>
             </div>
             <form

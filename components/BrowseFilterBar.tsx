@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import CategoryTree from './CategoryTree';
-import { categoryChildren } from '../lib/catalog';
+import { browseParentAndSub, categoryChildren } from '../lib/catalog';
 import { useUiLocale } from '../lib/UiLocaleProvider';
 import { conditionLabel, methodLabel } from '../lib/uiMessages';
 import {
@@ -13,7 +12,7 @@ import {
 
 type Category = { key: string; name: string; parentKey: string | null; depth: number; icon: string | null; listingMethods: ListingMethod[] };
 
-type DropdownId = 'category' | 'type' | 'condition' | 'sort';
+type DropdownId = 'category' | 'subcategory' | 'type' | 'condition' | 'sort';
 
 const DROPDOWN_CONDITIONS = ['like_new', 'used', 'refurbished'] as const;
 
@@ -25,6 +24,7 @@ export function barFiltersActive(state: BrowseState): boolean {
       state.method ||
       state.condition ||
       state.featured ||
+      state.endsOn ||
       state.sort !== 'recent',
   );
 }
@@ -38,6 +38,7 @@ export function clearBarFilterPatch(): Partial<BrowseState> {
     condition: '',
     featured: false,
     sort: 'recent',
+    endsOn: '',
     page: 1,
   };
 }
@@ -95,9 +96,20 @@ export default function BrowseFilterBar({
     };
   }, [openMenu]);
 
-  const selectedCategoryName = state.category
-    ? allCategories.find((c) => c.key === state.category)?.name ?? state.category
+  const { parentKey: categoryParentKey, subcategoryKey } = browseParentAndSub(allCategories, state.category);
+  const subcategories = categoryParentKey ? categoryChildren(allCategories, categoryParentKey) : [];
+  const categoryParentName = categoryParentKey
+    ? allCategories.find((c) => c.key === categoryParentKey)?.name ?? categoryParentKey
     : null;
+  const subcategoryDisabled =
+    disabled || !categoryParentKey || subcategories.length === 0;
+  const subcategoryTriggerLabel = !categoryParentKey
+    ? t('browse.subcategory')
+    : subcategories.length === 0
+      ? t('browse.noSubcategories')
+      : subcategoryKey
+        ? allCategories.find((c) => c.key === subcategoryKey)?.name ?? subcategoryKey
+        : t('browse.allSubcategories');
 
   const typeLabel = state.method ? methodLabel(lang, state.method) : t('browse.filterType');
   const conditionFromDropdown =
@@ -144,28 +156,98 @@ export default function BrowseFilterBar({
         <div className="browse-bar__dropdown">
           <button
             type="button"
-            className={`browse-bar__trigger${state.category ? ' has-value' : ''}`}
+            className={`browse-bar__trigger${categoryParentKey ? ' has-value' : ''}`}
             aria-expanded={openMenu === 'category'}
-            aria-haspopup="listbox"
+            aria-haspopup="menu"
             disabled={disabled}
             onClick={() => toggleMenu('category')}
           >
-            <span className="browse-bar__trigger-label">{selectedCategoryName ?? t('browse.category')}</span>
+            <span className="browse-bar__trigger-label">{categoryParentName ?? t('browse.category')}</span>
             <Chevron open={openMenu === 'category'} />
           </button>
           {openMenu === 'category' && (
-            <div className="browse-bar__panel" role="listbox" aria-label={t('browse.category')}>
+            <div className="browse-bar__panel" role="menu" aria-label={t('browse.category')}>
               {categoriesError && <p className="mkt-hint browse-bar__panel-hint">{t('browse.categoriesError')}</p>}
-              <CategoryTree
-                roots={roots}
-                childrenOf={(rootKey) => categoryChildren(allCategories, rootKey)}
-                selectedKey={state.category}
-                onSelect={(category) => {
-                  onChange({ category });
+              <button
+                type="button"
+                role="menuitemradio"
+                aria-checked={!categoryParentKey}
+                className={`browse-bar__option${!categoryParentKey ? ' is-selected' : ''}`}
+                onClick={() => {
+                  onChange({ category: '' });
                   setOpenMenu(null);
                 }}
-                allLabel={t('browse.allCategories')}
-              />
+              >
+                {t('browse.allCategories')}
+              </button>
+              {roots.map((root) => {
+                const selected = categoryParentKey === root.key;
+                return (
+                  <button
+                    key={root.key}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={selected}
+                    className={`browse-bar__option${selected ? ' is-selected' : ''}`}
+                    onClick={() => {
+                      onChange({ category: root.key });
+                      setOpenMenu(null);
+                    }}
+                  >
+                    {root.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="browse-bar__dropdown">
+          <button
+            type="button"
+            className={`browse-bar__trigger${subcategoryKey ? ' has-value' : ''}`}
+            aria-expanded={openMenu === 'subcategory'}
+            aria-haspopup="menu"
+            disabled={subcategoryDisabled}
+            onClick={() => {
+              if (!subcategoryDisabled) toggleMenu('subcategory');
+            }}
+          >
+            <span className="browse-bar__trigger-label">{subcategoryTriggerLabel}</span>
+            <Chevron open={openMenu === 'subcategory'} />
+          </button>
+          {openMenu === 'subcategory' && !subcategoryDisabled && (
+            <div className="browse-bar__panel" role="menu" aria-label={t('browse.subcategory')}>
+              <button
+                type="button"
+                role="menuitemradio"
+                aria-checked={!subcategoryKey}
+                className={`browse-bar__option${!subcategoryKey ? ' is-selected' : ''}`}
+                onClick={() => {
+                  onChange({ category: categoryParentKey });
+                  setOpenMenu(null);
+                }}
+              >
+                {t('browse.allSubcategories')}
+              </button>
+              {subcategories.map((child) => {
+                const selected = subcategoryKey === child.key;
+                return (
+                  <button
+                    key={child.key}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={selected}
+                    className={`browse-bar__option${selected ? ' is-selected' : ''}`}
+                    onClick={() => {
+                      onChange({ category: child.key });
+                      setOpenMenu(null);
+                    }}
+                  >
+                    {child.name}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

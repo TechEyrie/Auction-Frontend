@@ -9,6 +9,7 @@ export function parentCategoryImageSrc(parentCategoryKey: string): string {
 export type AuctionCalendarGroup = {
   parentCategoryKey: string;
   parentCategoryName: string;
+  imageUrl: string | null;
   listingCount: number;
   endsAt: string;
   live: boolean;
@@ -79,8 +80,12 @@ export function buildMondayFirstGrid(year: number, month: number): GridCell[] {
   return cells;
 }
 
-export function hrefForGroup(parentCategoryKey: string): string {
-  const params = new URLSearchParams({ method: 'auction', category: parentCategoryKey });
+export function hrefForGroup(parentCategoryKey: string, dateKey: string): string {
+  const params = new URLSearchParams({
+    method: 'auction',
+    category: parentCategoryKey,
+    endsOn: dateKey,
+  });
   return `/browse?${params.toString()}`;
 }
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { categoryByKey, categoryChildren, categoryRoots } from './catalog.ts';
+import { browseParentAndSub, categoryByKey, categoryChildren, categoryRoots } from './catalog.ts';
 
 const sample = [
   { key: 'vehicles', parentKey: null, name: 'Vehicles', order: 2 },
@@ -17,4 +17,12 @@ test('category tree helpers', () => {
   assert.equal(categoryByKey(sample, 'sedans')?.name, 'Sedans');
   assert.equal(categoryByKey(sample, 'missing'), undefined);
   assert.deepEqual(categoryChildren(sample, 'missing'), []);
+});
+
+test('browseParentAndSub resolves 2-level browse selection', () => {
+  assert.deepEqual(browseParentAndSub(sample, ''), { parentKey: '', subcategoryKey: '' });
+  assert.deepEqual(browseParentAndSub(sample, 'vehicles'), { parentKey: 'vehicles', subcategoryKey: '' });
+  assert.deepEqual(browseParentAndSub(sample, 'cars'), { parentKey: 'vehicles', subcategoryKey: 'cars' });
+  assert.deepEqual(browseParentAndSub(sample, 'sedans'), { parentKey: 'vehicles', subcategoryKey: '' });
+  assert.deepEqual(browseParentAndSub(sample, 'missing'), { parentKey: '', subcategoryKey: '' });
 });

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useState } from 'react';
+import PasswordGenerator from '../../components/PasswordGenerator';
 import PasswordStrength, { passwordFieldMessage } from '../../components/PasswordStrength';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
@@ -184,6 +185,14 @@ export default function ResetPasswordPage() {
                     {pwBtn}
                   </button>
                 </div>
+                <PasswordGenerator
+                  email={resetEmail}
+                  onGenerate={(next) => {
+                    setPassword(next);
+                    setConfirm(next);
+                    setShowPw(true);
+                  }}
+                />
                 <div id="pw-strength">
                   <PasswordStrength password={password} email={resetEmail} />
                 </div>

@@ -107,10 +107,10 @@ export default function HelpPage() {
         </div>
       </section>
       <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 48px var(--mkt-gutter-x) 0")}>
-        <div style={css("display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px")}>
+        <div style={css("display: flex; flex-wrap: wrap; justify-content: center; gap: 12px")}>
           {topics.map((t, i) => (
             <Fragment key={i}>
-            <button type="button" className="topic" onClick={t.pick} aria-pressed={t.selected} style={css(`min-height: 112px; padding: 18px; border-radius: 16px; font: inherit; cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 12px; border: 1.5px solid ${t.border}; background: ${t.bg}; transition: border-color .15s`)}>
+            <button type="button" className="topic" onClick={t.pick} aria-pressed={t.selected} style={css(`width: 180px; max-width: 100%; min-height: 112px; padding: 18px; border-radius: 16px; font: inherit; cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 12px; border: 1.5px solid ${t.border}; background: ${t.bg}; transition: border-color .15s`)}>
               <span style={css("width: 42px; height: 42px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center")}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A6B12" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d={t.d}></path>

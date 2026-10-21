@@ -442,6 +442,7 @@ export type BrowseState = {
   featured: boolean;
   sort: 'recent' | 'title' | 'featured';
   page: number;
+  endsOn: string;
 };
 
 export const EMPTY_BROWSE: BrowseState = {
@@ -455,6 +456,7 @@ export const EMPTY_BROWSE: BrowseState = {
   featured: false,
   sort: 'recent',
   page: 1,
+  endsOn: '',
 };
 
 export const MAX_PAGE_SIZE = 48;
@@ -482,6 +484,8 @@ export function parseBrowseState(params: URLSearchParams): BrowseState {
   const featured = firstValue(params, 'featured') === 'true';
   const sort = firstValue(params, 'sort');
   const page = Number.parseInt(firstValue(params, 'page'), 10);
+  const endsOnRaw = firstValue(params, 'endsOn');
+  const endsOn = /^\d{4}-\d{2}-\d{2}$/.test(endsOnRaw) ? endsOnRaw : '';
   return {
     q,
     audience: (AUDIENCES as string[]).includes(audienceRaw) ? (audienceRaw as Audience) : '',
@@ -493,6 +497,7 @@ export function parseBrowseState(params: URLSearchParams): BrowseState {
     featured,
     sort: sort === 'title' || sort === 'featured' ? sort : 'recent',
     page: Number.isFinite(page) && page >= 1 && page <= 1000 ? page : 1,
+    endsOn,
   };
 }
 
@@ -509,6 +514,7 @@ export function browseQuery(state: BrowseState): string {
   if (state.featured) params.set('featured', 'true');
   if (state.sort !== 'recent') params.set('sort', state.sort);
   if (state.page > 1) params.set('page', String(state.page));
+  if (state.endsOn) params.set('endsOn', state.endsOn);
   return params.toString();
 }
 
@@ -529,13 +535,24 @@ export function applyBrowseChange(state: BrowseState, change: Partial<BrowseStat
     change.city === undefined &&
     change.area === undefined &&
     change.featured === undefined &&
-    change.sort === undefined;
+    change.sort === undefined &&
+    change.endsOn === undefined;
   if (!onlyPageChanged) next.page = 1;
   return next;
 }
 
 export function browseIsFiltered(state: BrowseState): boolean {
-  return Boolean(state.q || state.audience || state.category || state.method || state.condition || state.city || state.area || state.featured);
+  return Boolean(
+    state.q ||
+      state.audience ||
+      state.category ||
+      state.method ||
+      state.condition ||
+      state.city ||
+      state.area ||
+      state.featured ||
+      state.endsOn,
+  );
 }
 
 // ---------------------------------------------------------------------------

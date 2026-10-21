@@ -1,7 +1,7 @@
 /** Public contact details shown on the catalogue site. */
 
 export const CAREERS_EMAIL = 'careers@areeqamberauctio.qa';
-export const CONTACT_EMAIL = CAREERS_EMAIL;
+export const CONTACT_EMAIL = 'contact@araqandkahramanauctions.qa';
 export const OFFICE_ADDRESS = 'Doha, Qatar';
 
 /**
