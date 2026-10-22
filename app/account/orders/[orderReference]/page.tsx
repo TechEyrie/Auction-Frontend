@@ -121,7 +121,7 @@ export default function AccountOrderPage() {
         {order.error ? (
           <p role="alert" className="checkout-alert">
             {order.error}{' '}
-            <button type="button" onClick={() => order.reload()} className="adm-link-btn" style={css('font: inherit; font-weight: 600; cursor: pointer; border: 0; background: transparent; color: #9A6B12')}>
+            <button type="button" onClick={() => order.reload()} className="adm-link-btn" style={css('font: inherit; font-weight: 600; cursor: pointer; border: 0; background: transparent; color: var(--mkt-gold)')}>
               Retry
             </button>
           </p>

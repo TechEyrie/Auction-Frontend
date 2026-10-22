@@ -125,17 +125,17 @@ export default function HomePage() {
       <title>{t('home.title')}</title>
       <SiteHeader home />
 
-      <section id="top" style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
+      <section id="top" style={css('background: var(--mkt-surface); border-bottom: 1px solid var(--mkt-border)')}>
         <div className="home-hero">
           <div style={css('flex: 999 1 560px; min-width: 0')}>
-            <p style={css('margin: 0 0 14px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #F6EEDC; color: #9A6B12; font-size: 13px; font-weight: 600')}>
+            <p style={css('margin: 0 0 14px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--mkt-gold-soft); color: var(--mkt-gold); font-size: 13px; font-weight: 600')}>
               {t('home.badge')}
             </p>
             <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2rem, 8vw, 4.1rem); line-height: 1.05; letter-spacing: -0.035em; font-weight: 700; max-width: 14ch")}>
               {t('home.heroLine1')}
-              <span style={css('color: #9A6B12')}>{t('home.heroLine2')}</span>
+              <span style={css('color: var(--mkt-gold)')}>{t('home.heroLine2')}</span>
             </h1>
-            <p style={css('margin: 16px 0 24px; font-size: clamp(15px, 3.6vw, 19px); color: #5B636B; max-width: 46ch')}>
+            <p style={css('margin: 16px 0 24px; font-size: clamp(15px, 3.6vw, 19px); color: var(--mkt-muted); max-width: 46ch')}>
               {t('home.heroLead')}
             </p>
             <form
@@ -154,7 +154,7 @@ export default function HomePage() {
                 {t('home.searchLabel')}
               </label>
               <div className="mkt-search__query">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9198" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={css('color: var(--mkt-muted)')}>
                   <path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z M20 20l-4-4"></path>
                 </svg>
                 <input
@@ -176,7 +176,7 @@ export default function HomePage() {
               </button>
             </form>
             <div style={css('margin-top: 22px; max-width: 520px')}>
-              <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>{t('common.shopFor')}</p>
+              <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--mkt-muted)')}>{t('common.shopFor')}</p>
               <AudiencePicker
                 value={heroAudience}
                 onChange={(audience) => {
@@ -190,34 +190,34 @@ export default function HomePage() {
               />
             </div>
             <div style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; align-items: center')}>
-              <Link href="/browse?audience=men" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
+              <Link href="/browse?audience=men" className="home-chip home-chip--gold">
                 {t('home.mensListings')}
               </Link>
-              <Link href="/browse?audience=women" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
+              <Link href="/browse?audience=women" className="home-chip home-chip--gold">
                 {t('home.womensListings')}
               </Link>
-              <Link href="/browse?audience=unisex" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
+              <Link href="/browse?audience=unisex" className="home-chip home-chip--gold">
                 {t('home.unisexListings')}
               </Link>
-              <span style={css('font-size: 14px; color: #5B636B; margin-right: 4px')}>{t('home.popular')}</span>
-              <Link href="/browse?q=land+cruiser" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
+              <span style={css('font-size: 14px; color: var(--mkt-muted); margin-right: 4px')}>{t('home.popular')}</span>
+              <Link href="/browse?q=land+cruiser" className="home-chip">
                 {t('home.landCruiser')}
               </Link>
-              <Link href="/browse?q=iphone" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
+              <Link href="/browse?q=iphone" className="home-chip">
                 {t('home.iphone')}
               </Link>
-              <Link href="/browse?method=auction" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
+              <Link href="/browse?method=auction" className="home-chip">
                 {t('home.auctionListings')}
               </Link>
-              <Link href="/browse?condition=used" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #E6E4DF; color: #2A3036; font-size: 14px')}>
+              <Link href="/browse?condition=used" className="home-chip">
                 {t('home.usedItems')}
               </Link>
             </div>
           </div>
 
-          <aside aria-label={t('home.featuredAria')} style={css('flex: 1 1 360px; min-width: 0; max-width: 440px; background: #15191E; color: #FFFFFF; border-radius: 22px; padding: 22px; display: flex; flex-direction: column; gap: 18px')}>
+          <aside aria-label={t('home.featuredAria')} className="home-hero-feature">
             <div style={css('display: flex; justify-content: space-between; align-items: center')}>
-              <span style={css('font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #F6B48A')}>
+              <span style={css('font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mkt-hero-feature-accent)')}>
                 {featured.data?.listings.length ? t('home.featuredListing') : t('home.latestListing')}
               </span>
               <span style={css('font-size: 13px; color: #AEB5B0')}>{recent.data ? t('home.published', { n: recent.data.total }) : ''}</span>
@@ -233,7 +233,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <h2 style={css("margin: 0 0 4px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase")}>
-                    <Link href={productPath(heroListing)} style={css('color: #FFFFFF')}>
+                    <Link href={productPath(heroListing)} className="home-hero-feature__title">
                       {listingCardTitle(heroListing, lang)}
                     </Link>
                   </h2>
@@ -252,7 +252,7 @@ export default function HomePage() {
                     );
                   })()}
                 </div>
-                <Link href={productPath(heroListing)} style={css('height: 50px; border-radius: 12px; background: #FFFFFF; color: #15191E; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center')}>
+                <Link href={productPath(heroListing)} className="home-hero-feature__cta">
                   {t('home.viewListing')}
                 </Link>
                 <p style={css('margin: -6px 0 0; font-size: 13px; color: #AEB5B0; text-align: center')}>
@@ -336,7 +336,7 @@ export default function HomePage() {
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
               {t('home.categoriesTitle')}
             </h2>
-            <p style={css('margin: 6px 0 0; color: #5B636B')}>{t('home.categoriesSub')}</p>
+            <p style={css('margin: 6px 0 0; color: var(--mkt-muted)')}>{t('home.categoriesSub')}</p>
           </div>
           <Link href="/categories" style={css('font-weight: 600')}>
             {t('home.allCategoriesLink')}
@@ -358,14 +358,14 @@ export default function HomePage() {
               <Link
                 href={`/browse?category=${encodeURIComponent(category.key)}`}
                 className="cat"
-                style={css('display: flex; flex-direction: column; gap: 14px; padding: 20px; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; color: #15191E; transition: border-color .15s, background .15s')}
+                style={css('display: flex; flex-direction: column; gap: 14px; padding: 20px; background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 16px; color: var(--mkt-text); transition: border-color .15s, background .15s')}
               >
-                <span style={css('width: 44px; height: 44px; border-radius: 12px; background: #F3F1EC; display: flex; align-items: center; justify-content: center')}>
+                <span className="cat__icon" style={css('width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center')}>
                   <CategoryIcon icon={category.icon} size={22} />
                 </span>
                 <span>
-                  <span style={css('display: block; font-weight: 600; font-size: 16px')}>{category.name}</span>
-                  <span style={css('display: block; font-size: 13px; color: #5B636B')}>
+                  <span className="cat__name" style={css('display: block; font-weight: 600; font-size: 16px')}>{category.name}</span>
+                  <span className="cat__meta" style={css('display: block; font-size: 13px')}>
                     {category.listingMethods.map((method) => methodLabel(lang, method)).join(' · ')}
                   </span>
                 </span>
@@ -523,8 +523,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 56px var(--mkt-gutter-x) 80px')}>
-        <div style={css('display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px')}>
+      <section className="home-section" style={css('padding-top: 56px; padding-bottom: 80px')}>
+        <div className="home-trust">
           <div style={css('display: flex; gap: 14px')}>
             <span style={css('flex: 0 0 44px; height: 44px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center')}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A6B12" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

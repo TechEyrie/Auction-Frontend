@@ -17,7 +17,7 @@ export function uiDir(lang: UiLang): 'ltr' | 'rtl' {
   return lang === 'ar' ? 'rtl' : 'ltr';
 }
 
-/** The admin console is English/LTR only; it must never inherit the customer locale. */
+/** True when the pathname is under `/admin` (used by tests and routing helpers). */
 export function isAdminPath(pathname: string | null | undefined): boolean {
   if (!pathname) return false;
   return pathname === '/admin' || pathname.startsWith('/admin/');
@@ -42,23 +42,12 @@ export function writeStoredUiLang(lang: UiLang): void {
   }
 }
 
-/**
- * Set `<html lang dir>` for the chosen language. Admin routes are left alone by the caller
- * (see `isAdminPath`); when `pathname` is given and is an admin path this is a no-op.
- */
-export function applyDocumentLocale(lang: UiLang, pathname?: string | null): void {
+/** Set `<html lang dir>` for the chosen UI language (customer site and admin). */
+export function applyDocumentLocale(lang: UiLang): void {
   if (typeof document === 'undefined') return;
-  if (isAdminPath(pathname)) return;
   const root = document.documentElement;
   root.lang = lang;
   root.dir = uiDir(lang);
-}
-
-/** Restore the default document locale (used when entering /admin from an Arabic page). */
-export function resetDocumentLocale(): void {
-  if (typeof document === 'undefined') return;
-  document.documentElement.lang = 'en';
-  document.documentElement.dir = 'ltr';
 }
 
 /**

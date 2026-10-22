@@ -148,9 +148,9 @@ function BrowseContent() {
       <title>{t('browse.title')}</title>
       <SiteHeader active="buy" />
 
-      <section style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
+      <section style={css('background: var(--mkt-surface); border-bottom: 1px solid var(--mkt-border)')}>
         <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 28px var(--mkt-gutter-x) 32px')}>
-          <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
+          <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: var(--mkt-muted); margin-bottom: 10px')}>
             <Link href="/">{t('common.home')}</Link> <span aria-hidden="true">/</span> {t('browse.breadcrumb')}
           </nav>
           <div style={css('display: flex; flex-wrap: wrap; gap: 20px; align-items: end; justify-content: space-between')}>
@@ -158,7 +158,7 @@ function BrowseContent() {
               <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2rem, 3.6vw, 2.75rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.1")}>
                 {t('browse.h1')}
               </h1>
-              <p style={css('margin: 8px 0 0; color: #5B636B')}>
+              <p style={css('margin: 8px 0 0; color: var(--mkt-muted)')}>
                 {t('browse.lead')}
                 {state.endsOn ? (
                   <span className="mkt-hint" style={css('display: block; margin-top: 6px')}>
@@ -173,7 +173,7 @@ function BrowseContent() {
                 event.preventDefault();
                 update({ q: searchText.trim() });
               }}
-              style={css('flex: 0 1 480px; min-width: 0; display: flex; gap: 8px; padding: 6px; border: 1px solid #DAD7D0; border-radius: 14px; background: #FFFFFF')}
+              style={css('flex: 0 1 480px; min-width: 0; display: flex; gap: 8px; padding: 6px; border: 1px solid var(--mkt-border-strong); border-radius: 14px; background: var(--mkt-surface)')}
             >
               <label htmlFor="bq" className="sr">
                 {t('browse.searchLabel')}
@@ -192,13 +192,13 @@ function BrowseContent() {
             </form>
           </div>
           <div style={css('margin-top: 22px; max-width: 520px')}>
-            <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>{t('common.shopFor')}</p>
+            <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--mkt-muted)')}>{t('common.shopFor')}</p>
             <AudiencePicker value={state.audience} onChange={(audience) => update({ audience })} />
           </div>
         </div>
       </section>
 
-      <div className="browse-layout" style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 32px var(--mkt-gutter-x) 72px')}>
+      <div className="browse-layout page-shell" style={css('padding: 32px var(--mkt-gutter-x) 72px')}>
         <BrowseFilterBar
           state={state}
           onChange={update}
@@ -215,7 +215,7 @@ function BrowseContent() {
                 {loadingStatusLabel(state, t)}
               </p>
             ) : (
-              <p style={css('margin: 0; color: #2A3036')} role="status">
+              <p style={css('margin: 0; color: var(--mkt-text-2)')} role="status">
                 <strong>{listings.data?.total ?? 0}</strong> {listings.data?.total === 1 ? t('browse.listing') : t('browse.listings')}
                 {browseIsFiltered(state) && <span className="mkt-hint">{t('browse.filtered')}</span>}
               </p>
@@ -235,9 +235,9 @@ function BrowseContent() {
           )}
 
           {showEmpty && (
-            <div style={css('background: #FFFFFF; border: 1px dashed #DAD7D0; border-radius: 18px; padding: 56px 24px; text-align: center')}>
+            <div className="browse-empty">
               <h3 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>{t('browse.emptyTitle')}</h3>
-              <p style={css('margin: 8px 0 20px; color: #5B636B')}>
+              <p style={css('margin: 8px 0 20px; color: var(--mkt-muted)')}>
                 {browseIsFiltered(state)
                   ? t('browse.emptyFiltered')
                   : t('browse.emptyNone')}
@@ -270,13 +270,13 @@ function BrowseContent() {
                 disabled={page <= 1}
                 onClick={() => update({ page: page - 1 })}
                 className="btn-ghost"
-                style={css('height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #E6E4DF; background: #FFFFFF; color: #15191E; font: inherit; font-weight: 600; cursor: pointer')}
+                style={css('height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--mkt-border); background: var(--mkt-surface); color: var(--mkt-text-2); font: inherit; font-weight: 600; cursor: pointer')}
               >
                 {t('browse.previous')}
               </button>
               {pages.map((entry, index) =>
                 entry === '…' ? (
-                  <span key={`gap-${index}`} style={css('width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #5B636B')}>
+                  <span key={`gap-${index}`} style={css('width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--mkt-muted)')}>
                     …
                   </span>
                 ) : (
@@ -285,7 +285,7 @@ function BrowseContent() {
                     type="button"
                     aria-current={entry === page ? 'page' : undefined}
                     onClick={() => update({ page: entry })}
-                    style={css(`width: 44px; height: 44px; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; border: 1px solid ${entry === page ? '#15191E' : '#E6E4DF'}; background: ${entry === page ? '#15191E' : '#FFFFFF'}; color: ${entry === page ? '#FFFFFF' : '#15191E'}`)}
+                    style={css(`width: 44px; height: 44px; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; border: 1px solid ${entry === page ? 'var(--mkt-text)' : 'var(--mkt-border)'}; background: ${entry === page ? 'var(--mkt-text)' : 'var(--mkt-surface)'}; color: ${entry === page ? 'var(--mkt-bg)' : 'var(--mkt-text-2)'}`)}
                   >
                     {entry}
                   </button>
@@ -296,7 +296,7 @@ function BrowseContent() {
                 disabled={page >= totalPages}
                 onClick={() => update({ page: page + 1 })}
                 className="btn-ghost"
-                style={css('height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #E6E4DF; background: #FFFFFF; color: #15191E; font: inherit; font-weight: 600; cursor: pointer')}
+                style={css('height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--mkt-border); background: var(--mkt-surface); color: var(--mkt-text-2); font: inherit; font-weight: 600; cursor: pointer')}
               >
                 {t('browse.next')}
               </button>
@@ -317,7 +317,7 @@ export default function BrowsePage() {
       fallback={
         <div style={css(PAGE_ROOT)}>
           <SiteHeader active="buy" />
-          <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 32px var(--mkt-gutter-x) 72px')}>
+          <div className="browse-layout page-shell" style={css('padding: 32px 0 72px')}>
             <p className="browse-status-pulse" role="status" style={css('margin: 0 0 18px')}>
               {t('browse.loading')}
             </p>

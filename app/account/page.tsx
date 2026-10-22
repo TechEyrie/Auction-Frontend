@@ -168,7 +168,7 @@ export default function AccountPage() {
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center')}>
           <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif")}>{at('account.h1')}</h1>
           {session.user ? (
-            <button type="button" onClick={() => void signOut()} style={css('height: 42px; padding: 0 16px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+            <button type="button" onClick={() => void signOut()} style={css('height: 42px; padding: 0 16px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}>
               {ct('auth.signOut')}
             </button>
           ) : null}
@@ -186,25 +186,25 @@ export default function AccountPage() {
 
         {account.data ? (
           <>
-            <section style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 18px 20px; display: grid; gap: 8px')}>
+            <section style={css('background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 16px; padding: 18px 20px; display: grid; gap: 8px; color: var(--mkt-text)')}>
               <h2 style={css('margin: 0; font-size: 18px')}>{at('account.profile')}</h2>
               <p style={css('margin: 0')}>{account.data.profile.fullName}</p>
-              <p style={css('margin: 0; color: #5B636B')}>{account.data.profile.email ?? at('account.noEmail')} · {account.data.profile.phone ?? at('account.noPhone')}</p>
+              <p style={css('margin: 0; color: var(--mkt-muted)')}>{account.data.profile.email ?? at('account.noEmail')} · {account.data.profile.phone ?? at('account.noPhone')}</p>
               <p style={css('margin: 0')}>{at('account.termsAccepted', { version: account.data.profile.termsVersion ?? at('account.termsNone') })}</p>
               {terms.data ? (
                 <button type="button" onClick={() => void accept(terms.data!.version)} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
                   {at('account.acceptTerms', { version: terms.data.version })}
                 </button>
               ) : (
-                <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>{at('account.noTermsDoc')}</p>
+                <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>{at('account.noTermsDoc')}</p>
               )}
               {notice ? <p role="status">{notice}</p> : null}
             </section>
 
             {session.mfaEnabled ? (
-              <section style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 18px 20px; display: grid; gap: 12px')}>
+              <section style={css('background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 16px; padding: 18px 20px; display: grid; gap: 12px; color: var(--mkt-text)')}>
                 <h2 style={css('margin: 0; font-size: 18px')}>{ct('auth.account.mfa.title')}</h2>
-                <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
+                <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>
                   {ct('auth.account.mfa.enabledIntro')}
                 </p>
                 {!mfaReplaceOpen ? (
@@ -215,7 +215,7 @@ export default function AccountPage() {
                       setMfaStep('verify');
                       setMfaError(null);
                     }}
-                    style={css('justify-self: start; height: 42px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}
+                    style={css('justify-self: start; height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}
                   >
                     {ct('auth.account.mfa.replace')}
                   </button>
@@ -232,7 +232,7 @@ export default function AccountPage() {
                           <button type="submit" disabled={mfaBusy} style={css('height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
                             {mfaBusy ? ct('auth.pleaseWait') : ct('auth.account.mfa.continue')}
                           </button>
-                          <button type="button" onClick={resetMfaReplace} style={css('height: 42px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                          <button type="button" onClick={resetMfaReplace} style={css('height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}>
                             {ct('auth.account.mfa.cancel')}
                           </button>
                         </div>
@@ -241,10 +241,10 @@ export default function AccountPage() {
                     {mfaStep === 'qr' ? (
                       <form onSubmit={submitMfaReplaceConfirm} style={css('display: grid; gap: 12px')}>
                         {mfaQrDataUrl ? (
-                          <img src={mfaQrDataUrl} alt={ct('auth.account.mfa.qrAlt')} width={200} height={200} style={css('border-radius: 12px; border: 1px solid #E6E4DF')} />
+                          <img src={mfaQrDataUrl} alt={ct('auth.account.mfa.qrAlt')} width={200} height={200} style={css('border-radius: 12px; border: 1px solid var(--mkt-border)')} />
                         ) : null}
-                        <p style={css('margin: 0; font-size: 14px; color: #5B636B; word-break: break-all')}>
-                          <span style={css('font-weight: 600; color: #15191E')}>{ct('auth.account.mfa.manualKeyPrefix')}</span>
+                        <p style={css('margin: 0; font-size: 14px; color: var(--mkt-muted); word-break: break-all')}>
+                          <span style={css('font-weight: 600; color: var(--mkt-text)')}>{ct('auth.account.mfa.manualKeyPrefix')}</span>
                           {mfaSecret}
                         </p>
                         <div>
@@ -258,8 +258,8 @@ export default function AccountPage() {
                     ) : null}
                     {mfaStep === 'recovery' ? (
                       <div style={css('display: grid; gap: 12px')}>
-                        <p style={css('margin: 0; font-size: 14px; color: #5B636B')}>{ct('auth.account.mfa.saveRecovery')}</p>
-                        <ul style={css('margin: 0; padding: 16px; list-style: none; background: #F3F1EC; border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8')}>
+                        <p style={css('margin: 0; font-size: 14px; color: var(--mkt-muted)')}>{ct('auth.account.mfa.saveRecovery')}</p>
+                        <ul style={css('margin: 0; padding: 16px; list-style: none; background: var(--mkt-surface-2); border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8; color: var(--mkt-text)')}>
                           {mfaRecoveryCodes.map((code) => (
                             <li key={code}>{code}</li>
                           ))}
@@ -276,11 +276,11 @@ export default function AccountPage() {
 
             <section style={css('display: grid; gap: 10px')}>
               <h2 style={css('margin: 0')}>{at('account.purchases')}</h2>
-              <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
+              <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>
                 {at('account.purchasesLead')}
               </p>
               {account.data.orders.length === 0 ? (
-                <p style={css('margin: 0; padding: 16px; border-radius: 14px; border: 1px dashed #DAD7D0; background: #FBFAF7; color: #5B636B')}>
+                <p style={css('margin: 0; padding: 16px; border-radius: 14px; border: 1px dashed var(--mkt-border-strong); background: var(--mkt-bg); color: var(--mkt-muted)')}>
                   {at('account.noPurchasesPrefix')}<Link href="/browse">{at('account.noPurchasesBrowse')}</Link>{at('account.noPurchasesOr')}<Link href="/auctions">{at('account.noPurchasesAuctions')}</Link>.
                 </p>
               ) : (
@@ -291,7 +291,7 @@ export default function AccountPage() {
                     return (
                       <li
                         key={order.orderReference}
-                        style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 16px 18px; display: grid; gap: 10px')}
+                        style={css('background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 16px; padding: 16px 18px; display: grid; gap: 10px; color: var(--mkt-text)')}
                       >
                         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: start')}>
                           <div style={css('display: grid; gap: 4px; min-width: 0')}>
@@ -300,21 +300,21 @@ export default function AccountPage() {
                             </span>
                             <Link
                               href={productPath({ listingReference: order.listingReference })}
-                              style={css("font-family: 'Schibsted Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: #15191E")}
+                              style={css("font-family: 'Schibsted Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: var(--mkt-text)")}
                             >
                               {title}
                             </Link>
-                            <span style={css('color: #5B636B; font-size: 14px')}>
+                            <span style={css('color: var(--mkt-muted); font-size: 14px')}>
                               {fmtMinor(order.winningPriceMinor)} · {paymentStateLabel(order.paymentState)}
                             </span>
-                            <span style={css('color: #5B636B; font-size: 13px')}>{new Date(order.createdAt).toLocaleString()}</span>
+                            <span style={css('color: var(--mkt-muted); font-size: 13px')}>{new Date(order.createdAt).toLocaleString()}</span>
                           </div>
                           <Link
                             href={`/account/orders/${encodeURIComponent(order.orderReference)}`}
                             style={css(
                               needsPay
                                 ? 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; white-space: nowrap'
-                                : 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #DAD7D0; background: #FFFFFF; color: #15191E; font-weight: 700; white-space: nowrap',
+                                : 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--mkt-border-strong); background: var(--mkt-surface); color: var(--mkt-text); font-weight: 700; white-space: nowrap',
                             )}
                           >
                             {needsPay ? at('account.enterDelivery') : at('account.viewOrder')}
@@ -337,12 +337,12 @@ export default function AccountPage() {
                     const listingReference = bidListingByAuctionId[bid.lotReference];
                     const bidHref = listingReference ? productPath({ listingReference }) : '/auctions';
                     return (
-                      <li key={`${bid.lotReference}-${bid.sequence}`} style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 12px; padding: 12px 14px')}>
+                      <li key={`${bid.lotReference}-${bid.sequence}`} style={css('background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 12px 14px; color: var(--mkt-text)')}>
                         <Link href={bidHref} style={css('font-weight: 700')}>
                           {listingReference ? at('account.openListing') : at('account.liveAuction')}
                         </Link>
                         {' · '}{fmtMinor(bid.amountMinor)}{' · '}bid #{bid.sequence}
-                        <div style={css('color: #5B636B; font-size: 13px; margin-top: 4px')}>{new Date(bid.acceptedAt).toLocaleString()}</div>
+                        <div style={css('color: var(--mkt-muted); font-size: 13px; margin-top: 4px')}>{new Date(bid.acceptedAt).toLocaleString()}</div>
                       </li>
                     );
                   })}

@@ -20,6 +20,8 @@ import { apiFetch } from '../../lib/api';
 import { css } from '../../lib/css';
 import { fmtMinor } from '../../lib/format';
 import { useSession } from '../../lib/session';
+import { useUiLocale } from '../../lib/UiLocaleProvider';
+import { methodLabel } from '../../lib/uiMessages';
 import { useAsync } from '../../lib/useAsync';
 import { GhostButton, PageHeader, Panel, StateBlock } from './ui';
 
@@ -51,19 +53,6 @@ const CHART = {
   slate: '#5B636B',
   mist: '#AEB5B0',
   cream: '#F6EEDC',
-};
-
-const METHOD_LABEL: Record<string, string> = {
-  auction: 'Auction',
-  fixed_price: 'Fixed price',
-  enquiry: 'Enquiry',
-};
-
-const AUDIENCE_LABEL: Record<string, string> = {
-  men: 'Men',
-  women: 'Women',
-  unisex: 'Unisex',
-  all: 'All',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -149,6 +138,7 @@ type DashboardBundle = {
 /** Overview with live inventory / auction / finance charts from admin APIs. */
 export default function AdminOverviewPage() {
   const { user, capabilities } = useSession();
+  const { t, lang } = useUiLocale();
   const canFinance = capabilities.includes('finance.view');
   const canAuctions = capabilities.includes('auctions.manage');
   const canContent = capabilities.includes('content.manage');
@@ -180,15 +170,22 @@ export default function AdminOverviewPage() {
     if (!data) return null;
 
     const statusBars = [
-      { name: 'Published', value: data.publishedTotal, fill: STATUS_COLORS.published },
-      { name: 'Draft', value: data.draftTotal, fill: STATUS_COLORS.draft },
-      { name: 'Archived', value: data.archivedTotal, fill: STATUS_COLORS.archived },
+      { name: t('admin.overview.chartPublished'), value: data.publishedTotal, fill: STATUS_COLORS.published },
+      { name: t('admin.overview.chartDraft'), value: data.draftTotal, fill: STATUS_COLORS.draft },
+      { name: t('admin.overview.chartArchived'), value: data.archivedTotal, fill: STATUS_COLORS.archived },
     ];
 
-    const methods = countBy(data.published.map((row) => METHOD_LABEL[row.listingMethod] ?? row.listingMethod));
-    const audiences = countBy(
-      data.published.map((row) => AUDIENCE_LABEL[row.audience ?? ''] ?? (row.audience ? String(row.audience) : 'Unset')),
-    );
+    const audienceName = (audience: string | null | undefined) => {
+      if (!audience) return t('admin.overview.chartUnset');
+      if (audience === 'men') return t('common.men');
+      if (audience === 'women') return t('common.women');
+      if (audience === 'unisex') return t('common.unisex');
+      if (audience === 'all') return t('common.all');
+      return audience;
+    };
+
+    const methods = countBy(data.published.map((row) => methodLabel(lang, row.listingMethod)));
+    const audiences = countBy(data.published.map((row) => audienceName(row.audience)));
     const auctionStatus = countBy(data.auctions.map((row) => row.status));
     const enquiryStatus = countBy(data.enquiries.map((row) => row.status || 'open'));
     const trend = publishedTrend(data.published);
@@ -197,8 +194,8 @@ export default function AdminOverviewPage() {
     const paidOrders = Math.max(0, (data.finance?.orderCount ?? 0) - awaiting);
     const financeBars = data.finance
       ? [
-          { name: 'Paid', value: paidOrders, fill: STATUS_COLORS.paid },
-          { name: 'Awaiting', value: awaiting, fill: STATUS_COLORS.awaiting },
+          { name: t('admin.overview.chartPaid'), value: paidOrders, fill: STATUS_COLORS.paid },
+          { name: t('admin.overview.chartAwaiting'), value: awaiting, fill: STATUS_COLORS.awaiting },
         ]
       : [];
 
@@ -217,18 +214,18 @@ export default function AdminOverviewPage() {
       bidVolume,
       inventoryTotal: data.publishedTotal + data.draftTotal + data.archivedTotal,
     };
-  }, [dash.data]);
+  }, [dash.data, lang, t]);
 
   const pieColors = [CHART.gold, CHART.terracotta, CHART.amber, CHART.dark, CHART.green, CHART.mist];
 
   return (
     <div style={css('display: flex; flex-direction: column; gap: 18px')}>
       <PageHeader
-        title="Administration"
-        subtitle={`Signed in as ${user?.fullName ?? '—'}. Live catalogue metrics from the server.`}
+        title={t('admin.overview.title')}
+        subtitle={t('admin.overview.subtitle', { name: user?.fullName ?? '—' })}
         actions={
           <GhostButton type="button" onClick={() => dash.reload()} disabled={dash.loading}>
-            {dash.loading ? 'Refreshing…' : 'Refresh charts'}
+            {dash.loading ? t('admin.overview.refreshing') : t('admin.overview.refresh')}
           </GhostButton>
         }
       />
@@ -237,22 +234,22 @@ export default function AdminOverviewPage() {
         {charts && dash.data ? (
           <>
             <div style={css('display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px')}>
-              <StatCard label="Published" value={String(dash.data.publishedTotal)} hint="Live on the public site" />
-              <StatCard label="Drafts" value={String(dash.data.draftTotal)} hint="Not yet published" />
-              <StatCard label="Live auctions" value={String(charts.liveAuctions)} hint={`${dash.data.auctionsTotal} lots total`} />
+              <StatCard label={t('admin.overview.statPublished')} value={String(dash.data.publishedTotal)} hint={t('admin.overview.statPublishedHint')} />
+              <StatCard label={t('admin.overview.statDrafts')} value={String(dash.data.draftTotal)} hint={t('admin.overview.statDraftsHint')} />
+              <StatCard label={t('admin.overview.statLiveAuctions')} value={String(charts.liveAuctions)} hint={t('admin.overview.statLotsTotal', { count: dash.data.auctionsTotal })} />
               {dash.data.finance ? (
                 <StatCard
-                  label="Collected"
+                  label={t('admin.overview.statCollected')}
                   value={fmtMinor(dash.data.finance.collectedRevenueMinor)}
-                  hint={`${dash.data.finance.orderCount} orders`}
+                  hint={t('admin.overview.statOrders', { count: dash.data.finance.orderCount })}
                 />
               ) : (
-                <StatCard label="Inventory" value={String(charts.inventoryTotal)} hint="All listing statuses" />
+                <StatCard label={t('admin.overview.statInventory')} value={String(charts.inventoryTotal)} hint={t('admin.overview.statInventoryHint')} />
               )}
             </div>
 
             <div style={css('display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px')}>
-              <Panel title="Listings by status">
+              <Panel title={t('admin.overview.chartListingsByStatus')}>
                 <div style={css('width: 100%; height: 280px')}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={charts.statusBars} barSize={36} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -260,7 +257,7 @@ export default function AdminOverviewPage() {
                       <XAxis dataKey="name" tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <YAxis allowDecimals={false} tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(154,107,18,0.06)' }} />
-                      <Bar dataKey="value" name="Listings" radius={[8, 8, 0, 0]}>
+                      <Bar dataKey="value" name={t('admin.overview.chartListings')} radius={[8, 8, 0, 0]}>
                         {charts.statusBars.map((entry) => (
                           <Cell key={entry.name} fill={entry.fill} />
                         ))}
@@ -270,10 +267,10 @@ export default function AdminOverviewPage() {
                 </div>
               </Panel>
 
-              <Panel title="Published methods">
+              <Panel title={t('admin.overview.chartPublishedMethods')}>
                 <div style={css('width: 100%; height: 280px')}>
                   {charts.methods.length === 0 ? (
-                    <p className="adm-hint">No published listings yet.</p>
+                    <p className="adm-hint">{t('admin.overview.noPublishedListings')}</p>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -290,10 +287,10 @@ export default function AdminOverviewPage() {
                 </div>
               </Panel>
 
-              <Panel title="Audience mix">
+              <Panel title={t('admin.overview.chartAudienceMix')}>
                 <div style={css('width: 100%; height: 280px')}>
                   {charts.audiences.length === 0 ? (
-                    <p className="adm-hint">No audience data on published listings.</p>
+                    <p className="adm-hint">{t('admin.overview.noAudienceData')}</p>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -311,10 +308,10 @@ export default function AdminOverviewPage() {
               </Panel>
 
               {canAuctions ? (
-                <Panel title="Auctions by status">
+                <Panel title={t('admin.overview.chartAuctionsByStatus')}>
                   <div style={css('width: 100%; height: 280px')}>
                     {charts.auctionStatus.length === 0 ? (
-                      <p className="adm-hint">No auction lots yet.</p>
+                      <p className="adm-hint">{t('admin.overview.noAuctionLots')}</p>
                     ) : (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={charts.auctionStatus} layout="vertical" margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
@@ -322,7 +319,7 @@ export default function AdminOverviewPage() {
                           <XAxis type="number" allowDecimals={false} tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                           <YAxis type="category" dataKey="name" width={88} tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                           <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(154,107,18,0.06)' }} />
-                          <Bar dataKey="value" name="Lots" radius={[0, 8, 8, 0]} barSize={18}>
+                          <Bar dataKey="value" name={t('admin.overview.chartLots')} radius={[0, 8, 8, 0]} barSize={18}>
                             {charts.auctionStatus.map((entry) => (
                               <Cell key={entry.name} fill={STATUS_COLORS[entry.name] ?? CHART.gold} />
                             ))}
@@ -332,13 +329,13 @@ export default function AdminOverviewPage() {
                     )}
                   </div>
                   <p className="adm-hint" style={css('margin-top: 4px')}>
-                    {charts.bidVolume} accepted bids across loaded lots
+                    {t('admin.overview.bidVolume', { count: charts.bidVolume })}
                   </p>
                 </Panel>
               ) : null}
 
               {canFinance && charts.financeBars.length > 0 ? (
-                <Panel title="Orders — paid vs awaiting">
+                <Panel title={t('admin.overview.chartOrdersPaid')}>
                   <div style={css('width: 100%; height: 280px')}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={charts.financeBars} barSize={42} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -346,7 +343,7 @@ export default function AdminOverviewPage() {
                         <XAxis dataKey="name" tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                         <YAxis allowDecimals={false} tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                         <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(154,107,18,0.06)' }} />
-                        <Bar dataKey="value" name="Orders" radius={[8, 8, 0, 0]}>
+                        <Bar dataKey="value" name={t('admin.overview.chartOrders')} radius={[8, 8, 0, 0]}>
                           {charts.financeBars.map((entry) => (
                             <Cell key={entry.name} fill={entry.fill} />
                           ))}
@@ -357,7 +354,7 @@ export default function AdminOverviewPage() {
                 </Panel>
               ) : null}
 
-              <Panel title="Published this week">
+              <Panel title={t('admin.overview.chartPublishedWeek')}>
                 <div style={css('width: 100%; height: 280px')}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={charts.trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -371,17 +368,17 @@ export default function AdminOverviewPage() {
                       <XAxis dataKey="day" tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <YAxis allowDecimals={false} tick={{ fill: '#5B636B', fontSize: 12 }} axisLine={false} tickLine={false} />
                       <Tooltip content={<ChartTooltip />} />
-                      <Area type="monotone" dataKey="listings" name="Published" stroke={CHART.gold} strokeWidth={2.5} fill="url(#admPublishFill)" />
+                      <Area type="monotone" dataKey="listings" name={t('admin.overview.chartPublished')} stroke={CHART.gold} strokeWidth={2.5} fill="url(#admPublishFill)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </Panel>
 
               {canContent ? (
-                <Panel title="Enquiries">
+                <Panel title={t('admin.overview.chartEnquiries')}>
                   <div style={css('width: 100%; height: 280px')}>
                     {charts.enquiryStatus.length === 0 ? (
-                      <p className="adm-hint">No enquiries yet.</p>
+                      <p className="adm-hint">{t('admin.overview.noEnquiries')}</p>
                     ) : (
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>

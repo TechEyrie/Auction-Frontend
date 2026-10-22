@@ -8,13 +8,14 @@ import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
 import { useAsync } from '../../../lib/useAsync';
 import { pageWindow } from '../../../lib/admin';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
+import { methodLabel } from '../../../lib/uiMessages';
 import {
-  AUDIENCE_LABEL,
   LISTING_METHODS,
-  METHOD_LABEL,
   type AdminListing,
   type ListingMethod,
   type ListingStatus,
+  localizedText,
 } from '../../../lib/listings';
 import {
   Badge,
@@ -56,7 +57,17 @@ function apiMessage(err: unknown): string {
 }
 
 export default function AdminListingsPage() {
+  const { t, lang } = useUiLocale();
   const session = useSession();
+
+  const audienceChrome = (audience: string | null | undefined) => {
+    if (!audience) return '—';
+    if (audience === 'men') return t('common.men');
+    if (audience === 'women') return t('common.women');
+    if (audience === 'unisex') return t('common.unisex');
+    if (audience === 'all') return t('common.all');
+    return audience;
+  };
   const mayManage = session.capabilities.includes('inventory.manage');
 
   const [status, setStatus] = useState('');
@@ -179,7 +190,7 @@ export default function AdminListingsPage() {
     if (!deleteTarget) return;
     const reason = deleteReason.trim();
     if (reason.length < 3) {
-      setError('Delete needs a written reason (at least 3 characters).');
+      setError(t('admin.products.deleteReasonRequired'));
       return;
     }
     setBusy(true);
@@ -207,24 +218,24 @@ export default function AdminListingsPage() {
   return (
     <div style={css('display: flex; flex-direction: column; gap: 16px')}>
       <PageHeader
-        title="Products"
-        subtitle="Create and edit full products in one place — basics, copy, category details, photos, and publish."
+        title={t('admin.products.title')}
+        subtitle={t('admin.products.subtitle')}
         actions={
           mayManage ? (
             <PrimaryButton type="button" onClick={openAdd}>
-              Add product
+              {t('admin.products.add')}
             </PrimaryButton>
           ) : undefined
         }
       />
 
       <Panel
-        title="Inventory"
+        title={t('admin.products.inventory')}
         actions={
           <>
-            <Badge tone="neutral">{list.data ? `${list.data.total} total` : '…'}</Badge>
+            <Badge tone="neutral">{list.data ? t('admin.common.total', { count: list.data.total }) : '…'}</Badge>
             <GhostButton onClick={() => list.reload()} disabled={list.loading}>
-              Reload
+              {t('admin.common.reload')}
             </GhostButton>
           </>
         }
@@ -245,28 +256,28 @@ export default function AdminListingsPage() {
           }}
         >
           <div className="adm-filter">
-            <Label htmlFor="l-search">Search</Label>
+            <Label htmlFor="l-search">{t('admin.field.search')}</Label>
             <input
               id="l-search"
               className="field"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Reference or title"
+              placeholder={t('admin.products.searchPlaceholder')}
             />
           </div>
           <div className="adm-filter">
-            <Label htmlFor="l-status">Status</Label>
+            <Label htmlFor="l-status">{t('admin.field.status')}</Label>
             <select id="l-status" className="field" value={status} onChange={(event) => setStatus(event.target.value)}>
-              <option value="">All statuses</option>
+              <option value="">{t('admin.common.allStatuses')}</option>
               <option value="draft">Draft</option>
               <option value="published">Published</option>
               <option value="archived">Archived</option>
             </select>
           </div>
           <div className="adm-filter">
-            <Label htmlFor="l-category">Category</Label>
+            <Label htmlFor="l-category">{t('admin.field.category')}</Label>
             <select id="l-category" className="field" value={categoryKey} onChange={(event) => setCategoryKey(event.target.value)}>
-              <option value="">All categories</option>
+              <option value="">{t('admin.common.allCategories')}</option>
               {categoryList.map((category) => (
                 <option key={category.key} value={category.key}>
                   {'—'.repeat(category.depth + 1)} {category.name}
@@ -275,18 +286,18 @@ export default function AdminListingsPage() {
             </select>
           </div>
           <div className="adm-filter">
-            <Label htmlFor="l-method">Type</Label>
+            <Label htmlFor="l-method">{t('admin.field.type')}</Label>
             <select id="l-method" className="field" value={methodFilter} onChange={(event) => setMethodFilter(event.target.value)}>
-              <option value="">All types</option>
+              <option value="">{t('admin.common.allTypes')}</option>
               {LISTING_METHODS.map((method) => (
                 <option key={method} value={method}>
-                  {METHOD_LABEL[method]}
+                  {methodLabel(lang, method)}
                 </option>
               ))}
             </select>
           </div>
           <div className="adm-actions">
-            <PrimaryButton>Apply filters</PrimaryButton>
+            <PrimaryButton>{t('admin.common.applyFilters')}</PrimaryButton>
             <GhostButton
               type="button"
               onClick={() => {
@@ -299,14 +310,14 @@ export default function AdminListingsPage() {
                 setPage(1);
               }}
             >
-              Clear
+              {t('admin.common.clear')}
             </GhostButton>
           </div>
         </form>
 
         {methodFilter && (
           <p className="adm-hint" style={css('margin: -8px 0 12px')}>
-            Type filter applies to the current page of results.
+            {t('admin.products.typeFilterHint')}
           </p>
         )}
 
@@ -314,20 +325,20 @@ export default function AdminListingsPage() {
           loading={list.loading}
           error={list.error}
           empty={listings.length === 0}
-          emptyText="No products match these filters."
+          emptyText={t('admin.products.empty')}
           onRetry={list.reload}
         >
-          <TableWrap label="Products">
+          <TableWrap label={t('admin.products.tableCaption')}>
             <table className="adm-table adm-table--sticky-head">
               <thead>
                 <tr>
-                  <th scope="col">Product</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">Audience</th>
-                  <th scope="col">Live</th>
-                  <th scope="col">Updated (Qatar)</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col">{t('admin.products.colProduct')}</th>
+                  <th scope="col">{t('admin.products.colStatus')}</th>
+                  <th scope="col">{t('admin.products.colType')}</th>
+                  <th scope="col">{t('admin.products.colAudience')}</th>
+                  <th scope="col">{t('admin.products.colLive')}</th>
+                  <th scope="col">{t('admin.products.colUpdated')}</th>
+                  <th scope="col">{t('admin.products.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -335,35 +346,35 @@ export default function AdminListingsPage() {
                   <tr key={listing.listingReference}>
                     <td className="wrap">
                       <span style={css('font-weight: 600')}>
-                        {listing.title.en ?? listing.title.ar ?? 'Untitled'}
+                        {localizedText(listing.title, lang, t('admin.products.untitled'))}
                       </span>
-                      <div className="adm-hint">Ad {listing.listingReference}</div>
+                      <div className="adm-hint">{t('admin.common.adRef', { ref: listing.listingReference })}</div>
                     </td>
                     <td>
                       <Badge tone={STATUS_TONE[listing.status]}>{listing.status}</Badge>
                       {listing.moderation.state !== 'ok' && <Badge tone="bad">{listing.moderation.state}</Badge>}
                     </td>
-                    <td>{METHOD_LABEL[listing.listingMethod]}</td>
-                    <td>{listing.audience ? AUDIENCE_LABEL[listing.audience] : '—'}</td>
+                    <td>{methodLabel(lang, listing.listingMethod)}</td>
+                    <td>{audienceChrome(listing.audience)}</td>
                     <td>
-                      {listing.liveLotReference ? <Badge tone="good">Live auction</Badge> : '—'}
+                      {listing.liveLotReference ? <Badge tone="good">{t('admin.products.liveAuction')}</Badge> : '—'}
                     </td>
                     <td>{fmtBusinessDateTime(listing.updatedAt)}</td>
                     <td>
                       <div className="adm-row-actions">
                         {mayManage && (
                           <button type="button" className="adm-link-btn" onClick={() => openEdit(listing.listingReference)}>
-                            Edit
+                            {t('admin.common.edit')}
                           </button>
                         )}
                         {listing.listingMethod === 'auction' && listing.liveLotReference && (
                           <Link href={`/admin/auctions?listing=${encodeURIComponent(listing.listingReference)}`} style={css('font-weight: 600; font-size: 14px')}>
-                            View bids
+                            {t('admin.products.viewBids')}
                           </Link>
                         )}
                         {mayManage && listing.status !== 'published' && listing.status !== 'archived' && (
                           <button type="button" className="adm-link-btn" disabled={busy} onClick={() => void publish(listing)}>
-                            Publish
+                            {t('admin.common.publish')}
                           </button>
                         )}
                         {mayManage && listing.moderation.state !== 'blocked' && (
@@ -376,7 +387,7 @@ export default function AdminListingsPage() {
                               setError(null);
                             }}
                           >
-                            Duplicate as unsold
+                            {t('admin.products.duplicateUnsold')}
                           </button>
                         )}
                         {mayManage && listing.status !== 'archived' && (
@@ -390,7 +401,7 @@ export default function AdminListingsPage() {
                               setError(null);
                             }}
                           >
-                            Delete product
+                            {t('admin.products.deleteProduct')}
                           </button>
                         )}
                       </div>
@@ -401,13 +412,13 @@ export default function AdminListingsPage() {
             </table>
           </TableWrap>
 
-          <nav className="adm-pager" aria-label="Pagination">
+          <nav className="adm-pager" aria-label={t('admin.common.pagination')}>
             <span>
-              Page {list.data?.page ?? 1} of {list.data?.totalPages ?? 1} · {list.data?.total ?? 0} products
+              {t('admin.products.pageOf', { page: list.data?.page ?? 1, totalPages: list.data?.totalPages ?? 1, total: list.data?.total ?? 0 })}
             </span>
             <div className="adm-pages">
               <GhostButton disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
-                ← Previous
+                {t('admin.common.previous')}
               </GhostButton>
               {pages.map((number) => (
                 <button
@@ -420,7 +431,7 @@ export default function AdminListingsPage() {
                 </button>
               ))}
               <GhostButton disabled={page >= (list.data?.totalPages ?? 1)} onClick={() => setPage((value) => value + 1)}>
-                Next →
+                {t('admin.common.next')}
               </GhostButton>
             </div>
           </nav>
@@ -440,16 +451,20 @@ export default function AdminListingsPage() {
         onSaved={(listing) => {
           setEditorMode('edit');
           setEditorRef(listing.listingReference);
-          setNotice(`Saved ${listing.title.en ?? listing.title.ar ?? listing.listingReference}.`);
+          setNotice(
+            t('admin.products.saved', {
+              name: localizedText(listing.title, lang, listing.listingReference),
+            }),
+          );
           list.reload();
         }}
         onDeleted={(listingRef) => {
           setEditorOpen(false);
-          setNotice(`Deleted ${listingRef}.`);
+          setNotice(t('admin.products.deleted', { ref: listingRef }));
           list.reload();
         }}
         onDuplicated={(listing) => {
-          setNotice(`Duplicated as new draft ${listing.listingReference}. The original is unchanged.`);
+          setNotice(t('admin.products.duplicated', { ref: listing.listingReference }));
           setEditorMode('edit');
           setEditorRef(listing.listingReference);
           setEditorOpen(true);
@@ -460,48 +475,47 @@ export default function AdminListingsPage() {
       <Modal
         open={duplicateTarget !== null}
         onClose={() => !busy && setDuplicateTarget(null)}
-        title="Duplicate as unsold"
-        subtitle={duplicateTarget ? `Ad ${duplicateTarget.listingReference}` : undefined}
+        title={t('admin.products.duplicateTitle')}
+        subtitle={duplicateTarget ? t('admin.common.adRef', { ref: duplicateTarget.listingReference }) : undefined}
         size="sm"
         footer={
           <>
-            <GhostButton type="button" disabled={busy} onClick={() => setDuplicateTarget(null)}>Cancel</GhostButton>
+            <GhostButton type="button" disabled={busy} onClick={() => setDuplicateTarget(null)}>{t('admin.common.cancel')}</GhostButton>
             <PrimaryButton type="button" disabled={busy} onClick={() => void confirmDuplicate()}>
-              Duplicate
+              {t('admin.common.duplicate')}
             </PrimaryButton>
           </>
         }
       >
         <p style={css('margin: 0; line-height: 1.5')}>
-          This creates a new draft copy with fresh reference and photos. Availability is reset to unsold.
-          The original product, its sale history, auctions and orders stay exactly as they are.
+          {t('admin.products.duplicateBody')}
         </p>
       </Modal>
 
       <Modal
         open={deleteTarget !== null}
         onClose={() => !busy && setDeleteTarget(null)}
-        title="Delete product"
-        subtitle={deleteTarget ? `Ad ${deleteTarget.listingReference}` : undefined}
+        title={t('admin.products.deleteTitle')}
+        subtitle={deleteTarget ? t('admin.common.adRef', { ref: deleteTarget.listingReference }) : undefined}
         size="sm"
         footer={
           <>
-            <GhostButton type="button" disabled={busy} onClick={() => setDeleteTarget(null)}>Cancel</GhostButton>
+            <GhostButton type="button" disabled={busy} onClick={() => setDeleteTarget(null)}>{t('admin.common.cancel')}</GhostButton>
             <PrimaryButton type="button" disabled={busy} onClick={() => void confirmDelete({ preventDefault: () => {} } as FormEvent)}>
-              Delete
+              {t('admin.common.delete')}
             </PrimaryButton>
           </>
         }
       >
         <form onSubmit={(event) => void confirmDelete(event)}>
-          <Label htmlFor="delete-reason">Reason</Label>
+          <Label htmlFor="delete-reason">{t('admin.products.deleteReason')}</Label>
           <textarea
             id="delete-reason"
             className="field"
             rows={3}
             value={deleteReason}
             onChange={(event) => setDeleteReason(event.target.value)}
-            placeholder="Why is this product being removed?"
+            placeholder={t('admin.products.deletePlaceholder')}
           />
         </form>
       </Modal>

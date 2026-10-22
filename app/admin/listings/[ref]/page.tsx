@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../../lib/api';
 import { css } from '../../../../lib/css';
 import { useSession } from '../../../../lib/session';
+import { useUiLocale } from '../../../../lib/UiLocaleProvider';
+import { conditionLabel, methodLabel } from '../../../../lib/uiMessages';
 import { formatBytes } from '../../../../lib/admin';
 import {
   firstListingErrorPath,
@@ -30,9 +32,7 @@ import {
   coverAfterChange,
   initialSaveTrack,
   incompatibleAttributeKeys,
-  LANGUAGE_MODE_LABEL,
   LISTING_METHODS,
-  METHOD_LABEL,
   localizedProblems,
   markDirty,
   mediaPayload,
@@ -50,6 +50,7 @@ import {
   type ListingMethod,
   type LocalizedText,
   type Reconciliation,
+  localizedText,
 } from '../../../../lib/listings';
 import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Panel, PrimaryButton, StateBlock, TableWrap, Toggle } from '../../ui';
 import '../listings.css';
@@ -94,14 +95,6 @@ type FormState = {
 
 const STEPS = ['basics', 'content', 'attributes', 'media', 'review'] as const;
 type Step = (typeof STEPS)[number];
-const STEP_LABEL: Record<Step, string> = {
-  basics: 'Basics',
-  content: 'The ad',
-  attributes: 'Details',
-  media: 'Photos',
-  review: 'Publish',
-};
-
 function scrollToFirstListingError(
   fieldErrors: Record<string, string>,
   onSection: (section: NonNullable<ReturnType<typeof firstListingErrorSection>>) => void,
@@ -168,6 +161,7 @@ function payloadOf(form: FormState, fields: AttributeField[]): Record<string, un
  * preview of a listing that does not exist, and no button claims success the API did not confirm.
  */
 export default function AdminListingWizardPage() {
+  const { t, lang } = useUiLocale();
   const params = useParams<{ ref: string }>();
   const ref = typeof params?.ref === 'string' ? params.ref : '';
   const session = useSession();
@@ -501,9 +495,9 @@ export default function AdminListingWizardPage() {
 
   if (loading) {
     return (
-      <Panel title="Listing">
+      <Panel title={t('admin.wizard.listing')}>
         <p role="status" className="adm-state" data-state="loading">
-          Loading…
+          {t('admin.common.loading')}
         </p>
       </Panel>
     );
@@ -511,15 +505,15 @@ export default function AdminListingWizardPage() {
 
   if (loadError || !listing || !form) {
     return (
-      <Panel title="Listing">
+      <Panel title={t('admin.wizard.listing')}>
         <div role="alert" className="adm-state" data-state="error">
-          <p style={css('margin: 0 0 10px; font-weight: 600')}>{loadError ?? 'This listing could not be loaded.'}</p>
+          <p style={css('margin: 0 0 10px; font-weight: 600')}>{loadError ?? t('admin.wizard.loadFailed')}</p>
           <div className="adm-actions">
             <PrimaryButton type="button" onClick={() => void load()}>
-              Retry
+              {t('admin.common.retry')}
             </PrimaryButton>
             <Link href="/admin/listings" style={css('font-weight: 600')}>
-              Back to listings
+              {t('admin.wizard.backToListings')}
             </Link>
           </div>
         </div>
@@ -530,11 +524,14 @@ export default function AdminListingWizardPage() {
   const statusTone = listing.status === 'published' ? 'good' : listing.status === 'archived' ? 'warn' : 'neutral';
   void sellers; // seller picker commented out; state/fetch kept for easy restore
 
+  const adminLanguageModeLabel =
+    form.languageMode === 'en' ? t('admin.wizard.langEnOnly') : form.languageMode === 'ar' ? t('admin.wizard.langArOnly') : t('admin.wizard.langBoth');
+
   return (
     <div className="lw-wizard" style={css('display: flex; flex-direction: column; gap: 16px')}>
       <Panel
-        title={listing.title.en ?? listing.title.ar ?? 'Untitled draft'}
-        subtitle={`${listing.publicUrl} · ${LANGUAGE_MODE_LABEL[form.languageMode]} · ${METHOD_LABEL[form.listingMethod]}`}
+        title={localizedText(listing.title, lang, t('admin.wizard.untitledDraft'))}
+        subtitle={`${listing.publicUrl} · ${adminLanguageModeLabel} · ${methodLabel(lang, form.listingMethod)}`}
         actions={
           <>
             <Badge tone={statusTone}>{listing.status}</Badge>
@@ -542,7 +539,7 @@ export default function AdminListingWizardPage() {
               {saveStatusText(track)}
             </Badge>
             <Link href="/admin/listings" style={css('font-weight: 600; font-size: 14px')}>
-              All listings
+              {t('admin.wizard.allListings')}
             </Link>
           </>
         }
@@ -571,46 +568,46 @@ export default function AdminListingWizardPage() {
         )}
         {schemaChanged && (
           <p className="adm-note" data-tone="bad" style={css('margin-bottom: 14px')}>
-            This category&apos;s attribute schema changed since the listing was last saved. Save the attributes
-            step to revalidate against version {schema?.version === 0 ? 'the current version' : `${schema?.version ?? '—'}`} before publishing.
+            {t('admin.wizard.schemaChanged', {
+              version: schema?.version === 0 ? t('admin.wizard.schemaCurrent') : String(schema?.version ?? '—'),
+            })}
           </p>
         )}
 
         {track.status === 'conflict' && (
           <div role="alert" className="adm-state" data-state="error" style={css('margin-bottom: 14px')}>
             <p style={css('margin: 0 0 10px; font-weight: 600')}>
-              {track.message ?? 'This listing changed elsewhere.'}
+              {track.message ?? t('admin.wizard.conflictDefault')}
             </p>
             <GhostButton
               onClick={() => {
-                void load().then(() => setNotice('Reloaded the server version. Local unsaved edits were discarded.'));
+                void load().then(() => setNotice(t('admin.wizard.reloadedNotice')));
               }}
             >
-              Reload server version
+              {t('admin.wizard.reloadServer')}
             </GhostButton>
           </div>
         )}
 
         {pendingCategory && (
-          <div role="alertdialog" aria-label="Confirm category change" className="adm-state" data-state="error" style={css('margin-bottom: 14px')}>
+          <div role="alertdialog" aria-label={t('admin.wizard.confirmCategoryAria')} className="adm-state" data-state="error" style={css('margin-bottom: 14px')}>
             <p style={css('margin: 0 0 6px; font-weight: 600')}>
-              Switching to {pendingCategory.key} will clear {pendingCategory.dropped.length} value
-              {pendingCategory.dropped.length === 1 ? '' : 's'} that this category does not define.
+              {t('admin.wizard.categorySwitchLead', { key: pendingCategory.key, count: pendingCategory.dropped.length })}
             </p>
             <p style={css('margin: 0 0 10px')}>{pendingCategory.dropped.join(', ')}</p>
             <div className="adm-actions">
               <PrimaryButton type="button" onClick={applyPendingCategory}>
-                Change category and clear them
+                {t('admin.wizard.categorySwitchConfirm')}
               </PrimaryButton>
-              <GhostButton onClick={() => setPendingCategory(null)}>Keep the current category</GhostButton>
+              <GhostButton onClick={() => setPendingCategory(null)}>{t('admin.wizard.categorySwitchCancel')}</GhostButton>
             </div>
           </div>
         )}
 
-        <nav aria-label="Wizard steps" className="lw-steps">
+        <nav aria-label={t('admin.wizard.stepsAria')} className="lw-steps">
           {STEPS.map((entry) => (
             <button key={entry} type="button" aria-current={step === entry ? 'step' : undefined} onClick={() => setStep(entry)} className="lw-step">
-              {STEP_LABEL[entry]}
+              {t(`admin.wizard.step.${entry}`)}
             </button>
           ))}
         </nav>
@@ -643,20 +640,20 @@ export default function AdminListingWizardPage() {
               </div>
               */}
               <div>
-                <Label htmlFor="w-category">Category</Label>
+                <Label htmlFor="w-category">{t('admin.field.category')}</Label>
                 <select id="w-category" className="field" value={form.categoryKey} disabled={!mayManage} onChange={(event) => void chooseCategory(event.target.value)}>
                   {(categories.length === 0 ? [{ key: form.categoryKey, name: form.categoryKey, parentKey: null, depth: 0, listingMethods: [] }] : categories).map((entry) => (
                     <option key={entry.key} value={entry.key}>
                       {'—'.repeat(entry.depth + 1)} {entry.name}
-                      {entry.active === false ? ' (archived)' : ''}
+                      {entry.active === false ? ` ${t('admin.wizard.archivedCat')}` : ''}
                     </option>
                   ))}
                 </select>
-                <Hint>Attributes and location rules follow the category. Changing it revalidates stored values.</Hint>
+                <Hint>{t('admin.wizard.hint.category')}</Hint>
                 <FieldError>{inlineFieldError('categoryKey')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="w-audience">Audience</Label>
+                <Label htmlFor="w-audience">{t('admin.field.audience')}</Label>
                 <select
                   id="w-audience"
                   className="field"
@@ -664,18 +661,18 @@ export default function AdminListingWizardPage() {
                   disabled={!mayManage}
                   onChange={(event) => setForm({ ...form, audience: event.target.value as Audience | '' })}
                 >
-                  <option value="">Choose Men, Women or Unisex…</option>
+                  <option value="">{t('admin.wizard.chooseAudience')}</option>
                   {AUDIENCES.map((entry) => (
                     <option key={entry} value={entry}>
                       {AUDIENCE_LABEL[entry]}
                     </option>
                   ))}
                 </select>
-                <Hint>Required before publish. This is the primary shopper filter, not a category.</Hint>
+                <Hint>{t('admin.wizard.hint.audience')}</Hint>
                 <FieldError>{inlineFieldError('audience')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="w-method">Listing method</Label>
+                <Label htmlFor="w-method">{t('admin.field.listingMethod')}</Label>
                 <select
                   id="w-method"
                   className="field"
@@ -696,16 +693,16 @@ export default function AdminListingWizardPage() {
                 >
                   {(category?.listingMethods.length ? category.listingMethods : LISTING_METHODS).map((method) => (
                     <option key={method} value={method}>
-                      {METHOD_LABEL[method]}
+                      {methodLabel(lang, method)}
                     </option>
                   ))}
                 </select>
-                <Hint>A published listing is not a live auction: the auction engine arrives in the next phase.</Hint>
+                <Hint>{t('admin.wizard.hint.auctionMethod')}</Hint>
                 <FieldError>{inlineFieldError('listingMethod')}</FieldError>
               </div>
               {form.listingMethod === 'fixed_price' ? (
                 <div>
-                  <Label htmlFor="w-price">Price (QAR)</Label>
+                  <Label htmlFor="w-price">{t('admin.field.priceQar')}</Label>
                   <input
                     id="w-price"
                     className="field"
@@ -720,19 +717,16 @@ export default function AdminListingWizardPage() {
                 </div>
               ) : null}
               <div>
-                <Label htmlFor="w-language">Advertisement language</Label>
+                <Label htmlFor="w-language">{t('admin.field.adLanguage')}</Label>
                 <select id="w-language" className="field" value={form.languageMode} disabled={!mayManage} onChange={(event) => setForm({ ...form, languageMode: event.target.value as LanguageMode })}>
-                  <option value="en">English only</option>
-                  <option value="ar">Arabic only</option>
-                  <option value="both">English and Arabic</option>
+                  <option value="en">{t('admin.wizard.langEnOnly')}</option>
+                  <option value="ar">{t('admin.wizard.langArOnly')}</option>
+                  <option value="both">{t('admin.wizard.langBoth')}</option>
                 </select>
-                <Hint>
-                  This is the language of the advertisement itself, not a translation of this interface. Publication
-                  requires the content the selected mode promises.
-                </Hint>
+<Hint>{t('admin.wizard.hint.adLanguage')}</Hint>
               </div>
               <div>
-                <Label htmlFor="w-condition">Condition</Label>
+                <Label htmlFor="w-condition">{t('admin.field.condition')}</Label>
                 <select
                   id="w-condition"
                   className="field"
@@ -749,18 +743,18 @@ export default function AdminListingWizardPage() {
                     setForm({ ...form, condition, attributes });
                   }}
                 >
-                  <option value="">Not stated</option>
+                  <option value="">{t('admin.wizard.notStated')}</option>
                   {conditionOptionsFor(form.listingMethod).map((condition) => (
                     <option key={condition} value={condition}>
-                      {condition}
+                      {conditionLabel(lang, condition)}
                     </option>
                   ))}
                 </select>
-                <Hint>Also fills Category details → Condition (refurbished maps to Used).</Hint>
+                <Hint>{t('admin.wizard.hint.condition')}</Hint>
                 <FieldError>{inlineFieldError('condition')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="w-location">Location</Label>
+                <Label htmlFor="w-location">{t('admin.field.location')}</Label>
                 <select
                   id="w-location"
                   className="field"
@@ -768,29 +762,29 @@ export default function AdminListingWizardPage() {
                   disabled={!mayManage}
                   onChange={(event) => setForm({ ...form, locationKey: event.target.value || null })}
                 >
-                  <option value="">No public location</option>
+                  <option value="">{t('admin.wizard.noPublicLocation')}</option>
                   {locations.map((location) => (
                     <option key={location.key} value={location.key}>
                       {location.label?.trim() || location.labels?.en?.trim() || location.key}
-                      {location.active === false ? ' (inactive)' : ''}
+                      {location.active === false ? ` ${t('admin.wizard.inactiveLoc')}` : ''}
                     </option>
                   ))}
                 </select>
-                <Hint>The location&apos;s own precision policy decides what the public page shows.</Hint>
+                <Hint>{t('admin.wizard.hint.location')}</Hint>
                 <FieldError>{inlineFieldError('locationKey')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="w-featured">Featured</Label>
+                <Label htmlFor="w-featured">{t('admin.wizard.featuredLabel')}</Label>
                 <Toggle
                   id="w-featured"
-                  label="Show in featured sections"
+                  label={t('admin.wizard.featuredToggle')}
                   checked={form.featured}
                   onChange={(next) => setForm({ ...form, featured: next })}
                 />
-                <Hint>Featured placement is a staff decision; the public featured sections read it directly.</Hint>
+                <Hint>{t('admin.wizard.hint.featured')}</Hint>
               </div>
               <div>
-                <Label htmlFor="w-notes">Private staff notes</Label>
+                <Label htmlFor="w-notes">{t('admin.wizard.privateStaffNotes')}</Label>
                 <textarea
                   id="w-notes"
                   className="field"
@@ -799,16 +793,16 @@ export default function AdminListingWizardPage() {
                   disabled={!mayManage}
                   onChange={(event) => setForm({ ...form, adminNotes: event.target.value })}
                 />
-                <Hint>Never published: this field is stripped from every public and customer response.</Hint>
+                <Hint>{t('admin.wizard.hint.privateNotes')}</Hint>
               </div>
             </div>
             <div className="lw-wizard-actions">
               <PrimaryButton type="button" onClick={() => setStep('content')}>
-                Continue to content
+                {t('admin.wizard.continueContent')}
               </PrimaryButton>
               {mayManage && (
                 <GhostButton disabled={busy || track.status === 'saving'} onClick={() => void save()}>
-                  Save now
+                  {t('admin.wizard.saveNow')}
                 </GhostButton>
               )}
             </div>
@@ -818,14 +812,14 @@ export default function AdminListingWizardPage() {
         {step === 'content' && (
           <div className="adm-form lw-step-panel" data-listing-section="content">
             <p className="lw-address">
-              Public address <strong>/product/{(form.title.en ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'listing'}</strong>
+              {t('admin.wizard.publicAddress')} <strong>/product/{(form.title.en ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'listing'}</strong>
             </p>
             <div className="lw-content-grid">
             {requiredLocales(form.languageMode).map((locale) => (
               <div key={locale} className="lw-locale">
-                <h3 className="lw-locale-title">{locale === 'en' ? 'English advertisement' : 'Arabic advertisement'}</h3>
+                <h3 className="lw-locale-title">{locale === 'en' ? t('admin.wizard.adLocaleEn') : t('admin.wizard.adLocaleAr')}</h3>
                 <div>
-                  <Label htmlFor={`title-${locale}`}>Title ({locale})</Label>
+                  <Label htmlFor={`title-${locale}`}>{t('admin.wizard.titleLocale', { locale })}</Label>
                   <input
                     id={`title-${locale}`}
                     className="field"
@@ -838,7 +832,7 @@ export default function AdminListingWizardPage() {
                   <FieldError>{inlineFieldError(`title.${locale}`)}</FieldError>
                 </div>
                 <div>
-                  <Label htmlFor={`description-${locale}`}>Description ({locale})</Label>
+                  <Label htmlFor={`description-${locale}`}>{t('admin.wizard.descLocale', { locale })}</Label>
                   <textarea
                     id={`description-${locale}`}
                     className="field"
@@ -855,10 +849,7 @@ export default function AdminListingWizardPage() {
             ))}
             </div>
             {form.languageMode !== 'both' && (
-              <Hint>
-                This advertisement is {LANGUAGE_MODE_LABEL[form.languageMode].toLowerCase()}. The other language can be
-                filled in later; publishing only checks the languages the advertisement promises.
-              </Hint>
+              <Hint>{t('admin.wizard.langModeHint', { mode: adminLanguageModeLabel })}</Hint>
             )}
             {problems.length > 0 && (
               <ul className="lw-list">
@@ -869,12 +860,12 @@ export default function AdminListingWizardPage() {
             )}
             <div className="lw-wizard-actions">
               <PrimaryButton type="button" onClick={() => setStep('attributes')}>
-                Continue to attributes
+                {t('admin.wizard.continueAttributes')}
               </PrimaryButton>
-              <GhostButton onClick={() => setStep('basics')}>Back</GhostButton>
+              <GhostButton onClick={() => setStep('basics')}>{t('admin.wizard.back')}</GhostButton>
               {mayManage && (
                 <GhostButton disabled={busy || track.status === 'saving'} onClick={() => void save()}>
-                  Save now
+                  {t('admin.wizard.saveNow')}
                 </GhostButton>
               )}
             </div>
@@ -884,12 +875,9 @@ export default function AdminListingWizardPage() {
         {step === 'attributes' && (
           <div className="adm-form lw-step-panel" data-listing-section="attributes">
             {!schema && (
-              <p className="adm-state">
-                {form.categoryKey} has no published attribute schema, so this listing carries no structured attributes.
-                Nothing invented here is stored.
-              </p>
+              <p className="adm-state">{t('admin.wizard.noSchema', { category: form.categoryKey })}</p>
             )}
-            {schema && visible.length === 0 && <p className="adm-state">This schema defines no visible fields.</p>}
+            {schema && visible.length === 0 && <p className="adm-state">{t('admin.wizard.noVisibleFields')}</p>}
             {schema && visible.length > 0 && (
               <div className="adm-grid adm-grid--2">
                 {visible.map((entry) => (
@@ -898,7 +886,7 @@ export default function AdminListingWizardPage() {
                       {entry.labelEn}
                       {entry.unit ? ` (${entry.unit})` : ''}
                       {entry.required ? ' *' : ''}
-                      {entry.adminOnly ? ' · staff only' : ''}
+                      {entry.adminOnly ? ` ${t('admin.wizard.staffOnly')}` : ''}
                     </Label>
                     {entry.type === 'select' && (
                       <select
@@ -908,7 +896,7 @@ export default function AdminListingWizardPage() {
                         disabled={!mayManage}
                         onChange={(event) => setForm({ ...form, attributes: { ...form.attributes, [entry.key]: event.target.value || null } })}
                       >
-                        <option value="">Not set</option>
+                        <option value="">{t('admin.wizard.notSet')}</option>
                         {entry.options.map((option) => (
                           <option key={option.key} value={option.key}>
                             {option.labelEn}
@@ -919,7 +907,7 @@ export default function AdminListingWizardPage() {
                     {entry.type === 'boolean' && (
                       <Toggle
                         id={`attr-${entry.key}`}
-                        label={form.attributes[entry.key] === true ? 'Yes' : form.attributes[entry.key] === false ? 'No' : 'Not set'}
+                        label={form.attributes[entry.key] === true ? t('admin.wizard.yes') : form.attributes[entry.key] === false ? t('admin.wizard.no') : t('admin.wizard.notSet')}
                         checked={form.attributes[entry.key] === true}
                         onChange={(next) => setForm({ ...form, attributes: { ...form.attributes, [entry.key]: next } })}
                       />
@@ -963,7 +951,7 @@ export default function AdminListingWizardPage() {
                     )}
                     {entry.helpEn && <Hint>{entry.helpEn}</Hint>}
                     {entry.key === 'item_condition' ? (
-                      <Hint>When empty, Basics → Condition fills this automatically.</Hint>
+                      <Hint>{t('admin.wizard.hint.itemCondition')}</Hint>
                     ) : null}
                     <FieldError>{inlineFieldError(`attributes.${entry.key}`)}</FieldError>
                   </div>
@@ -973,18 +961,18 @@ export default function AdminListingWizardPage() {
             {missingRequired.length > 0 && (
               <ul className="lw-list">
                 {missingRequired.map((label) => (
-                  <li key={label}>{label} is required before publishing (category details).</li>
+                  <li key={label}>{t('admin.wizard.requiredBeforePublish', { label })}</li>
                 ))}
               </ul>
             )}
             <div className="lw-wizard-actions">
               <PrimaryButton type="button" onClick={() => setStep('media')}>
-                Continue to media
+                {t('admin.wizard.continueMedia')}
               </PrimaryButton>
-              <GhostButton onClick={() => setStep('content')}>Back</GhostButton>
+              <GhostButton onClick={() => setStep('content')}>{t('admin.wizard.back')}</GhostButton>
               {mayManage && (
                 <GhostButton disabled={busy || track.status === 'saving'} onClick={() => void save()}>
-                  Save attributes
+                  {t('admin.wizard.saveAttributes')}
                 </GhostButton>
               )}
             </div>
@@ -998,11 +986,8 @@ export default function AdminListingWizardPage() {
                 className={mayManage ? 'lw-upload-zone' : 'lw-upload-zone lw-upload-zone--disabled'}
                 htmlFor="w-file"
               >
-                <p className="lw-upload-zone__title">Drop an image here or click to upload</p>
-                <p className="lw-upload-zone__hint">
-                  JPEG, PNG, or WebP — one file per upload. The server verifies the file, strips metadata, and rejects
-                  anything it cannot treat as a real image.
-                </p>
+                <p className="lw-upload-zone__title">{t('admin.wizard.uploadZoneTitle')}</p>
+                <p className="lw-upload-zone__hint">{t('admin.wizard.uploadZoneHint')}</p>
                 <input
                   id="w-file"
                   type="file"
@@ -1021,22 +1006,22 @@ export default function AdminListingWizardPage() {
                   <div className="adm-progress">
                     <span style={{ display: 'block', height: '100%', width: `${progress}%`, background: '#9A6B12' }} />
                   </div>
-                  <p className="adm-hint">Uploading… {progress}%</p>
+                  <p className="adm-hint">{t('admin.wizard.uploading', { pct: progress })}</p>
                 </div>
               )}
               {assetsError && <ErrorNote>{assetsError}</ErrorNote>}
 
               <details className="lw-assets-panel">
-                <summary>Collection assets ({assets.length})</summary>
-                <TableWrap label="Collection assets">
+                <summary>{t('admin.wizard.collectionAssets', { count: assets.length })}</summary>
+                <TableWrap label={t('admin.wizard.collectionAssets', { count: assets.length })}>
                   <table className="adm-table">
-                    <caption>Every upload in this listing&apos;s collection, including the ones the server refused.</caption>
+                    <caption>{t('admin.wizard.collectionAssetsCaption')}</caption>
                     <thead>
                       <tr>
-                        <th scope="col">Asset</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Size</th>
-                        <th scope="col">In this listing</th>
+                        <th scope="col">{t('admin.wizard.colAsset')}</th>
+                        <th scope="col">{t('admin.wizard.colStatus')}</th>
+                        <th scope="col">{t('admin.wizard.colSize')}</th>
+                        <th scope="col">{t('admin.wizard.colInListing')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1057,7 +1042,7 @@ export default function AdminListingWizardPage() {
                               {asset.status === 'ready' ? (
                                 <Toggle
                                   id={`attach-${asset.assetId}`}
-                                  label="Attached"
+                                  label={t('admin.wizard.attached')}
                                   checked={attached}
                                   onChange={(next) => {
                                     if (next) {
@@ -1070,7 +1055,7 @@ export default function AdminListingWizardPage() {
                                   }}
                                 />
                               ) : (
-                                <span className="adm-hint">not available</span>
+                                <span className="adm-hint">{t('admin.wizard.notAvailable')}</span>
                               )}
                             </td>
                           </tr>
@@ -1082,7 +1067,7 @@ export default function AdminListingWizardPage() {
               </details>
 
               {form.media.length === 0 ? (
-                <p className="lw-media-empty">This listing has no images yet. Upload at least one to publish.</p>
+                <p className="lw-media-empty">{t('admin.wizard.noImagesListing')}</p>
               ) : (
                 <div className="lw-media-grid" data-testid="lw-media-grid">
                   {form.media.map((entry, index) => {
@@ -1093,17 +1078,17 @@ export default function AdminListingWizardPage() {
                           {asset?.url ? (
                             <img src={`${API_BASE_URL}${asset.url}`} alt={entry.alt.en ?? `Photo ${index + 1}`} />
                           ) : (
-                            <div className="ph">Preview unavailable</div>
+                            <div className="ph">{t('admin.wizard.previewUnavailable')}</div>
                           )}
                         </div>
                         <div className="lw-media-card__head">
                           <span className="adm-hint" style={css('font-weight: 700; color: #15191E')}>#{index + 1}</span>
-                          {form.coverAssetId === entry.assetId && <Badge tone="good">Cover</Badge>}
+                          {form.coverAssetId === entry.assetId && <Badge tone="good">{t('admin.wizard.cover')}</Badge>}
                         </div>
                         <figcaption className="lw-media-card__body">
                           <div className="lw-media-card__alts">
                             <div>
-                              <label className="lbl" htmlFor={`alt-en-${entry.assetId}`}>Alt (EN)</label>
+                              <label className="lbl" htmlFor={`alt-en-${entry.assetId}`}>{t('admin.wizard.altEn')}</label>
                               <input
                                 id={`alt-en-${entry.assetId}`}
                                 className="field"
@@ -1118,7 +1103,7 @@ export default function AdminListingWizardPage() {
                               />
                             </div>
                             <div>
-                              <label className="lbl" htmlFor={`alt-ar-${entry.assetId}`}>Alt (AR)</label>
+                              <label className="lbl" htmlFor={`alt-ar-${entry.assetId}`}>{t('admin.wizard.altAr')}</label>
                               <input
                                 id={`alt-ar-${entry.assetId}`}
                                 className="field"
@@ -1135,11 +1120,11 @@ export default function AdminListingWizardPage() {
                             </div>
                           </div>
                           <div className="lw-media-card__actions">
-                            <GhostButton title="Move earlier" disabled={index === 0 || !mayManage} onClick={() => setForm({ ...form, media: moveMedia(form.media, index, index - 1) })}>
+                            <GhostButton title={t('admin.media.moveEarlier')} disabled={index === 0 || !mayManage} onClick={() => setForm({ ...form, media: moveMedia(form.media, index, index - 1) })}>
                               ↑
                             </GhostButton>
                             <GhostButton
-                              title="Move later"
+                              title={t('admin.media.moveLater')}
                               disabled={index === form.media.length - 1 || !mayManage}
                               onClick={() => setForm({ ...form, media: moveMedia(form.media, index, index + 1) })}
                             >
@@ -1149,7 +1134,7 @@ export default function AdminListingWizardPage() {
                               disabled={form.coverAssetId === entry.assetId || !mayManage}
                               onClick={() => setForm({ ...form, coverAssetId: coverAfterChange(form.media, entry.assetId) })}
                             >
-                              Cover
+                              {t('admin.wizard.cover')}
                             </GhostButton>
                             <GhostButton
                               disabled={!mayManage}
@@ -1158,7 +1143,7 @@ export default function AdminListingWizardPage() {
                                 setForm({ ...form, media, coverAssetId: coverAfterChange(media, form.coverAssetId) });
                               }}
                             >
-                              Remove
+                              {t('admin.wizard.remove')}
                             </GhostButton>
                           </div>
                         </figcaption>
@@ -1172,12 +1157,12 @@ export default function AdminListingWizardPage() {
 
             <div className="lw-wizard-actions">
               <PrimaryButton type="button" onClick={() => setStep('review')}>
-                Continue to review
+                {t('admin.wizard.continueReview')}
               </PrimaryButton>
-              <GhostButton onClick={() => setStep('attributes')}>Back</GhostButton>
+              <GhostButton onClick={() => setStep('attributes')}>{t('admin.wizard.back')}</GhostButton>
               {mayManage && (
                 <GhostButton disabled={busy || track.status === 'saving'} onClick={() => void save()}>
-                  Save media order
+                  {t('admin.wizard.saveMediaOrder')}
                 </GhostButton>
               )}
             </div>
@@ -1188,83 +1173,80 @@ export default function AdminListingWizardPage() {
           <div className="adm-form lw-step-panel" data-listing-section="review">
             <div className="adm-grid adm-grid--2">
               <div>
-                <div className="lbl">Record</div>
+                <div className="lbl">{t('admin.wizard.record')}</div>
                 <p className="adm-hint">
-                  {listing.listingReference} · version {track.version} · {listing.status}
+                  {listing.listingReference} · {t('admin.wizard.versionLabel')} {track.version} · {listing.status}
                 </p>
               </div>
               <div>
-                <div className="lbl">Content language</div>
+                <div className="lbl">{t('admin.wizard.contentLanguage')}</div>
                 <p className="adm-hint">
-                  {LANGUAGE_MODE_LABEL[form.languageMode]} — {form.title.en ? 'English title set' : 'no English title'},{' '}
-                  {form.title.ar ? 'Arabic title set' : 'no Arabic title'}
+                  {adminLanguageModeLabel} — {form.title.en ? t('admin.wizard.enTitleSet') : t('admin.wizard.enTitleMissing')},{' '}
+                  {form.title.ar ? t('admin.wizard.arTitleSet') : t('admin.wizard.arTitleMissing')}
                 </p>
               </div>
               <div>
-                <div className="lbl">Images</div>
+                <div className="lbl">{t('admin.wizard.images')}</div>
                 <p className="adm-hint">
-                  {form.media.length} attached
-                  {form.coverAssetId ? `, cover ${form.coverAssetId}` : ', no cover'}
+                  {t('admin.wizard.imagesAttached', { count: form.media.length })}
+                  {form.coverAssetId ? t('admin.wizard.coverLine', { id: form.coverAssetId }) : t('admin.wizard.noCover')}
                 </p>
               </div>
               <div>
-                <div className="lbl">References</div>
+                <div className="lbl">{t('admin.wizard.references')}</div>
                 <p className="adm-hint">
-                  category {form.categoryKey} ·{' '}
-                  {form.locationKey ? `location ${form.locationKey}` : 'no public location'}
+                  {t('admin.wizard.refCategory', { key: form.categoryKey })} ·{' '}
+                  {form.locationKey ? t('admin.wizard.refLocation', { key: form.locationKey }) : t('admin.wizard.noPublicLocation')}
                 </p>
               </div>
             </div>
 
             <div className="lw-checklist">
               <p className={problems.length === 0 ? 'lw-check ok' : 'lw-check bad'}>
-                {problems.length === 0 ? 'Advertisement language is complete' : problems.join(' · ')}
+                {problems.length === 0 ? t('admin.wizard.checklistLangOk') : problems.join(' · ')}
               </p>
               <p className={form.media.length > 0 ? 'lw-check ok' : 'lw-check bad'}>
-                {form.media.length > 0 ? 'At least one image attached' : 'Publication needs at least one image'}
+                {form.media.length > 0 ? t('admin.wizard.checklistImagesOk') : t('admin.wizard.checklistImagesBad')}
               </p>
               <p className={missingRequired.length === 0 ? 'lw-check ok' : 'lw-check bad'}>
                 {missingRequired.length === 0
-                  ? 'Required category details are set'
-                  : `Missing category details: ${missingRequired.join(', ')}`}
+                  ? t('admin.wizard.checklistAttrsOk')
+                  : t('admin.wizard.checklistAttrsBad', { list: missingRequired.join(', ') })}
               </p>
-              {schemaChanged && <p className="lw-check bad">The category schema changed; save the attributes step first.</p>}
-              {listing.status === 'published' && <p className="lw-check ok">Already published — public URL {listing.publicUrl}</p>}
-              {listing.status === 'archived' && <p className="lw-check bad">This listing is archived and currently invisible to the public.</p>}
+              {schemaChanged && <p className="lw-check bad">{t('admin.wizard.checklistSchemaSave')}</p>}
+              {listing.status === 'published' && <p className="lw-check ok">{t('admin.wizard.checklistPublished', { url: listing.publicUrl })}</p>}
+              {listing.status === 'archived' && <p className="lw-check bad">{t('admin.wizard.checklistArchived')}</p>}
             </div>
 
-            <Hint>
-              These checks are guidance for the operator. The server re-validates every reference, attribute and image
-              on publication, and its refusal is what counts.
-            </Hint>
+            <Hint>{t('admin.wizard.reviewHint')}</Hint>
 
             <div className="lw-wizard-actions">
               {mayManage && listing.status !== 'published' && listing.status !== 'archived' && (
                 <PrimaryButton type="button" disabled={busy || !confirmingPublish} onClick={() => void publish()}>
-                  Publish listing
+                  {t('admin.wizard.publishListing')}
                 </PrimaryButton>
               )}
               {mayManage && listing.status === 'archived' && (
                 <PrimaryButton type="button" disabled={busy || !confirmingPublish} onClick={() => void publish()}>
-                  Publish again
+                  {t('admin.wizard.publishAgain')}
                 </PrimaryButton>
               )}
               {listing.status === 'published' && (
                 <Link href={listing.publicUrl} style={css('font-weight: 600')}>
-                  View the public page →
+                  {t('admin.wizard.viewPublic')}
                 </Link>
               )}
-              <GhostButton onClick={() => setStep('media')}>Back</GhostButton>
+              <GhostButton onClick={() => setStep('media')}>{t('admin.wizard.back')}</GhostButton>
               {mayManage && (
                 <GhostButton disabled={busy || track.status === 'saving'} onClick={() => void save()}>
-                  Save draft
+                  {t('admin.wizard.saveDraft')}
                 </GhostButton>
               )}
             </div>
 
             {mayManage && listing.status !== 'published' && (
               <div style={css('padding-top: 12px; border-top: 1px solid #EEECE7; display: flex; flex-wrap: wrap; gap: 12px; align-items: center')}>
-                <Toggle id="confirm-publish" label="I reviewed the content, images and references" checked={confirmingPublish} onChange={setConfirmingPublish} />
+                <Toggle id="confirm-publish" label={t('admin.wizard.confirmPublishImages')} checked={confirmingPublish} onChange={setConfirmingPublish} />
               </div>
             )}
 
@@ -1277,68 +1259,68 @@ export default function AdminListingWizardPage() {
                 }}
               >
                 <div className="adm-filter">
-                  <Label htmlFor="w-archive">Archive reason</Label>
-                  <input id="w-archive" className="field" value={archiveReason} onChange={(event) => setArchiveReason(event.target.value)} placeholder="Why is this listing coming down?" />
+                  <Label htmlFor="w-archive">{t('admin.wizard.archiveReason')}</Label>
+                  <input id="w-archive" className="field" value={archiveReason} onChange={(event) => setArchiveReason(event.target.value)} placeholder={t('admin.wizard.archivePlaceholder')} />
                 </div>
                 <div className="adm-actions">
                   <GhostButton disabled={busy} onClick={() => void archive()}>
-                    Archive listing
+                    {t('admin.wizard.archiveListing')}
                   </GhostButton>
                 </div>
-                <Hint>Archiving removes it from public view and keeps its history. Publication can be repeated later.</Hint>
+                <Hint>{t('admin.wizard.archiveHint')}</Hint>
               </form>
             )}
           </div>
         )}
       </Panel>
 
-      <Panel title="Server state" subtitle="What the record actually says, including the fields the public never sees.">
+      <Panel title={t('admin.wizard.serverState')} subtitle={t('admin.wizard.serverStateSub')}>
         <StateBlock loading={false} error={null}>
           <dl className="adm-grid" style={css('margin: 0; font-size: 14px')}>
             <div>
-              <dt className="lbl">Status</dt>
+              <dt className="lbl">{t('admin.wizard.dtStatus')}</dt>
               <dd style={css('margin: 4px 0 0')}>{listing.status}</dd>
             </div>
             <div>
-              <dt className="lbl">Moderation</dt>
+              <dt className="lbl">{t('admin.wizard.dtModeration')}</dt>
               <dd style={css('margin: 4px 0 0')}>{listing.moderation.state}</dd>
             </div>
             <div>
-              <dt className="lbl">Attribute schema</dt>
+              <dt className="lbl">{t('admin.wizard.dtAttrSchema')}</dt>
               <dd style={css('margin: 4px 0 0')}>{listing.attributeSchemaVersion ?? '—'}</dd>
             </div>
             <div>
-              <dt className="lbl">Media collection</dt>
+              <dt className="lbl">{t('admin.wizard.dtMediaCollection')}</dt>
               <dd style={css('margin: 4px 0 0')}>{listing.mediaCollectionKey}</dd>
             </div>
             <div>
-              <dt className="lbl">Created by</dt>
+              <dt className="lbl">{t('admin.wizard.dtCreatedBy')}</dt>
               <dd style={css('margin: 4px 0 0')}>{listing.createdBy}</dd>
             </div>
             <div>
-              <dt className="lbl">Updated by</dt>
+              <dt className="lbl">{t('admin.wizard.dtUpdatedBy')}</dt>
               <dd style={css('margin: 4px 0 0')}>{listing.updatedBy ?? '—'}</dd>
             </div>
             <div>
-              <dt className="lbl">Created</dt>
+              <dt className="lbl">{t('admin.wizard.dtCreated')}</dt>
               <dd style={css('margin: 4px 0 0')}>
                 {fmtBusinessDateTime(listing.createdAt)} ({BUSINESS_TIMEZONE})
               </dd>
             </div>
             <div>
-              <dt className="lbl">Updated</dt>
+              <dt className="lbl">{t('admin.wizard.dtUpdated')}</dt>
               <dd style={css('margin: 4px 0 0')}>
                 {fmtBusinessDateTime(listing.updatedAt)} ({BUSINESS_TIMEZONE})
               </dd>
             </div>
             <div>
-              <dt className="lbl">Published</dt>
+              <dt className="lbl">{t('admin.wizard.dtPublished')}</dt>
               <dd style={css('margin: 4px 0 0')}>
                 {listing.publishedAt ? `${fmtBusinessDateTime(listing.publishedAt)} (${BUSINESS_TIMEZONE})` : '—'}
               </dd>
             </div>
             <div>
-              <dt className="lbl">Archived reason</dt>
+              <dt className="lbl">{t('admin.wizard.dtArchivedReason')}</dt>
               <dd style={css('margin: 4px 0 0')}>{listing.archivedReason ?? '—'}</dd>
             </div>
           </dl>

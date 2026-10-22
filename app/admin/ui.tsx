@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { css } from '../../lib/css';
+import { useUiLocale } from '../../lib/UiLocaleProvider';
 
 /**
  * Shared, brand-matched building blocks for the administration screens.
@@ -128,11 +129,11 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 20px')}>
+    <section style={css('background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 16px; padding: 20px')}>
       <div style={css('display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 16px')}>
         <div style={css('min-width: 0')}>
           <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 20px; font-weight: 700")}>{title}</h2>
-          {subtitle && <p style={css('margin: 6px 0 0; color: #5B636B; font-size: 15px')}>{subtitle}</p>}
+          {subtitle && <p style={css('margin: 6px 0 0; color: var(--mkt-muted); font-size: 15px')}>{subtitle}</p>}
         </div>
         {actions && <div style={css('display: flex; flex-wrap: wrap; gap: 8px')}>{actions}</div>}
       </div>
@@ -146,7 +147,7 @@ export function StateBlock({
   loading,
   error,
   empty,
-  emptyText = 'Nothing to show yet.',
+  emptyText,
   onRetry,
   children,
 }: {
@@ -157,10 +158,13 @@ export function StateBlock({
   onRetry?: () => void;
   children: ReactNode;
 }) {
+  const { t } = useUiLocale();
+  const resolvedEmpty = emptyText ?? t('admin.common.emptyDefault');
+
   if (loading) {
     return (
       <p role="status" className="adm-state" data-state="loading">
-        Loading…
+        {t('admin.common.loading')}
       </p>
     );
   }
@@ -169,8 +173,8 @@ export function StateBlock({
       <div role="alert" className="adm-state" data-state="error">
         <p style={css('margin: 0 0 10px; font-weight: 600')}>{error}</p>
         {onRetry && (
-          <button type="button" className="btn-primary" onClick={onRetry} style={css('height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-            Retry
+          <button type="button" className="btn-primary" onClick={onRetry} style={css('height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--mkt-gold); color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+            {t('admin.common.retry')}
           </button>
         )}
       </div>
@@ -179,7 +183,7 @@ export function StateBlock({
   if (empty) {
     return (
       <p className="adm-state" data-state="empty">
-        {emptyText}
+        {resolvedEmpty}
       </p>
     );
   }
@@ -244,7 +248,7 @@ export function PrimaryButton({
       onClick={onClick}
       disabled={disabled}
       className="btn-primary"
-      style={css('height: 46px; padding: 0 18px; border: 0; border-radius: 11px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}
+      style={css('height: 46px; padding: 0 18px; border: 0; border-radius: 11px; background: var(--mkt-gold); color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}
     >
       {children}
     </button>
@@ -271,7 +275,7 @@ export function GhostButton({
       disabled={disabled}
       title={title}
       className="btn-ghost"
-      style={css('height: 42px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; color: #15191E; font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}
+      style={css('height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer')}
     >
       {children}
     </button>

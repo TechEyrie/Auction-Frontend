@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { apiFetch, ApiRequestError } from '../../../lib/api';
 import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import { useAsync } from '../../../lib/useAsync';
 import {
   ATTRIBUTE_TYPES,
@@ -73,6 +74,7 @@ function fieldErrorsOf(err: unknown): Record<string, string> {
  * equals …" and nothing more, because the backend has no expression language to evaluate.
  */
 export default function AdminAttributesPage() {
+  const { t } = useUiLocale();
   const session = useSession();
   const mayEdit = session.capabilities.includes('inventory.manage');
 
@@ -136,15 +138,15 @@ export default function AdminAttributesPage() {
   return (
     <div style={css('display: flex; flex-direction: column; gap: 20px')}>
       <Panel
-        title="Category attributes"
-        subtitle="Versioned schemas. Publishing a draft makes it the current version and archives the previous one, which stays readable."
+        title={t('admin.attributes.title')}
+        subtitle={t('admin.attributes.subtitle')}
       >
         <ErrorNote>{error}</ErrorNote>
         {notice && <p className="adm-note" data-tone="good" style={css('margin-bottom: 14px')}>{notice}</p>}
 
         <div className="adm-filters">
           <div className="adm-filter">
-            <Label htmlFor="attr-category">Category</Label>
+            <Label htmlFor="attr-category">{t('admin.attributes.filterCategory')}</Label>
             <StateBlock loading={categories.loading} error={categories.error} onRetry={categories.reload}>
               <select
                 id="attr-category"
@@ -157,7 +159,7 @@ export default function AdminAttributesPage() {
                   setValidation(null);
                 }}
               >
-                <option value="">Choose a category…</option>
+                <option value="">{t('admin.attributes.chooseCategory')}</option>
                 {(categories.data?.categories ?? []).map((category) => (
                   <option key={category.key} value={category.key}>
                     {'— '.repeat(category.depth)}
@@ -177,7 +179,7 @@ export default function AdminAttributesPage() {
                   setNotice('New draft started. Add fields, then save it.');
                 }}
               >
-                New draft version
+                {t('admin.attributes.newDraft')}
               </GhostButton>
             </div>
           )}
@@ -185,21 +187,21 @@ export default function AdminAttributesPage() {
 
         {!categoryKey ? (
           <p className="adm-state" data-state="empty">
-            Choose a category to see its schema versions.
+            {t('admin.attributes.chooseCategoryEmpty')}
           </p>
         ) : (
-          <StateBlock loading={versions.loading} error={versions.error} empty={schemas.length === 0} emptyText="This category has no schema yet. Create a draft to define its fields." onRetry={versions.reload}>
-            <TableWrap label="Schema versions">
+          <StateBlock loading={versions.loading} error={versions.error} empty={schemas.length === 0} emptyText={t('admin.attributes.emptySchema')} onRetry={versions.reload}>
+            <TableWrap label={t('admin.attributes.versionsTable')}>
               <table className="adm-table">
-                <caption>{schemas.length} version(s)</caption>
+                <caption>{t('admin.attributes.versionCaption', { count: schemas.length })}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Version</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Fields</th>
-                    <th scope="col">Published by</th>
-                    <th scope="col">Updated</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">{t('admin.attributes.colVersion')}</th>
+                    <th scope="col">{t('admin.common.colStatus')}</th>
+                    <th scope="col">{t('admin.attributes.colFields')}</th>
+                    <th scope="col">{t('admin.attributes.colPublishedBy')}</th>
+                    <th scope="col">{t('admin.attributes.colUpdated')}</th>
+                    <th scope="col">{t('admin.common.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -226,7 +228,7 @@ export default function AdminAttributesPage() {
                                 }}
                                 style={css('border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: #9A6B12; cursor: pointer')}
                               >
-                                Edit draft
+                                {t('admin.attributes.editDraft')}
                               </button>
                               <button
                                 type="button"
@@ -234,7 +236,7 @@ export default function AdminAttributesPage() {
                                 onClick={() => void call(`/api/admin/attribute-schemas/${schema._id}/publish`, 'POST', {}, `v${schema.version} published as the current version.`)}
                                 style={css('border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: #9A6B12; cursor: pointer')}
                               >
-                                Publish
+                                {t('admin.common.publish')}
                               </button>
                             </>
                           )}
@@ -248,7 +250,7 @@ export default function AdminAttributesPage() {
                             }}
                             style={css('border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: #9A6B12; cursor: pointer')}
                           >
-                            View fields
+                            {t('admin.attributes.viewFields')}
                           </button>
                         </div>
                       </td>
@@ -263,8 +265,8 @@ export default function AdminAttributesPage() {
 
       {rows.length > 0 && (
         <Panel
-          title={draftId ? 'Edit draft fields' : 'Field preview'}
-          subtitle={draftId ? 'Saving keeps this version a draft; nothing is live until you publish.' : 'This version is not editable. Start a new draft to change the fields.'}
+          title={draftId ? t('admin.attributes.editDraft') : t('admin.attributes.fieldPreview')}
+          subtitle={draftId ? t('admin.attributes.draftSubtitle') : t('admin.attributes.readonlySubtitle')}
           actions={
             mayEdit && draftId ? (
               <PrimaryButton
@@ -278,14 +280,14 @@ export default function AdminAttributesPage() {
                   }
                 }}
               >
-                {busy ? 'Saving…' : 'Save draft'}
+                {busy ? t('admin.common.saving') : t('admin.attributes.saveDraft')}
               </PrimaryButton>
             ) : undefined
           }
         >
           {mayEdit && draftId && (
             <div style={css('margin-bottom: 14px')}>
-              <Label htmlFor="draft-notes">Editor notes</Label>
+              <Label htmlFor="draft-notes">{t('admin.attributes.draftNotes')}</Label>
               <input id="draft-notes" className="field" value={draftNotes} onChange={(event) => setDraftNotes(event.target.value)} />
             </div>
           )}
@@ -305,7 +307,7 @@ export default function AdminAttributesPage() {
           </div>
           {mayEdit && draftId && (
             <div className="adm-actions" style={css('margin-top: 14px')}>
-              <GhostButton onClick={() => setRows((current) => [...current, { ...EMPTY_FIELD_ROW }])}>Add field</GhostButton>
+              <GhostButton onClick={() => setRows((current) => [...current, { ...EMPTY_FIELD_ROW }])}>{t('admin.attributes.addField')}</GhostButton>
             </div>
           )}
         </Panel>
@@ -313,21 +315,21 @@ export default function AdminAttributesPage() {
 
       {current && (
         <Panel
-          title="Validate values"
-          subtitle={`Check a value set against v${current.version} before it reaches a listing. This is the same validator the server uses.`}
+          title={t('admin.attributes.validateAudience')}
+          subtitle={t('admin.attributes.validateSubtitle', { version: current.version })}
         >
           <div className="adm-grid">
             <div>
-              <Label htmlFor="validate-audience">Audience</Label>
+              <Label htmlFor="validate-audience">{t('admin.attributes.audienceFilter')}</Label>
               <select id="validate-audience" className="field" value={audience} onChange={(event) => setAudience(event.target.value as 'public' | 'admin')}>
                 <option value="public">public</option>
                 <option value="admin">admin</option>
               </select>
-              <Hint>Public validation strips admin-only fields, so a public form cannot even see them.</Hint>
+              <Hint>{t('admin.attributes.validateHint')}</Hint>
             </div>
           </div>
           <div style={css('margin-top: 14px')}>
-            <Label htmlFor="validate-values">Values (JSON)</Label>
+            <Label htmlFor="validate-values">{t('admin.attributes.valuesJson')}</Label>
             <textarea
               id="validate-values"
               className="field"
@@ -360,7 +362,7 @@ export default function AdminAttributesPage() {
                 });
               }}
             >
-              {busy ? 'Validating…' : 'Validate'}
+              {busy ? t('admin.attributes.validating') : t('admin.attributes.validateBtn')}
             </PrimaryButton>
           </div>
           {validation && (
@@ -384,7 +386,7 @@ export default function AdminAttributesPage() {
 
       {!mayEdit && (
         <p className="adm-state" data-state="empty">
-          Your account can view schemas but not edit them.
+          {t('admin.attributes.viewOnly')}
         </p>
       )}
     </div>
@@ -408,6 +410,7 @@ function FieldRow({
   onRemove: () => void;
   onMove: (to: number) => void;
 }) {
+  const { t } = useUiLocale();
   const usesOptions = TYPES_WITH_OPTIONS.includes(row.type);
   const usesConstraints = TYPES_WITH_CONSTRAINTS.includes(row.type);
   const canDepend = isDependable(row.type);
@@ -416,31 +419,31 @@ function FieldRow({
   return (
     <div className="adm-fieldrow">
       <div className="adm-fieldrow-head">
-        <strong style={css('font-size: 15px')}>{row.key || `Field ${index + 1}`}</strong>
+        <strong style={css('font-size: 15px')}>{row.key || t('admin.attributes.fieldRow', { n: index + 1 })}</strong>
         <div className="adm-actions">
-          <GhostButton onClick={() => onMove(index - 1)} disabled={readOnly || index === 0} title="Move up">
+          <GhostButton onClick={() => onMove(index - 1)} disabled={readOnly || index === 0} title={t('admin.attributes.moveUp')}>
             ↑
           </GhostButton>
-          <GhostButton onClick={() => onMove(index + 1)} disabled={readOnly || index === count - 1} title="Move down">
+          <GhostButton onClick={() => onMove(index + 1)} disabled={readOnly || index === count - 1} title={t('admin.attributes.moveDown')}>
             ↓
           </GhostButton>
           <GhostButton onClick={onRemove} disabled={readOnly}>
-            Remove
+            {t('admin.common.remove')}
           </GhostButton>
         </div>
       </div>
 
       <div className="adm-grid">
         <div>
-          <Label htmlFor={id('key')}>Key</Label>
+          <Label htmlFor={id('key')}>{t('admin.attributes.fieldKey')}</Label>
           <input id={id('key')} className="field" value={row.key} disabled={readOnly} onChange={(event) => onChange({ ...row, key: event.target.value })} placeholder="model_name" />
         </div>
         <div>
-          <Label htmlFor={id('label')}>English label</Label>
+          <Label htmlFor={id('label')}>{t('admin.attributes.fieldLabelEn')}</Label>
           <input id={id('label')} className="field" value={row.labelEn} disabled={readOnly} onChange={(event) => onChange({ ...row, labelEn: event.target.value })} />
         </div>
         <div>
-          <Label htmlFor={id('type')}>Type</Label>
+          <Label htmlFor={id('type')}>{t('admin.attributes.fieldType')}</Label>
           <select
             id={id('type')}
             className="field"
@@ -456,23 +459,23 @@ function FieldRow({
           </select>
         </div>
         <div>
-          <Label htmlFor={id('unit')}>Unit</Label>
+          <Label htmlFor={id('unit')}>{t('admin.attributes.fieldUnit')}</Label>
           <input id={id('unit')} className="field" value={row.unit} disabled={readOnly} onChange={(event) => onChange({ ...row, unit: event.target.value })} placeholder="km" />
         </div>
       </div>
 
       <div className="adm-toggles">
-        <Toggle id={id('required')} label="Required" checked={row.required} onChange={(next) => !readOnly && onChange({ ...row, required: next })} />
-        <Toggle id={id('filterable')} label="Filterable" checked={row.filterable} onChange={(next) => !readOnly && onChange({ ...row, filterable: next })} />
-        <Toggle id={id('public')} label="Public display" checked={row.publicDisplay} onChange={(next) => !readOnly && onChange({ ...row, publicDisplay: next })} />
-        <Toggle id={id('admin')} label="Admin only" checked={row.adminOnly} onChange={(next) => !readOnly && onChange({ ...row, adminOnly: next })} />
+        <Toggle id={id('required')} label={t('admin.attributes.required')} checked={row.required} onChange={(next) => !readOnly && onChange({ ...row, required: next })} />
+        <Toggle id={id('filterable')} label={t('admin.attributes.filterable')} checked={row.filterable} onChange={(next) => !readOnly && onChange({ ...row, filterable: next })} />
+        <Toggle id={id('public')} label={t('admin.attributes.publicDisplay')} checked={row.publicDisplay} onChange={(next) => !readOnly && onChange({ ...row, publicDisplay: next })} />
+        <Toggle id={id('admin')} label={t('admin.attributes.adminOnly')} checked={row.adminOnly} onChange={(next) => !readOnly && onChange({ ...row, adminOnly: next })} />
       </div>
 
       {usesOptions && (
         <div>
-          <Label htmlFor={id('options')}>Options (one per line, as `key: Label`)</Label>
+          <Label htmlFor={id('options')}>{t('admin.attributes.fieldOptions')}</Label>
           <textarea id={id('options')} className="field" rows={4} value={row.optionsText} disabled={readOnly} onChange={(event) => onChange({ ...row, optionsText: event.target.value })} />
-          <Hint>A key is lowercase letters, digits, dashes or underscores.</Hint>
+          <Hint>{t('admin.attributes.optionsKeyHint')}</Hint>
         </div>
       )}
 
@@ -481,26 +484,26 @@ function FieldRow({
           {row.type === 'number' ? (
             <>
               <div>
-                <Label htmlFor={id('min')}>Minimum</Label>
+                <Label htmlFor={id('min')}>{t('admin.attributes.min')}</Label>
                 <input id={id('min')} className="field" value={row.min} disabled={readOnly} onChange={(event) => onChange({ ...row, min: event.target.value })} />
               </div>
               <div>
-                <Label htmlFor={id('max')}>Maximum</Label>
+                <Label htmlFor={id('max')}>{t('admin.attributes.max')}</Label>
                 <input id={id('max')} className="field" value={row.max} disabled={readOnly} onChange={(event) => onChange({ ...row, max: event.target.value })} />
               </div>
             </>
           ) : (
             <>
               <div>
-                <Label htmlFor={id('minlength')}>Minimum length</Label>
+                <Label htmlFor={id('minlength')}>{t('admin.attributes.minLength')}</Label>
                 <input id={id('minlength')} className="field" value={row.minLength} disabled={readOnly} onChange={(event) => onChange({ ...row, minLength: event.target.value })} />
               </div>
               <div>
-                <Label htmlFor={id('maxlength')}>Maximum length</Label>
+                <Label htmlFor={id('maxlength')}>{t('admin.attributes.maxLength')}</Label>
                 <input id={id('maxlength')} className="field" value={row.maxLength} disabled={readOnly} onChange={(event) => onChange({ ...row, maxLength: event.target.value })} />
               </div>
               <div>
-                <Label htmlFor={id('pattern')}>Pattern</Label>
+                <Label htmlFor={id('pattern')}>{t('admin.attributes.pattern')}</Label>
                 <input id={id('pattern')} className="field" value={row.pattern} disabled={readOnly} onChange={(event) => onChange({ ...row, pattern: event.target.value })} placeholder="^[0-9]+$" />
               </div>
             </>
@@ -511,22 +514,22 @@ function FieldRow({
       {canDepend && (
         <div className="adm-grid">
           <div>
-            <Label htmlFor={id('dep-field')}>Show when field</Label>
+            <Label htmlFor={id('dep-field')}>{t('admin.attributes.depField')}</Label>
             <input id={id('dep-field')} className="field" value={row.dependsOnField} disabled={readOnly} onChange={(event) => onChange({ ...row, dependsOnField: event.target.value })} placeholder="condition" />
           </div>
           <div>
-            <Label htmlFor={id('dep-equals')}>Equals</Label>
+            <Label htmlFor={id('dep-equals')}>{t('admin.attributes.depEquals')}</Label>
             <input id={id('dep-equals')} className="field" value={row.dependsOnEquals} disabled={readOnly} onChange={(event) => onChange({ ...row, dependsOnEquals: event.target.value })} placeholder="used" />
           </div>
           <div>
-            <Label htmlFor={id('dep-in')}>Or is one of (comma separated)</Label>
+            <Label htmlFor={id('dep-in')}>{t('admin.attributes.depIn')}</Label>
             <input id={id('dep-in')} className="field" value={row.dependsOnIn} disabled={readOnly} onChange={(event) => onChange({ ...row, dependsOnIn: event.target.value })} />
-            <Hint>Declarative only — dependencies cannot contain expressions.</Hint>
+            <Hint>{t('admin.attributes.depOnlySelect')}</Hint>
           </div>
         </div>
       )}
       {!canDepend && row.dependsOnField && (
-        <FieldError>Only select, multiselect and boolean fields can drive a dependency.</FieldError>
+        <FieldError>{t('admin.attributes.depOnlySelect')}</FieldError>
       )}
     </div>
   );

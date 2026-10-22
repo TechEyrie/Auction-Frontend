@@ -2,12 +2,12 @@
   position: fixed;
   inset: 0;
   z-index: 85;
-  background: #fbfaf7;
+  background: var(--mkt-bg);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   font-family: Figtree, system-ui, sans-serif;
-  color: #15191e;
+  color: var(--mkt-text);
 }
 
 .header-search-overlay__top {
@@ -15,8 +15,8 @@
   align-items: center;
   gap: 10px;
   padding: 12px clamp(16px, 3vw, 24px);
-  border-bottom: 1px solid #e6e4df;
-  background: #ffffff;
+  border-bottom: 1px solid var(--mkt-border);
+  background:var(--mkt-surface);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -32,17 +32,17 @@
   border: 0;
   border-radius: 12px;
   background: transparent;
-  color: #15191e;
+  color: var(--mkt-text);
   cursor: pointer;
   padding: 0;
 }
 
 .header-search-overlay__back:hover {
-  background: #f3f1ec;
+  background: var(--mkt-surface-2);
 }
 
 .header-search-overlay__back:focus-visible {
-  outline: 2px solid #9a6b12;
+  outline: 2px solid var(--mkt-gold);
   outline-offset: 2px;
 }
 
@@ -61,9 +61,9 @@
   gap: 10px;
   height: 48px;
   padding: 0 14px;
-  border: 1px solid #dad7d0;
+  border: 1px solid var(--mkt-border-strong);
   border-radius: 999px;
-  background: #fbfaf7;
+  background: var(--mkt-bg);
 }
 
 .header-search-overlay__field svg {
@@ -78,7 +78,7 @@
   background: transparent;
   font: inherit;
   font-size: 16px;
-  color: #15191e;
+  color: var(--mkt-text);
   outline: none;
   box-shadow: none;
 }
@@ -104,18 +104,18 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #5b636b;
+  color: var(--mkt-muted);
   cursor: pointer;
   padding: 0;
 }
 
 .header-search-overlay__submit:hover {
-  color: #9a6b12;
-  background: #f6eedc;
+  color: var(--mkt-gold);
+  background: var(--mkt-gold-soft);
 }
 
 .header-search-overlay__submit:focus-visible {
-  outline: 2px solid #9a6b12;
+  outline: 2px solid var(--mkt-gold);
   outline-offset: 2px;
 }
 
@@ -137,7 +137,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #5b636b;
+  color: var(--mkt-muted);
 }
 
 .header-search-overlay__chips {
@@ -151,9 +151,9 @@
   align-items: center;
   padding: 12px 20px;
   border-radius: 999px;
-  border: 1px solid #e6e4df;
-  background: #ffffff;
-  color: #2a3036;
+  border: 1px solid var(--mkt-border);
+  background:var(--mkt-surface);
+  color: var(--mkt-text-2);
   font-size: 16px;
   font-weight: 600;
   text-decoration: none;
@@ -162,12 +162,12 @@
 }
 
 .header-search-overlay__chip:hover {
-  border-color: #9a6b12;
-  color: #7d5610;
+  border-color: var(--mkt-gold);
+  color: var(--mkt-gold-deep);
 }
 
 .header-search-overlay__chip:focus-visible {
-  outline: 2px solid #9a6b12;
+  outline: 2px solid var(--mkt-gold);
   outline-offset: 2px;
 }
 
@@ -186,7 +186,7 @@
   padding: 20px 12px;
   border: 0;
   background: transparent;
-  color: #15191e;
+  color: var(--mkt-text);
   font: inherit;
   font-size: 16px;
   font-weight: 600;
@@ -196,12 +196,12 @@
 }
 
 .header-search-overlay__tile:hover .header-search-overlay__tile-icon {
-  border-color: #9a6b12;
-  background: #f6eedc;
+  border-color: var(--mkt-gold);
+  background: var(--mkt-gold-soft);
 }
 
 .header-search-overlay__tile:focus-visible {
-  outline: 2px solid #9a6b12;
+  outline: 2px solid var(--mkt-gold);
   outline-offset: 4px;
   border-radius: 12px;
 }
@@ -210,8 +210,8 @@
   width: 96px;
   height: 96px;
   border-radius: 22px;
-  border: 1px solid #e6e4df;
-  background: #ffffff;
+  border: 1px solid var(--mkt-border);
+  background:var(--mkt-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,7 +237,7 @@
 .header-search-overlay__hint {
   margin: 0;
   font-size: 14px;
-  color: #5b636b;
+  color: var(--mkt-muted);
 }
 
 .site-header__drawer-search {
@@ -248,10 +248,10 @@
   margin: 0 0 12px;
   padding: 0 14px;
   height: 48px;
-  border: 1px solid #e6e4df;
+  border: 1px solid var(--mkt-border);
   border-radius: 12px;
-  background: #fbfaf7;
-  color: #5b636b;
+  background: var(--mkt-bg);
+  color: var(--mkt-muted);
   font: inherit;
   font-size: 15px;
   font-weight: 500;
@@ -260,12 +260,12 @@
 }
 
 .site-header__drawer-search:hover {
-  border-color: #9a6b12;
-  color: #15191e;
+  border-color: var(--mkt-gold);
+  color: var(--mkt-text);
 }
 
 .site-header__drawer-search:focus-visible {
-  outline: 2px solid #9a6b12;
+  outline: 2px solid var(--mkt-gold);
   outline-offset: 2px;
 }
 

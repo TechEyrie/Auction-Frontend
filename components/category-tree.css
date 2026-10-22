@@ -37,17 +37,17 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #9a6b12;
+  color: var(--mkt-gold);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
 .category-tree__expand:hover {
-  background: #f6eedc;
+  background: var(--mkt-gold-soft);
 }
 
 .category-tree__expand:focus-visible {
-  outline: 2px solid #9a6b12;
+  outline: 2px solid var(--mkt-gold);
   outline-offset: 2px;
 }
 
@@ -71,7 +71,7 @@
   border-radius: 10px;
   border-left: 3px solid transparent;
   background: transparent;
-  color: #2a3036;
+  color: var(--mkt-text-2);
   font: inherit;
   text-align: start;
   text-decoration: none;
@@ -82,19 +82,19 @@
 }
 
 .category-tree__row:hover {
-  background: #f3f1ec;
+  background: var(--mkt-surface-2);
 }
 
 .category-tree__row--root {
   font-size: 15px;
   font-weight: 700;
-  color: #15191e;
+  color: var(--mkt-text);
 }
 
 .category-tree__row--root.category-tree__row--selected {
-  border-left-color: #9a6b12;
-  background: #f6eedc;
-  color: #7d5610;
+  border-left-color: var(--mkt-gold);
+  background: var(--mkt-gold-soft);
+  color: var(--mkt-gold-deep);
 }
 
 .category-tree__row--all {
@@ -103,8 +103,8 @@
 }
 
 .category-tree__row--all.category-tree__row--selected {
-  background: #f6eedc;
-  color: #7d5610;
+  background: var(--mkt-gold-soft);
+  color: var(--mkt-gold-deep);
   font-weight: 700;
 }
 
@@ -122,7 +122,7 @@
   top: 4px;
   bottom: 8px;
   width: 1px;
-  background: #e6e4df;
+  background: var(--mkt-border);
   border-radius: 1px;
 }
 
@@ -137,19 +137,19 @@
   top: 50%;
   width: 10px;
   height: 1px;
-  background: #e6e4df;
+  background: var(--mkt-border);
 }
 
 .category-tree__row--child {
   font-size: 14px;
   font-weight: 500;
-  color: #5b636b;
+  color: var(--mkt-muted);
   min-height: 36px;
 }
 
 .category-tree__row--child.category-tree__row--selected {
-  background: #f6eedc;
-  color: #9a6b12;
+  background: var(--mkt-gold-soft);
+  color: var(--mkt-gold);
   font-weight: 600;
 }
 
@@ -173,11 +173,11 @@
 
 .category-tree--card .category-tree__row--root:hover {
   background: transparent !important;
-  color: #9a6b12;
+  color: var(--mkt-gold);
 }
 
 .category-tree--card .category-tree__row--root.category-tree__row--selected {
-  color: #9a6b12;
+  color: var(--mkt-gold);
 }
 
 .category-tree--card .category-tree__children {

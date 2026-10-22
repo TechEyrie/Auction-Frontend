@@ -19,6 +19,7 @@ import { useUiLocale } from '../lib/UiLocaleProvider';
 import type { MessageKey } from '../lib/uiMessages';
 import { chromeTranslate, useSiteChromeBody } from '../lib/siteChrome';
 import { HeaderSearchDrawerTrigger, HeaderSearchOverlay } from './HeaderSearchOverlay';
+import { ThemeToggle } from './ThemeToggle';
 
 const ALL_QATAR_PLACE_KEY = '';
 const HEADER_FLOAT_SCROLL_THRESHOLD = 16;
@@ -934,6 +935,7 @@ export default function SiteHeader({
             </button>
             {renderLocationControl('desktop')}
             {renderLangControl('desktop')}
+            <ThemeToggle variant="desktop" />
           </div>
           <div className="site-header__actions-desktop">{desktopAccount}</div>
           <div className="site-header__actions-mobile">{authButton}</div>
@@ -971,6 +973,7 @@ export default function SiteHeader({
             <div className="site-header__drawer-utilities">
               {renderLocationControl('drawer')}
               {renderLangControl('drawer')}
+              <ThemeToggle variant="drawer" />
             </div>
             {drawerAccount ? <div className="site-header__drawer-foot">{drawerAccount}</div> : null}
           </div>

@@ -219,8 +219,8 @@ export default function SignInPage() {
     return {
       label: tab.label,
       selected: on,
-      bg: on ? '#FFFFFF' : 'transparent',
-      fg: on ? '#15191E' : '#4B535A',
+      bg: on ? 'var(--mkt-surface)' : 'transparent',
+      fg: on ? 'var(--mkt-text)' : 'var(--mkt-text-2)',
       shadow: on ? '0 1px 3px rgba(21,25,30,.14)' : 'none',
       pick: () => setMode(tab.id),
     };
@@ -269,11 +269,11 @@ export default function SignInPage() {
             </li>
           </ul>
         </section>
-        <section style={css("flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px)")}>
+        <section style={css("flex: 1 1 420px; min-width: 0; background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px); color: var(--mkt-text)")}>
           {needsEmailVerify ? (
             <Fragment>
               <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>{ct('auth.emailVerify.heading')}</h2>
-              <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>{t('email.verify.checkInbox')}</p>
+              <p style={css("margin: 0 0 20px; font-size: 15px; color: var(--mkt-muted)")}>{t('email.verify.checkInbox')}</p>
               {errorBlock}
               {notice && <p role="status" style={css("margin: 0 0 18px; padding: 12px 14px; border: 1px solid #CFE0C8; border-radius: 12px; background: #F2F8EF; color: #2F5D2A; font-size: 15px")}>{notice}</p>}
               <button
@@ -289,7 +289,7 @@ export default function SignInPage() {
           ) : loginOtpRequired ? (
             <Fragment>
             <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>{t('loginOtp.title')}</h2>
-            <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>{t('loginOtp.sent')}</p>
+            <p style={css("margin: 0 0 20px; font-size: 15px; color: var(--mkt-muted)")}>{t('loginOtp.sent')}</p>
             {errorBlock}
             {notice && <p role="status" style={css("margin: 0 0 18px; padding: 12px 14px; border: 1px solid #CFE0C8; border-radius: 12px; background: #F2F8EF; color: #2F5D2A; font-size: 15px")}>{notice}</p>}
             <form onSubmit={submitLoginOtp} style={css("display: flex; flex-direction: column; gap: 18px")}>
@@ -314,7 +314,7 @@ export default function SignInPage() {
           ) : mfaChallenge ? (
             <Fragment>
             <h2 style={css("margin: 0 0 6px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>{ct('auth.mfa.title')}</h2>
-            <p style={css("margin: 0 0 20px; font-size: 15px; color: #5B636B")}>{ct('auth.mfa.intro')}</p>
+            <p style={css("margin: 0 0 20px; font-size: 15px; color: var(--mkt-muted)")}>{ct('auth.mfa.intro')}</p>
             {errorBlock}
             {notice && <p role="status" style={css("margin: 0 0 18px; padding: 12px 14px; border: 1px solid #CFE0C8; border-radius: 12px; background: #F2F8EF; color: #2F5D2A; font-size: 15px")}>{notice}</p>}
             <form onSubmit={submitMfa} style={css("display: flex; flex-direction: column; gap: 18px")}>
@@ -338,7 +338,7 @@ export default function SignInPage() {
             </Fragment>
           ) : (
             <Fragment>
-          <div role="tablist" aria-label={ct('auth.tablistAria')} style={css("display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 5px; background: #F3F1EC; border-radius: 12px; margin-bottom: 28px")}>
+          <div role="tablist" aria-label={ct('auth.tablistAria')} style={css("display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 5px; background: var(--mkt-surface-2); border-radius: 12px; margin-bottom: 28px")}>
             {tabs.map((tab, i) => (
               <Fragment key={i}>
               <button type="button" role="tab" aria-selected={tab.selected} onClick={tab.pick} style={css(`height: 44px; border: 0; border-radius: 9px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; background: ${tab.bg}; color: ${tab.fg}; box-shadow: ${tab.shadow}`)}>{tab.label}</button>
@@ -433,7 +433,7 @@ export default function SignInPage() {
             </form>
             </Fragment>
           )}
-          <p style={css("margin: 24px 0 0; text-align: center; font-size: 15px; color: #5B636B")}>
+          <p style={css("margin: 24px 0 0; text-align: center; font-size: 15px; color: var(--mkt-muted)")}>
             {switchQ}{' '}
             <button type="button" onClick={switchMode} style={css("border: 0; background: transparent; padding: 4px; color: #9A6B12; font: inherit; font-weight: 700; cursor: pointer")}>{switchA}</button>
           </p>

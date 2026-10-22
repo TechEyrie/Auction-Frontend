@@ -217,10 +217,10 @@ export default function LocalInfoBar() {
   }, []);
 
   return (
-    <section aria-label={t('info.ariaLabel')} className="local-info-bar" style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
+    <section aria-label={t('info.ariaLabel')} className="local-info-bar" style={css('background: var(--mkt-surface); border-bottom: 1px solid var(--mkt-border)')}>
       <div className="local-info-bar__inner">
         <div className="local-info-bar__weather">
-          <span style={css('color: #9A6B12; display: flex; flex-shrink: 0')} aria-hidden="true">
+          <span style={css('color: var(--mkt-gold); display: flex; flex-shrink: 0')} aria-hidden="true">
             {weather?.isDay === false ? (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M14.5 3.1A8.5 8.5 0 1 0 20.9 14 7 7 0 0 1 14.5 3.1z" />
@@ -233,15 +233,15 @@ export default function LocalInfoBar() {
             )}
           </span>
           <div>
-            <div style={css('font-size: 18px; font-weight: 800; color: #15191E; line-height: 1.1')}>
+            <div style={css('font-size: 18px; font-weight: 800; color: var(--mkt-text); line-height: 1.1')}>
               {weather ? `${weather.tempC}°C` : '—°C'}
             </div>
-            <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>{weather ? t(weather.labelKey) : t('info.dohaWeather')}</div>
+            <div style={css('font-size: 12px; color: var(--mkt-muted); margin-top: 2px')}>{weather ? t(weather.labelKey) : t('info.dohaWeather')}</div>
           </div>
         </div>
 
         <div className="local-info-bar__socials">
-          <span className="local-info-bar__socials-label" style={css('font-size: 14px; font-weight: 600; color: #2A3036')}>
+          <span className="local-info-bar__socials-label" style={css('font-size: 14px; font-weight: 600; color: var(--mkt-text-2)')}>
             {t('info.followUs')}
           </span>
           <nav aria-label={t('info.social')} style={css('display: flex; flex-wrap: wrap; align-items: center; gap: 8px')}>
@@ -262,15 +262,15 @@ export default function LocalInfoBar() {
         </div>
 
         <div className="local-info-bar__prayer">
-          <span style={css('color: #2A3036; display: flex; flex-shrink: 0')} aria-hidden="true">
+          <span style={css('color: var(--mkt-text-2); display: flex; flex-shrink: 0')} aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
               <circle cx="12" cy="12" r="8.5" />
               <path d="M12 7.5V12l3 2" />
             </svg>
           </span>
           <div>
-            <div style={css('font-size: 14px; font-weight: 800; color: #15191E; line-height: 1.15')}>{t('info.nextPrayer')}</div>
-            <div style={css('font-size: 12px; color: #5B636B; margin-top: 2px')}>
+            <div style={css('font-size: 14px; font-weight: 800; color: var(--mkt-text); line-height: 1.15')}>{t('info.nextPrayer')}</div>
+            <div style={css('font-size: 12px; color: var(--mkt-muted); margin-top: 2px')}>
               {prayer
                 ? `${PRAYER_KEYS[prayer.name] ? t(PRAYER_KEYS[prayer.name]) : prayer.name} ${prayer.time}`
                 : prayerFailed

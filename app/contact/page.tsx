@@ -160,15 +160,15 @@ export default function ContactPage() {
 
 
       {/* @generated */}
-      <section style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 48px var(--mkt-gutter-x) 0")}>
-        <nav aria-label="Breadcrumb" style={css("font-size: 14px; color: #5B636B; margin-bottom: 10px")}>
+      <section className="page-shell" style={css("padding-top: 48px; padding-bottom: 0")}>
+        <nav aria-label="Breadcrumb" style={css("font-size: 14px; color: var(--mkt-muted); margin-bottom: 10px")}>
           <Link href="/">Home</Link>
           {' '}
           <span aria-hidden="true">/</span>
           {` ${ct('contact.breadcrumb')}`}
         </nav>
         <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4.4vw, 3.2rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>{ct('contact.h1')}</h1>
-        <p style={css("margin: 10px 0 0; color: #5B636B; font-size: 18px; max-width: 56ch")}>
+        <p style={css("margin: 10px 0 0; color: var(--mkt-muted); font-size: 18px; max-width: 56ch")}>
           {ct('contact.leadPrefix')}
           <Link href="/help" style={css("font-weight: 600")}>{ct('contact.leadLink')}</Link>
           .
@@ -179,7 +179,7 @@ export default function ContactPage() {
           {sent ? (
             <div className="contact-success" role="status">
               <span className="contact-success__icon" aria-hidden="true">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9A6B12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--mkt-gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </span>
@@ -191,14 +191,13 @@ export default function ContactPage() {
                   type="button"
                   className="btn-primary"
                   onClick={again}
-                  style={css('height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}
+                  style={css('height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: var(--mkt-gold); color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}
                 >
                   {ct('contact.sendAnother')}
                 </button>
                 <Link
                   href="/"
-                  className="btn-ghost"
-                  style={css('height: 48px; padding: 0 22px; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; color: #15191E; font-weight: 700; display: inline-flex; align-items: center')}
+                  className="ghost-btn btn-ghost"
                 >
                   {ct('contact.backHome')}
                 </Link>
@@ -289,6 +288,7 @@ export default function ContactPage() {
                 <textarea
                   id="cm"
                   name="message"
+                  className="field"
                   rows={6}
                   required={true}
                   minLength={10}
@@ -296,16 +296,15 @@ export default function ContactPage() {
                   value={message}
                   onChange={(event) => setMessage(event.target.value)}
                   aria-invalid={fieldErrors.message ? true : undefined}
-                  style={css('width: 100%; border: 1px solid #DAD7D0; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 16px; color: #15191E; resize: vertical')}
                 ></textarea>
-                <p style={css('margin: 6px 0 0; font-size: 13px; color: #5B636B')}>{ct('contact.messageHint')}</p>
+                <p style={css('margin: 6px 0 0; font-size: 13px; color: var(--mkt-muted)')}>{ct('contact.messageHint')}</p>
                 {fieldError('message')}
               </div>
               <button
                 type="submit"
                 className="btn-primary"
                 disabled={busy}
-                style={css(`align-self: flex-start; height: 54px; padding: 0 30px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: ${busy ? 'wait' : 'pointer'}; opacity: ${busy ? 0.7 : 1}`)}
+                style={css(`align-self: flex-start; height: 54px; padding: 0 30px; border: 0; border-radius: 12px; background: var(--mkt-gold); color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: ${busy ? 'wait' : 'pointer'}; opacity: ${busy ? 0.7 : 1}`)}
               >
                 {busy ? ct('contact.sending') : ct('contact.submit')}
               </button>
@@ -316,18 +315,18 @@ export default function ContactPage() {
         <aside style={css("display: flex; flex-direction: column; gap: 14px")}>
           {CHANNELS.map((c, i) => (
             <Fragment key={i}>
-            <div style={css("background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 18px 20px; display: flex; gap: 14px; align-items: center")}>
-              <span style={css("flex: 0 0 46px; height: 46px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center")}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A6B12" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <div style={css("background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 18px; padding: 18px 20px; display: flex; gap: 14px; align-items: center")}>
+              <span style={css("flex: 0 0 46px; height: 46px; border-radius: 12px; background: var(--mkt-gold-soft); display: flex; align-items: center; justify-content: center")}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--mkt-gold)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d={c.d}></path>
                 </svg>
               </span>
               <div style={css("min-width: 0")}>
-                <div style={css("font-size: 13px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em")}>{ct(c.k)}</div>
+                <div style={css("font-size: 13px; color: var(--mkt-muted); text-transform: uppercase; letter-spacing: .06em")}>{ct(c.k)}</div>
                 {c.href ? (
                   <a
                     href={c.href}
-                    style={css("font-weight: 600; color: #15191E; word-break: break-word")}
+                    style={css("font-weight: 600; color: var(--mkt-text); word-break: break-word")}
                     {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   >
                     {c.v}
@@ -339,7 +338,7 @@ export default function ContactPage() {
             </div>
             </Fragment>
           ))}
-          <div style={css('border-radius: 18px; overflow: hidden; border: 1px solid #E6E4DF; background: #EFEDE7')}>
+          <div style={css('border-radius: 18px; overflow: hidden; border: 1px solid var(--mkt-border); background: var(--mkt-surface-2)')}>
             <iframe
               title="Map of Doha, Qatar"
               src="https://www.google.com/maps?q=Doha,+Qatar&output=embed"
@@ -347,7 +346,7 @@ export default function ContactPage() {
               referrerPolicy="no-referrer-when-downgrade"
               style={css('display: block; width: 100%; height: 220px; border: 0')}
             />
-            <p style={css('margin: 0; padding: 10px 14px; font-size: 14px; font-weight: 600; color: #2A3036; text-align: center; background: #FFFFFF')}>
+            <p style={css('margin: 0; padding: 10px 14px; font-size: 14px; font-weight: 600; color: var(--mkt-text-2); text-align: center; background: var(--mkt-surface)')}>
               {OFFICE_ADDRESS}
             </p>
           </div>

@@ -4,10 +4,12 @@ import { useMemo, useState } from 'react';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
 import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import { useAsync } from '../../../lib/useAsync';
 import { fieldError } from '../../../lib/admin';
 import { mediaUrl } from '../../../lib/listings';
 import { CategoryIcon } from '../../../lib/categoryIcons';
+import { methodLabel } from '../../../lib/uiMessages';
 import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Panel, PrimaryButton, StateBlock, TableWrap } from '../ui';
 
 type CategoryIconOption = { key: string; label: string };
@@ -17,17 +19,19 @@ function CategoryIconPicker({
   onChange,
   icons,
   idPrefix,
+  ariaLabel,
 }: {
   value: string;
   onChange: (key: string) => void;
   icons: CategoryIconOption[];
   idPrefix: string;
+  ariaLabel: string;
 }) {
   const selected = value || 'tag';
   return (
     <div
       role="radiogroup"
-      aria-label="Category icon"
+      aria-label={ariaLabel}
       style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px')}
     >
       {icons.map((entry) => {
@@ -78,12 +82,6 @@ type Category = {
 };
 
 const METHODS: ListingMethod[] = ['auction', 'fixed_price', 'enquiry'];
-const METHOD_LABEL: Record<ListingMethod, string> = {
-  auction: 'Auction',
-  fixed_price: 'Fixed price',
-  enquiry: 'Enquiry',
-};
-
 function apiMessage(err: unknown): string {
   if (err instanceof ApiRequestError) {
     const fields = Object.entries(err.body.fieldErrors);
@@ -107,6 +105,7 @@ function fieldErrorsOf(err: unknown): Record<string, string> {
  * business decision recorded in docs/OPEN_QUESTIONS.md, not a UI default.
  */
 export default function AdminTaxonomyPage() {
+  const { t, lang } = useUiLocale();
   const session = useSession();
   const [includeInactive, setIncludeInactive] = useState(true);
   const mayEdit = session.capabilities.includes('inventory.manage');
@@ -193,32 +192,32 @@ export default function AdminTaxonomyPage() {
   return (
     <div style={css('display: flex; flex-direction: column; gap: 20px')}>
       <Panel
-        title="Categories"
-        subtitle="One canonical tree for admin tools and public pages. Subcategories nest up to four levels."
+        title={t('admin.taxonomy.title')}
+        subtitle={t('admin.taxonomy.subtitle')}
         actions={
           <GhostButton onClick={() => setIncludeInactive((value) => !value)}>
-            {includeInactive ? 'Hide archived' : 'Show archived'}
+            {includeInactive ? t('admin.taxonomy.hideArchived') : t('admin.taxonomy.showArchived')}
           </GhostButton>
         }
       >
         <ErrorNote>{error}</ErrorNote>
         {notice && <p className="adm-note" data-tone="good" style={css('margin-bottom: 14px')}>{notice}</p>}
 
-        <StateBlock loading={list.loading} error={list.error} empty={roots.length === 0} emptyText="No categories yet." onRetry={list.reload}>
-          <TableWrap label="Categories">
+        <StateBlock loading={list.loading} error={list.error} empty={roots.length === 0} emptyText={t('admin.taxonomy.empty')} onRetry={list.reload}>
+          <TableWrap label={t('admin.taxonomy.tableLabel')}>
             <table className="adm-table">
-              <caption>{categories.length} categor{categories.length === 1 ? 'y' : 'ies'}</caption>
+              <caption>{t('admin.taxonomy.caption', { count: categories.length })}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Key</th>
-                  <th scope="col">Photo</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Depth</th>
-                  <th scope="col">Listing methods</th>
-                  <th scope="col">Schema</th>
-                  <th scope="col">Order</th>
-                  <th scope="col">State</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col">{t('admin.taxonomy.colKey')}</th>
+                  <th scope="col">{t('admin.taxonomy.colPhoto')}</th>
+                  <th scope="col">{t('admin.taxonomy.colName')}</th>
+                  <th scope="col">{t('admin.taxonomy.colDepth')}</th>
+                  <th scope="col">{t('admin.taxonomy.colMethods')}</th>
+                  <th scope="col">{t('admin.taxonomy.colSchema')}</th>
+                  <th scope="col">{t('admin.taxonomy.colOrder')}</th>
+                  <th scope="col">{t('admin.taxonomy.colState')}</th>
+                  <th scope="col">{t('admin.taxonomy.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -251,11 +250,11 @@ export default function AdminTaxonomyPage() {
                       </span>
                     </td>
                     <td>{category.depth}</td>
-                    <td>{category.listingMethods.map((method) => METHOD_LABEL[method]).join(', ')}</td>
+                    <td>{category.listingMethods.map((method) => methodLabel(lang, method)).join(', ')}</td>
                     <td>{category.attributeSchemaVersion === null ? '—' : `v${category.attributeSchemaVersion}`}</td>
                     <td>{category.order}</td>
                     <td>
-                      <Badge tone={category.active ? 'good' : 'neutral'}>{category.active ? 'active' : 'archived'}</Badge>
+                      <Badge tone={category.active ? 'good' : 'neutral'}>{category.active ? t('admin.taxonomy.stateActive') : t('admin.taxonomy.stateArchived')}</Badge>
                     </td>
                     <td>
                       <div className="adm-actions">
@@ -265,7 +264,7 @@ export default function AdminTaxonomyPage() {
                             onClick={() => startEditing(category)}
                             style={css('border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: #9A6B12; cursor: pointer')}
                           >
-                            Edit
+                            {t('admin.common.edit')}
                           </button>
                         )}
                         {mayEdit && (
@@ -278,7 +277,7 @@ export default function AdminTaxonomyPage() {
                             }}
                             style={css('border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: #9A6B12; cursor: pointer')}
                           >
-                            Add child
+                            {t('admin.taxonomy.addChild')}
                           </button>
                         )}
                       </div>
@@ -293,9 +292,9 @@ export default function AdminTaxonomyPage() {
 
       {editing && (
         <Panel
-          title={`Edit ${editing}`}
-          subtitle="Saved against the hierarchy version this form loaded."
-          actions={<GhostButton onClick={() => setEditing(null)}>Close</GhostButton>}
+          title={t('admin.taxonomy.editCategory', { key: editing })}
+          subtitle={t('admin.taxonomy.editSubtitle')}
+          actions={<GhostButton onClick={() => setEditing(null)}>{t('admin.common.close')}</GhostButton>}
         >
           <form
             className="adm-form"
@@ -321,35 +320,36 @@ export default function AdminTaxonomyPage() {
           >
             <div className="adm-grid">
               <div>
-                <Label htmlFor="cat-name-en">English name</Label>
+                <Label htmlFor="cat-name-en">{t('admin.taxonomy.nameEn')}</Label>
                 <input id="cat-name-en" className="field" value={edit.nameEn} onChange={(event) => setEdit({ ...edit, nameEn: event.target.value })} />
                 <FieldError>{fieldError(fields, 'nameEn')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="cat-name-ar">Arabic name</Label>
+                <Label htmlFor="cat-name-ar">{t('admin.taxonomy.nameAr')}</Label>
                 <input id="cat-name-ar" className="field" value={edit.nameAr} onChange={(event) => setEdit({ ...edit, nameAr: event.target.value })} />
               </div>
               <div style={css('grid-column: 1 / -1')}>
-                <span className="lbl">Icon</span>
+                <span className="lbl">{t('admin.taxonomy.icon')}</span>
                 <CategoryIconPicker
                   idPrefix="edit-cat-icon"
                   value={edit.icon}
                   onChange={(icon) => setEdit({ ...edit, icon })}
                   icons={iconOptions}
+                  ariaLabel={t('admin.taxonomy.iconAria')}
                 />
                 <FieldError>{fieldError(fields, 'icon')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="cat-order">Order</Label>
+                <Label htmlFor="cat-order">{t('admin.taxonomy.colOrder')}</Label>
                 <input id="cat-order" className="field" type="number" min={0} value={edit.order} onChange={(event) => setEdit({ ...edit, order: event.target.value })} />
               </div>
             </div>
             <div>
-              <Label htmlFor="cat-desc">English description</Label>
+              <Label htmlFor="cat-desc">{t('admin.taxonomy.descEn')}</Label>
               <textarea id="cat-desc" className="field" rows={2} value={edit.descriptionEn} onChange={(event) => setEdit({ ...edit, descriptionEn: event.target.value })} />
             </div>
             <fieldset style={css('border: 0; padding: 0; margin: 0')}>
-              <legend className="lbl">Allowed listing methods</legend>
+              <legend className="lbl">{t('admin.taxonomy.allowedMethods')}</legend>
               <div className="adm-toggles">
                 {METHODS.map((method) => (
                   <label key={method} htmlFor={`edit-method-${method}`} style={css('display: inline-flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600')}>
@@ -364,36 +364,36 @@ export default function AdminTaxonomyPage() {
                         })
                       }
                     />
-                    {METHOD_LABEL[method]}
+                    {methodLabel(lang, method)}
                   </label>
                 ))}
               </div>
-              {edit.methods.includes('auction') && <Hint>Auction selling is a pending business decision; enabling it here is not approval to run auctions.</Hint>}
+              {edit.methods.includes('auction') && <Hint>{t('admin.taxonomy.auctionHint')}</Hint>}
               <FieldError>{fieldError(fields, 'listingMethods')}</FieldError>
             </fieldset>
             <label htmlFor="cat-active" style={css('display: inline-flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600')}>
               <input id="cat-active" type="checkbox" checked={edit.active} onChange={(event) => setEdit({ ...edit, active: event.target.checked })} />
-              Active (visible to public pages)
+              {t('admin.taxonomy.activeVisible')}
             </label>
-            <PrimaryButton disabled={busy}>{busy ? 'Saving…' : 'Save changes'}</PrimaryButton>
+            <PrimaryButton disabled={busy}>{busy ? t('admin.common.saving') : t('admin.taxonomy.saveChanges')}</PrimaryButton>
           </form>
 
           {mayEdit && editing && (
             <div style={css('margin-top: 18px; border-top: 1px solid #E6E4DF; padding-top: 16px')}>
-              <h3 style={css("margin: 0 0 8px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 16px; font-weight: 700")}>Category photo</h3>
-              <Hint>One JPEG, PNG or WebP image for calendar chips and other surfaces. Replaces any existing photo.</Hint>
+              <h3 style={css("margin: 0 0 8px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 16px; font-weight: 700")}>{t('admin.taxonomy.categoryPhoto')}</h3>
+              <Hint>{t('admin.taxonomy.categoryPhotoHint')}</Hint>
               {(() => {
                 const category = categories.find((item) => item.key === editing);
                 const preview = category?.imageUrl ? mediaUrl(API_BASE_URL, category.imageUrl) : null;
                 return preview ? (
                   <img src={preview} alt="" style={css('margin-top: 10px; max-width: 200px; border-radius: 8px; display: block')} />
                 ) : (
-                  <p className="adm-note" style={css('margin-top: 10px')}>No photo yet.</p>
+                  <p className="adm-note" style={css('margin-top: 10px')}>{t('admin.taxonomy.noPhoto')}</p>
                 );
               })()}
               <div className="adm-actions" style={css('margin-top: 12px')}>
                 <label className={busy ? 'lw-upload-zone lw-upload-zone--disabled' : 'lw-upload-zone'} style={css('flex: 1; min-width: 200px')}>
-                  <p className="lw-upload-zone__title">Upload or replace photo</p>
+                  <p className="lw-upload-zone__title">{t('admin.taxonomy.uploadReplace')}</p>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -455,7 +455,7 @@ export default function AdminTaxonomyPage() {
                       }
                     }}
                   >
-                    Remove photo
+                    {t('admin.taxonomy.removePhoto')}
                   </GhostButton>
                 ) : null}
               </div>
@@ -476,10 +476,10 @@ export default function AdminTaxonomyPage() {
               }
             }}
           >
-            <h3 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 16px; font-weight: 700")}>Archive or restore</h3>
-            <Hint>Archiving is refused while active children still point at this category.</Hint>
+            <h3 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 16px; font-weight: 700")}>{t('admin.taxonomy.archiveRestore')}</h3>
+            <Hint>{t('admin.taxonomy.archiveHint')}</Hint>
             <div>
-              <Label htmlFor="cat-reason">Reason</Label>
+              <Label htmlFor="cat-reason">{t('admin.field.reason')}</Label>
               <input id="cat-reason" className="field" value={reason} onChange={(event) => setReason(event.target.value)} />
               <FieldError>{fieldError(fields, 'reason')}</FieldError>
             </div>
@@ -490,7 +490,7 @@ export default function AdminTaxonomyPage() {
                 }}
                 disabled={busy}
               >
-                Archive
+                {t('admin.taxonomy.archive')}
               </GhostButton>
               <GhostButton
                 onClick={async () => {
@@ -498,7 +498,7 @@ export default function AdminTaxonomyPage() {
                 }}
                 disabled={busy}
               >
-                Restore
+                {t('admin.taxonomy.restore')}
               </GhostButton>
             </div>
           </form>
@@ -506,7 +506,7 @@ export default function AdminTaxonomyPage() {
       )}
 
       {mayEdit && (
-        <Panel title="Add a category" subtitle="Keys are stable identifiers: they are never renamed by the UI.">
+        <Panel title={t('admin.taxonomy.addCategory')} subtitle={t('admin.taxonomy.addSubtitle')}>
           <form
             className="adm-form"
             onSubmit={async (event) => {
@@ -531,14 +531,14 @@ export default function AdminTaxonomyPage() {
           >
             <div className="adm-grid">
               <div>
-                <Label htmlFor="new-cat-key">Key</Label>
+                <Label htmlFor="new-cat-key">{t('admin.taxonomy.key')}</Label>
                 <input id="new-cat-key" className="field" value={create.key} onChange={(event) => setCreate({ ...create, key: event.target.value })} placeholder="luxury-watches" />
                 <FieldError>{fieldError(fields, 'key')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="new-cat-parent">Parent</Label>
+                <Label htmlFor="new-cat-parent">{t('admin.taxonomy.parent')}</Label>
                 <select id="new-cat-parent" className="field" value={create.parentKey} onChange={(event) => setCreate({ ...create, parentKey: event.target.value })}>
-                  <option value="">Top level</option>
+                  <option value="">{t('admin.taxonomy.topLevel')}</option>
                   {categories.map((category) => (
                     <option key={category.key} value={category.key}>
                       {'— '.repeat(category.depth)}
@@ -549,31 +549,32 @@ export default function AdminTaxonomyPage() {
                 <FieldError>{fieldError(fields, 'parentKey')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="new-cat-name">English name</Label>
+                <Label htmlFor="new-cat-name">{t('admin.taxonomy.nameEn')}</Label>
                 <input id="new-cat-name" className="field" value={create.nameEn} onChange={(event) => setCreate({ ...create, nameEn: event.target.value })} />
                 <FieldError>{fieldError(fields, 'nameEn')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="new-cat-name-ar">Arabic name</Label>
+                <Label htmlFor="new-cat-name-ar">{t('admin.taxonomy.nameAr')}</Label>
                 <input id="new-cat-name-ar" className="field" value={create.nameAr} onChange={(event) => setCreate({ ...create, nameAr: event.target.value })} />
               </div>
               <div>
-                <Label htmlFor="new-cat-order">Order</Label>
+                <Label htmlFor="new-cat-order">{t('admin.taxonomy.colOrder')}</Label>
                 <input id="new-cat-order" className="field" type="number" min={0} value={create.order} onChange={(event) => setCreate({ ...create, order: event.target.value })} />
               </div>
               <div style={css('grid-column: 1 / -1')}>
-                <span className="lbl">Icon</span>
+                <span className="lbl">{t('admin.taxonomy.icon')}</span>
                 <CategoryIconPicker
                   idPrefix="new-cat-icon"
                   value={create.icon}
                   onChange={(icon) => setCreate({ ...create, icon })}
                   icons={iconOptions}
+                  ariaLabel={t('admin.taxonomy.iconAria')}
                 />
                 <FieldError>{fieldError(fields, 'icon')}</FieldError>
               </div>
             </div>
             <fieldset style={css('border: 0; padding: 0; margin: 0')}>
-              <legend className="lbl">Allowed listing methods</legend>
+              <legend className="lbl">{t('admin.taxonomy.allowedMethods')}</legend>
               <div className="adm-toggles">
                 {METHODS.map((method) => (
                   <label key={method} htmlFor={`new-method-${method}`} style={css('display: inline-flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600')}>
@@ -588,13 +589,13 @@ export default function AdminTaxonomyPage() {
                         })
                       }
                     />
-                    {METHOD_LABEL[method]}
+                    {methodLabel(lang, method)}
                   </label>
                 ))}
               </div>
               <FieldError>{fieldError(fields, 'listingMethods')}</FieldError>
             </fieldset>
-            <PrimaryButton disabled={busy}>{busy ? 'Saving…' : 'Create category'}</PrimaryButton>
+            <PrimaryButton disabled={busy}>{busy ? t('admin.common.saving') : t('admin.taxonomy.createCategory')}</PrimaryButton>
           </form>
         </Panel>
       )}

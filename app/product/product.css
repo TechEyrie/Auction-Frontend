@@ -1,10 +1,10 @@
-body{margin:0;background:#FBFAF7}
+body{margin:0;background:var(--mkt-bg)}
 *{box-sizing:border-box}
-a{color:#9A6B12;text-decoration:none}a:hover{color:#7D5610}
+a{color:var(--mkt-gold);text-decoration:none}a:hover{color:var(--mkt-gold-deep)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.navlink{color:#2A3036;font-weight:500}.navlink:hover{color:#9A6B12}
-.btn-primary:hover{background:#7D5610 !important}
-.btn-ghost:hover{background:#F3F1EC !important}
+.navlink{color:var(--mkt-text-2);font-weight:500}.navlink:hover{color:var(--mkt-gold)}
+.btn-primary:hover{background:var(--mkt-gold-deep) !important}
+.btn-ghost:hover{background:var(--mkt-surface-2) !important}
 .card{transition:transform .18s ease, box-shadow .18s ease}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 32px -18px rgba(21,25,30,.35)}
 .listing-card-media{
@@ -15,7 +15,7 @@ a{color:#9A6B12;text-decoration:none}a:hover{color:#7D5610}
   overflow:hidden;
   width:100%;
   aspect-ratio:1 / 1;
-  background:#F3F1EC;
+  background:var(--mkt-surface-2);
 }
 .listing-card-media img{
   width:100%;
@@ -25,29 +25,29 @@ a{color:#9A6B12;text-decoration:none}a:hover{color:#7D5610}
 }
 .listing-card-meta{
   margin:0;
-  color:#5B636B;
+  color:var(--mkt-muted);
   font-size:13px;
   text-transform:uppercase;
   letter-spacing:0.02em;
 }
-.foot a{color:#C9CFCB}.foot a:hover{color:#FFFFFF}
-.field{width:100%;height:48px;border:1px solid #DAD7D0;border-radius:10px;padding:0 12px;font:inherit;font-size:15px;color:#15191E;background:#FFFFFF}
-input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid #9A6B12;outline-offset:2px}
+.foot a{color:var(--mkt-footer-fg)}.foot a:hover{color:#FFFFFF}
+.field{width:100%;height:48px;border:1px solid var(--mkt-border-strong);border-radius:10px;padding:0 12px;font:inherit;font-size:15px;color:var(--mkt-text);background:var(--mkt-surface)}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--mkt-gold);outline-offset:2px}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,65,12,.45)}70%{box-shadow:0 0 0 8px rgba(194,65,12,0)}100%{box-shadow:0 0 0 0 rgba(194,65,12,0)}}
 .live-dot{animation:pulse 1.8s infinite}
 .checkout-fields{display:grid;gap:14px}
-.checkout-label{display:grid;gap:8px;font-size:14px;font-weight:600;color:#15191E}
-.checkout-textarea{width:100%;min-height:88px;border:1px solid #DAD7D0;border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;color:#15191E;background:#FFFFFF;resize:vertical}
-.mkt-hint{margin:0;color:#5B636B;font-size:13px}
-.mkt-state{margin:0;padding:18px;border:1px dashed #DAD7D0;border-radius:12px;background:#FBFAF7;color:#5B636B}
+.checkout-label{display:grid;gap:8px;font-size:14px;font-weight:600;color:var(--mkt-text)}
+.checkout-textarea{width:100%;min-height:88px;border:1px solid var(--mkt-border-strong);border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;color:var(--mkt-text);background:var(--mkt-surface);resize:vertical}
+.mkt-hint{margin:0;color:var(--mkt-muted);font-size:13px}
+.mkt-state{margin:0;padding:18px;border:1px dashed var(--mkt-border-strong);border-radius:12px;background:var(--mkt-bg);color:var(--mkt-muted)}
 .mkt-state[data-state="error"]{border-style:solid;border-color:#E7C9C2;background:#FDF6F4;color:#8A2C11}
 .mkt-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:#F2F8F2;border:1px solid #CBE0CB;color:#1F5B2B;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 
-.product-breadcrumb{max-width:1240px;margin:0 auto;padding:24px 24px 0;font-size:14px;color:#5B636B;display:flex;flex-wrap:wrap;gap:6px}
+.product-breadcrumb{max-width:1240px;margin:0 auto;padding:24px 24px 0;font-size:14px;color:var(--mkt-muted);display:flex;flex-wrap:wrap;gap:6px}
 .product-layout{max-width:1240px;margin:0 auto;padding:18px 24px 48px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.9fr);gap:26px;align-items:start}
 .product-left{display:flex;flex-direction:column;gap:14px;min-width:0;align-self:start}
 .product-sidebar{display:flex;flex-direction:column;gap:14px;min-width:0;overflow-wrap:anywhere;word-break:break-word;align-self:start}
-.product-sidebar-card{background:#FFFFFF;border:1px solid #E6E4DF;border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0;box-sizing:border-box}
+.product-sidebar-card{background:var(--mkt-surface);border:1px solid var(--mkt-border);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0;box-sizing:border-box}
 .product-sidebar-card>*{min-width:0;max-width:100%}
 /* When the sidebar is taller than the gallery+tabs, keep the left column pinned so
    images stay in view instead of leaving empty space under a short left column. */
@@ -57,20 +57,20 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{out
 @media (max-width:900px){.product-layout{grid-template-columns:1fr;gap:18px}}
 
 .product-gallery{display:flex;flex-direction:column;gap:10px;min-width:0}
-.product-gallery-main{position:relative;width:100%;aspect-ratio:1/1;min-height:min(52vw,280px);max-height:min(70vh,640px);border-radius:18px;background:#F3F1EC;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.product-gallery-main{position:relative;width:100%;aspect-ratio:1/1;min-height:min(52vw,280px);max-height:min(70vh,640px);border-radius:18px;background:var(--mkt-surface-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .product-gallery-main img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .product-gallery-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
-.product-gallery-thumb{height:84px;border-radius:12px;background:#F3F1EC;cursor:pointer;border:2px solid transparent;padding:0;overflow:hidden}
-.product-gallery-thumb[aria-pressed="true"]{border-color:#9A6B12}
+.product-gallery-thumb{height:84px;border-radius:12px;background:var(--mkt-surface-2);cursor:pointer;border:2px solid transparent;padding:0;overflow:hidden}
+.product-gallery-thumb[aria-pressed="true"]{border-color:var(--mkt-gold)}
 .product-gallery-thumb img{width:100%;height:100%;object-fit:cover}
 
-.product-tabs-panel{background:#FFFFFF;border:1px solid #E6E4DF;border-radius:20px;overflow:hidden;min-width:0}
-.product-tabs-list{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid #E6E4DF;padding:0 16px}
+.product-tabs-panel{background:var(--mkt-surface);border:1px solid var(--mkt-border);border-radius:20px;overflow:hidden;min-width:0}
+.product-tabs-list{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--mkt-border);padding:0 16px}
 .product-tabs-body{padding:28px;min-width:0;overflow-wrap:anywhere}
 
 .product-related{max-width:var(--mkt-shell-max);margin:0 auto;padding:48px var(--mkt-gutter-x) 80px}
 
-.live-auction-panel{padding:16px 18px;border-radius:14px;background:#F6EEDC;color:#3D3420;display:flex;flex-direction:column;gap:16px;min-width:0;overflow-wrap:anywhere}
+.live-auction-panel{padding:16px 18px;border-radius:14px;background:var(--mkt-gold-soft);color:var(--mkt-text);display:flex;flex-direction:column;gap:16px;min-width:0;overflow-wrap:anywhere}
 .live-auction-bid-row{display:grid;gap:10px;grid-template-columns:1fr}
 @media (min-width:520px){
   .live-auction-bid-row{grid-template-columns:1fr auto;align-items:end}
@@ -79,7 +79,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{out
 .live-auction-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .live-auction-stat{background:rgba(255,255,255,.55);border-radius:12px;padding:12px 14px;min-width:0;overflow-wrap:anywhere}
 .live-auction-stat--wide{grid-column:1/-1}
-.live-auction-stat-label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#5B636B}
+.live-auction-stat-label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mkt-muted)}
 .live-auction-stat-value{font-weight:700;font-size:17px;margin-top:4px;line-height:1.35}
 .live-auction-stat-value--md{font-weight:600;font-size:15px;line-height:1.4}
 

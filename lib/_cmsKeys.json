@@ -1,0 +1,1010 @@
+[
+  {
+    "key": "header.brandName",
+    "label": "Logo line 1"
+  },
+  {
+    "key": "header.brandSub",
+    "label": "Logo line 2 (gold subtitle)"
+  },
+  {
+    "key": "nav.auction",
+    "label": "Auction"
+  },
+  {
+    "key": "nav.accessories",
+    "label": "Accessories"
+  },
+  {
+    "key": "nav.sell",
+    "label": "Sell"
+  },
+  {
+    "key": "nav.how",
+    "label": "How it works"
+  },
+  {
+    "key": "nav.shop",
+    "label": "Shop"
+  },
+  {
+    "key": "nav.menu.liveAuctions.title",
+    "label": "Live auctions"
+  },
+  {
+    "key": "nav.menu.liveAuctions.desc",
+    "label": "Live auctions — short description"
+  },
+  {
+    "key": "nav.menu.auctionCalendar.title",
+    "label": "Auction calendar"
+  },
+  {
+    "key": "nav.menu.auctionCalendar.desc",
+    "label": "Auction calendar — short description"
+  },
+  {
+    "key": "nav.menu.auctionListings.title",
+    "label": "Auction listings"
+  },
+  {
+    "key": "nav.menu.auctionListings.desc",
+    "label": "Auction listings — short description"
+  },
+  {
+    "key": "nav.menu.howBidding.title",
+    "label": "How bidding works"
+  },
+  {
+    "key": "nav.menu.howBidding.desc",
+    "label": "How bidding works — short description"
+  },
+  {
+    "key": "nav.menu.browseAccessories.title",
+    "label": "Browse accessories"
+  },
+  {
+    "key": "nav.menu.browseAccessories.desc",
+    "label": "Browse accessories — short description"
+  },
+  {
+    "key": "nav.menu.forMen.title",
+    "label": "For men"
+  },
+  {
+    "key": "nav.menu.forMen.desc",
+    "label": "For men — short description"
+  },
+  {
+    "key": "nav.menu.forWomen.title",
+    "label": "For women"
+  },
+  {
+    "key": "nav.menu.forWomen.desc",
+    "label": "For women — short description"
+  },
+  {
+    "key": "nav.menu.forUnisex.title",
+    "label": "For unisex"
+  },
+  {
+    "key": "nav.menu.forUnisex.desc",
+    "label": "For unisex — short description"
+  },
+  {
+    "key": "nav.menu.allCategories.title",
+    "label": "All categories"
+  },
+  {
+    "key": "nav.menu.allCategories.desc",
+    "label": "All categories — short description"
+  },
+  {
+    "key": "nav.menu.contactToSell.title",
+    "label": "Contact to sell"
+  },
+  {
+    "key": "nav.menu.contactToSell.desc",
+    "label": "Contact to sell — short description"
+  },
+  {
+    "key": "nav.menu.aboutUs.title",
+    "label": "About us"
+  },
+  {
+    "key": "nav.menu.aboutUs.desc",
+    "label": "About us — short description"
+  },
+  {
+    "key": "nav.menu.auctionProcess.title",
+    "label": "Auction process"
+  },
+  {
+    "key": "nav.menu.auctionProcess.desc",
+    "label": "Auction process — short description"
+  },
+  {
+    "key": "nav.menu.helpCentre.title",
+    "label": "Help centre"
+  },
+  {
+    "key": "nav.menu.helpCentre.desc",
+    "label": "Help centre — short description"
+  },
+  {
+    "key": "nav.menu.contact.title",
+    "label": "Contact"
+  },
+  {
+    "key": "nav.menu.contact.desc",
+    "label": "Contact — short description"
+  },
+  {
+    "key": "nav.menu.allListings.title",
+    "label": "All listings"
+  },
+  {
+    "key": "nav.menu.allListings.desc",
+    "label": "All listings — short description"
+  },
+  {
+    "key": "nav.menu.fixedPrice.title",
+    "label": "Fixed price"
+  },
+  {
+    "key": "nav.menu.fixedPrice.desc",
+    "label": "Fixed price — short description"
+  },
+  {
+    "key": "nav.menu.auctions.title",
+    "label": "Auctions"
+  },
+  {
+    "key": "nav.menu.auctions.desc",
+    "label": "Auctions — short description"
+  },
+  {
+    "key": "nav.menu.categories.title",
+    "label": "Categories"
+  },
+  {
+    "key": "nav.menu.categories.desc",
+    "label": "Categories — short description"
+  },
+  {
+    "key": "browse.allCities",
+    "label": "“All cities” in the place picker"
+  },
+  {
+    "key": "header.search",
+    "label": "Search button"
+  },
+  {
+    "key": "header.switchLanguage",
+    "label": "Switch language"
+  },
+  {
+    "key": "header.langName",
+    "label": "Current language name"
+  },
+  {
+    "key": "header.langCode",
+    "label": "Current language code"
+  },
+  {
+    "key": "header.themeToDark",
+    "label": "Theme toggle (to dark)"
+  },
+  {
+    "key": "header.themeToLight",
+    "label": "Theme toggle (to light)"
+  },
+  {
+    "key": "header.themeDark",
+    "label": "Dark theme label"
+  },
+  {
+    "key": "header.themeLight",
+    "label": "Light theme label"
+  },
+  {
+    "key": "header.register",
+    "label": "Register"
+  },
+  {
+    "key": "header.account",
+    "label": "Account"
+  },
+  {
+    "key": "header.admin",
+    "label": "Admin"
+  },
+  {
+    "key": "header.searchOverlay",
+    "label": "Search panel title"
+  },
+  {
+    "key": "header.searchPlaceholder",
+    "label": "Search box placeholder"
+  },
+  {
+    "key": "header.trending",
+    "label": "“Trending” heading"
+  },
+  {
+    "key": "header.popularCategories",
+    "label": "“Popular categories” heading"
+  },
+  {
+    "key": "header.popularCategoriesLoading",
+    "label": "Categories loading message"
+  },
+  {
+    "key": "header.popularCategoriesEmpty",
+    "label": "No categories message"
+  },
+  {
+    "key": "header.menu",
+    "label": "Mobile menu heading"
+  },
+  {
+    "key": "header.brandHome",
+    "label": "Logo link (screen reader)"
+  },
+  {
+    "key": "header.openMenu",
+    "label": "Open menu button"
+  },
+  {
+    "key": "header.closeMenu",
+    "label": "Close menu button"
+  },
+  {
+    "key": "header.siteMenu",
+    "label": "Mobile menu dialog"
+  },
+  {
+    "key": "header.selectLanguage",
+    "label": "Language picker"
+  },
+  {
+    "key": "header.selectCity",
+    "label": "City picker"
+  },
+  {
+    "key": "header.mainNav",
+    "label": "Main navigation landmark"
+  },
+  {
+    "key": "header.mobileNav",
+    "label": "Mobile navigation landmark"
+  },
+  {
+    "key": "header.closeSearch",
+    "label": "Close search button"
+  },
+  {
+    "key": "footer.brandName",
+    "label": "Logo line 1"
+  },
+  {
+    "key": "footer.brandSub",
+    "label": "Logo line 2 (gold subtitle)"
+  },
+  {
+    "key": "footer.tagline",
+    "label": "Tagline under the logo"
+  },
+  {
+    "key": "footer.marketplace",
+    "label": "Column heading"
+  },
+  {
+    "key": "footer.allCategories",
+    "label": "All categories"
+  },
+  {
+    "key": "footer.liveAuctions",
+    "label": "Live auctions"
+  },
+  {
+    "key": "footer.latestProducts",
+    "label": "Latest products"
+  },
+  {
+    "key": "footer.company",
+    "label": "Column heading"
+  },
+  {
+    "key": "footer.about",
+    "label": "About"
+  },
+  {
+    "key": "footer.contact",
+    "label": "Contact"
+  },
+  {
+    "key": "footer.help",
+    "label": "Column heading"
+  },
+  {
+    "key": "footer.helpCentre",
+    "label": "Help centre"
+  },
+  {
+    "key": "footer.safetyTips",
+    "label": "Safety tips"
+  },
+  {
+    "key": "footer.terms",
+    "label": "Terms"
+  },
+  {
+    "key": "footer.privacy",
+    "label": "Privacy"
+  },
+  {
+    "key": "footer.rights",
+    "label": "Copyright line"
+  },
+  {
+    "key": "footer.languages",
+    "label": "Language note"
+  },
+  {
+    "key": "footer.developedBy",
+    "label": "Developed by line"
+  },
+  {
+    "key": "auth.pageTitle.signin",
+    "label": "Page title (sign-in)"
+  },
+  {
+    "key": "auth.logoAlt",
+    "label": "Logo alt text"
+  },
+  {
+    "key": "auth.tablistAria",
+    "label": "Account tabs (aria)"
+  },
+  {
+    "key": "auth.hero.welcome",
+    "label": "Hero headline"
+  },
+  {
+    "key": "auth.hero.tagline",
+    "label": "Hero tagline"
+  },
+  {
+    "key": "auth.hero.bullet1",
+    "label": "Hero bullet 1"
+  },
+  {
+    "key": "auth.hero.bullet2",
+    "label": "Hero bullet 2"
+  },
+  {
+    "key": "auth.hero.bullet3",
+    "label": "Hero bullet 3"
+  },
+  {
+    "key": "auth.emailVerify.heading",
+    "label": "Verify email heading"
+  },
+  {
+    "key": "auth.verifyAndContinue",
+    "label": "Verify and continue"
+  },
+  {
+    "key": "auth.mfa.title",
+    "label": "Two-step verification title"
+  },
+  {
+    "key": "auth.mfa.intro",
+    "label": "Two-step verification intro"
+  },
+  {
+    "key": "auth.mfa.recoveryCode",
+    "label": "Recovery code label"
+  },
+  {
+    "key": "auth.mfa.verificationCode",
+    "label": "Verification code label"
+  },
+  {
+    "key": "auth.mfa.useAuthenticatorInstead",
+    "label": "Use authenticator instead"
+  },
+  {
+    "key": "auth.mfa.useRecoveryInstead",
+    "label": "Use recovery code instead"
+  },
+  {
+    "key": "auth.mfa.recoveryAccepted",
+    "label": "Recovery accepted notice"
+  },
+  {
+    "key": "auth.tab.signIn",
+    "label": "Tab: Sign in"
+  },
+  {
+    "key": "auth.tab.createAccount",
+    "label": "Tab: Create account"
+  },
+  {
+    "key": "auth.signIn.heading",
+    "label": "Sign-in form heading"
+  },
+  {
+    "key": "auth.signIn.submit",
+    "label": "Sign-in submit"
+  },
+  {
+    "key": "auth.field.email",
+    "label": "Email label"
+  },
+  {
+    "key": "auth.field.emailPlaceholder",
+    "label": "Email placeholder"
+  },
+  {
+    "key": "auth.field.password",
+    "label": "Password label"
+  },
+  {
+    "key": "auth.field.fullName",
+    "label": "Full name label"
+  },
+  {
+    "key": "auth.forgotPassword",
+    "label": "Forgot password link"
+  },
+  {
+    "key": "auth.password.show",
+    "label": "Show password"
+  },
+  {
+    "key": "auth.password.hide",
+    "label": "Hide password"
+  },
+  {
+    "key": "auth.keepSignedIn",
+    "label": "Keep me signed in"
+  },
+  {
+    "key": "auth.register.heading",
+    "label": "Register heading"
+  },
+  {
+    "key": "auth.terms.prefix",
+    "label": "Terms checkbox prefix"
+  },
+  {
+    "key": "auth.terms.link",
+    "label": "Terms link text"
+  },
+  {
+    "key": "auth.terms.and",
+    "label": "Terms checkbox “and”"
+  },
+  {
+    "key": "auth.terms.privacy",
+    "label": "Privacy link text"
+  },
+  {
+    "key": "auth.terms.suffix",
+    "label": "Terms checkbox suffix"
+  },
+  {
+    "key": "auth.register.submit",
+    "label": "Create account submit"
+  },
+  {
+    "key": "auth.switch.newHere",
+    "label": "Switch: New here?"
+  },
+  {
+    "key": "auth.switch.alreadyHave",
+    "label": "Switch: Already have account?"
+  },
+  {
+    "key": "auth.switch.createAccount",
+    "label": "Switch: Create an account"
+  },
+  {
+    "key": "auth.switch.signIn",
+    "label": "Switch: Sign in"
+  },
+  {
+    "key": "auth.pleaseWait",
+    "label": "Busy button text"
+  },
+  {
+    "key": "auth.login",
+    "label": "Sign in"
+  },
+  {
+    "key": "auth.signOut",
+    "label": "Sign out"
+  },
+  {
+    "key": "auth.backToSignIn",
+    "label": "Back to sign in"
+  },
+  {
+    "key": "auth.forgot.pageTitle",
+    "label": "Page title"
+  },
+  {
+    "key": "auth.forgot.hero.title",
+    "label": "Hero title"
+  },
+  {
+    "key": "auth.forgot.hero.lead",
+    "label": "Hero lead"
+  },
+  {
+    "key": "auth.forgot.success.title",
+    "label": "Success title"
+  },
+  {
+    "key": "auth.forgot.success.body",
+    "label": "Success message"
+  },
+  {
+    "key": "auth.forgot.form.title",
+    "label": "Form title"
+  },
+  {
+    "key": "auth.forgot.submit",
+    "label": "Send reset link"
+  },
+  {
+    "key": "auth.reset.pageTitle",
+    "label": "Page title"
+  },
+  {
+    "key": "auth.reset.hero.title",
+    "label": "Hero title"
+  },
+  {
+    "key": "auth.reset.hero.lead",
+    "label": "Hero lead"
+  },
+  {
+    "key": "auth.reset.loading",
+    "label": "Loading…"
+  },
+  {
+    "key": "auth.reset.invalid.title",
+    "label": "Invalid link title"
+  },
+  {
+    "key": "auth.reset.invalid.body",
+    "label": "Invalid link message"
+  },
+  {
+    "key": "auth.reset.requestNewLink",
+    "label": "Request a new link"
+  },
+  {
+    "key": "auth.reset.form.title",
+    "label": "Form title"
+  },
+  {
+    "key": "auth.reset.confirmPassword",
+    "label": "Confirm password label"
+  },
+  {
+    "key": "auth.reset.mismatch",
+    "label": "Passwords do not match"
+  },
+  {
+    "key": "auth.reset.submit",
+    "label": "Update password submit"
+  },
+  {
+    "key": "auth.account.mfa.title",
+    "label": "Authenticator section title"
+  },
+  {
+    "key": "auth.account.mfa.enabledIntro",
+    "label": "MFA enabled intro"
+  },
+  {
+    "key": "auth.account.mfa.replace",
+    "label": "Replace authenticator"
+  },
+  {
+    "key": "auth.account.mfa.currentCodeLabel",
+    "label": "Current code label"
+  },
+  {
+    "key": "auth.account.mfa.continue",
+    "label": "Continue"
+  },
+  {
+    "key": "auth.account.mfa.cancel",
+    "label": "Cancel"
+  },
+  {
+    "key": "auth.account.mfa.qrAlt",
+    "label": "QR code alt"
+  },
+  {
+    "key": "auth.account.mfa.manualKeyPrefix",
+    "label": "Manual key prefix"
+  },
+  {
+    "key": "auth.account.mfa.newCodeLabel",
+    "label": "New app code label"
+  },
+  {
+    "key": "auth.account.mfa.confirmNew",
+    "label": "Confirm new authenticator"
+  },
+  {
+    "key": "auth.account.mfa.saveRecovery",
+    "label": "Save recovery codes notice"
+  },
+  {
+    "key": "auth.account.mfa.done",
+    "label": "Done"
+  },
+  {
+    "key": "auth.login",
+    "label": "Sign in"
+  },
+  {
+    "key": "auth.signOut",
+    "label": "Sign out"
+  },
+  {
+    "key": "auth.pageTitle.signin",
+    "label": "Browser tab"
+  },
+  {
+    "key": "auth.hero.welcome",
+    "label": "Welcome headline"
+  },
+  {
+    "key": "auth.hero.tagline",
+    "label": "Welcome line under the headline"
+  },
+  {
+    "key": "auth.hero.bullet1",
+    "label": "Welcome bullet 1"
+  },
+  {
+    "key": "auth.hero.bullet2",
+    "label": "Welcome bullet 2"
+  },
+  {
+    "key": "auth.hero.bullet3",
+    "label": "Welcome bullet 3"
+  },
+  {
+    "key": "auth.tab.signIn",
+    "label": "Sign in tab"
+  },
+  {
+    "key": "auth.signIn.heading",
+    "label": "Form title"
+  },
+  {
+    "key": "auth.field.email",
+    "label": "Email"
+  },
+  {
+    "key": "auth.field.emailPlaceholder",
+    "label": "Grey text inside the email box"
+  },
+  {
+    "key": "auth.field.password",
+    "label": "Password"
+  },
+  {
+    "key": "auth.password.show",
+    "label": "Show password"
+  },
+  {
+    "key": "auth.password.hide",
+    "label": "Hide password"
+  },
+  {
+    "key": "auth.forgotPassword",
+    "label": "Forgot password? link"
+  },
+  {
+    "key": "auth.keepSignedIn",
+    "label": "Keep me signed in"
+  },
+  {
+    "key": "auth.signIn.submit",
+    "label": "Sign in button"
+  },
+  {
+    "key": "auth.pleaseWait",
+    "label": "Button text while loading"
+  },
+  {
+    "key": "auth.switch.newHere",
+    "label": "“New here?”"
+  },
+  {
+    "key": "auth.switch.createAccount",
+    "label": "Create an account link"
+  },
+  {
+    "key": "auth.tab.createAccount",
+    "label": "Create account tab"
+  },
+  {
+    "key": "auth.register.heading",
+    "label": "Form title"
+  },
+  {
+    "key": "auth.field.fullName",
+    "label": "Full name"
+  },
+  {
+    "key": "auth.field.email",
+    "label": "Email"
+  },
+  {
+    "key": "auth.field.emailPlaceholder",
+    "label": "Grey text inside the email box"
+  },
+  {
+    "key": "auth.field.password",
+    "label": "Password"
+  },
+  {
+    "key": "auth.password.show",
+    "label": "Show password"
+  },
+  {
+    "key": "auth.password.hide",
+    "label": "Hide password"
+  },
+  {
+    "key": "auth.terms.prefix",
+    "label": "Before the Terms link"
+  },
+  {
+    "key": "auth.terms.link",
+    "label": "Terms link"
+  },
+  {
+    "key": "auth.terms.and",
+    "label": "The word “and”"
+  },
+  {
+    "key": "auth.terms.privacy",
+    "label": "Privacy link"
+  },
+  {
+    "key": "auth.terms.suffix",
+    "label": "After the Privacy link"
+  },
+  {
+    "key": "auth.register.submit",
+    "label": "Create account button"
+  },
+  {
+    "key": "auth.pleaseWait",
+    "label": "Button text while loading"
+  },
+  {
+    "key": "auth.emailVerify.heading",
+    "label": "Check-your-email heading"
+  },
+  {
+    "key": "auth.verifyAndContinue",
+    "label": "Verify button"
+  },
+  {
+    "key": "auth.switch.alreadyHave",
+    "label": "“Already have an account?”"
+  },
+  {
+    "key": "auth.switch.signIn",
+    "label": "Sign in link"
+  },
+  {
+    "key": "auth.forgot.pageTitle",
+    "label": "Browser tab"
+  },
+  {
+    "key": "auth.logoAlt",
+    "label": "Logo image description"
+  },
+  {
+    "key": "auth.forgot.hero.title",
+    "label": "Headline"
+  },
+  {
+    "key": "auth.forgot.hero.lead",
+    "label": "Line under the headline"
+  },
+  {
+    "key": "auth.forgot.form.title",
+    "label": "Form title"
+  },
+  {
+    "key": "auth.field.email",
+    "label": "Email"
+  },
+  {
+    "key": "auth.field.emailPlaceholder",
+    "label": "Grey text inside the email box"
+  },
+  {
+    "key": "auth.forgot.submit",
+    "label": "Send reset link button"
+  },
+  {
+    "key": "auth.pleaseWait",
+    "label": "Button text while loading"
+  },
+  {
+    "key": "auth.backToSignIn",
+    "label": "Back to sign in link"
+  },
+  {
+    "key": "auth.forgot.success.title",
+    "label": "Success heading"
+  },
+  {
+    "key": "auth.forgot.success.body",
+    "label": "Success message"
+  },
+  {
+    "key": "auth.reset.pageTitle",
+    "label": "Browser tab"
+  },
+  {
+    "key": "auth.logoAlt",
+    "label": "Logo image description"
+  },
+  {
+    "key": "auth.reset.hero.title",
+    "label": "Headline"
+  },
+  {
+    "key": "auth.reset.hero.lead",
+    "label": "Line under the headline"
+  },
+  {
+    "key": "auth.reset.loading",
+    "label": "Loading message"
+  },
+  {
+    "key": "auth.reset.invalid.title",
+    "label": "Invalid link heading"
+  },
+  {
+    "key": "auth.reset.invalid.body",
+    "label": "Invalid link message"
+  },
+  {
+    "key": "auth.reset.requestNewLink",
+    "label": "Request a new link"
+  },
+  {
+    "key": "auth.reset.form.title",
+    "label": "Form title"
+  },
+  {
+    "key": "auth.field.password",
+    "label": "New password"
+  },
+  {
+    "key": "auth.password.show",
+    "label": "Show password"
+  },
+  {
+    "key": "auth.password.hide",
+    "label": "Hide password"
+  },
+  {
+    "key": "auth.reset.confirmPassword",
+    "label": "Confirm password"
+  },
+  {
+    "key": "auth.reset.mismatch",
+    "label": "Passwords do not match"
+  },
+  {
+    "key": "auth.reset.submit",
+    "label": "Update password button"
+  },
+  {
+    "key": "auth.pleaseWait",
+    "label": "Button text while loading"
+  },
+  {
+    "key": "auth.mfa.title",
+    "label": "Two-step verification title"
+  },
+  {
+    "key": "auth.mfa.intro",
+    "label": "Instructions under the title"
+  },
+  {
+    "key": "auth.mfa.verificationCode",
+    "label": "Authenticator code label"
+  },
+  {
+    "key": "auth.mfa.recoveryCode",
+    "label": "Recovery code label"
+  },
+  {
+    "key": "auth.verifyAndContinue",
+    "label": "Verify and continue button"
+  },
+  {
+    "key": "auth.mfa.useRecoveryInstead",
+    "label": "Use a recovery code instead"
+  },
+  {
+    "key": "auth.mfa.useAuthenticatorInstead",
+    "label": "Use authenticator code instead"
+  },
+  {
+    "key": "auth.mfa.recoveryAccepted",
+    "label": "Recovery code accepted notice"
+  },
+  {
+    "key": "auth.pleaseWait",
+    "label": "Button text while loading"
+  },
+  {
+    "key": "auth.account.mfa.title",
+    "label": "Section title"
+  },
+  {
+    "key": "auth.account.mfa.enabledIntro",
+    "label": "Intro when MFA is on"
+  },
+  {
+    "key": "auth.account.mfa.replace",
+    "label": "Replace authenticator button"
+  },
+  {
+    "key": "auth.account.mfa.currentCodeLabel",
+    "label": "Current code from app"
+  },
+  {
+    "key": "auth.account.mfa.continue",
+    "label": "Continue button"
+  },
+  {
+    "key": "auth.account.mfa.cancel",
+    "label": "Cancel button"
+  },
+  {
+    "key": "auth.account.mfa.manualKeyPrefix",
+    "label": "Text before the manual setup key"
+  },
+  {
+    "key": "auth.account.mfa.newCodeLabel",
+    "label": "Code from new app"
+  },
+  {
+    "key": "auth.account.mfa.confirmNew",
+    "label": "Confirm new authenticator button"
+  },
+  {
+    "key": "auth.account.mfa.saveRecovery",
+    "label": "Save your recovery codes notice"
+  },
+  {
+    "key": "auth.account.mfa.done",
+    "label": "Done button"
+  },
+  {
+    "key": "auth.account.mfa.qrAlt",
+    "label": "QR code image description"
+  }
+]

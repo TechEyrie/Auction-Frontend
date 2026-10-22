@@ -18,8 +18,11 @@ import {
   AUDIENCE_LABEL,
   type AdminListing,
   type ListingStatus,
+  localizedText,
 } from '../../../lib/listings';
 import { useSession } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
+import type { MessageKey } from '../../../lib/uiMessages';
 import { useAsync } from '../../../lib/useAsync';
 import {
   Badge,
@@ -100,14 +103,14 @@ const AUCTION_STATUS_TONE: Record<string, 'good' | 'neutral' | 'warn' | 'bad'> =
   cancelled: 'bad',
 };
 
-function outcomeLabel(auction: AdminAuction): string {
-  if (auction.status === 'live') return 'Live';
-  if (auction.status === 'scheduled') return 'Scheduled';
-  if (auction.status === 'draft') return 'Draft';
-  if (auction.status === 'cancelled') return 'Cancelled';
-  if (auction.outcome === 'sold') return 'Sold';
-  if (auction.outcome === 'no_bids') return 'Not sold (no bids)';
-  return 'Pending';
+function outcomeLabel(auction: AdminAuction, t: (key: MessageKey) => string): string {
+  if (auction.status === 'live') return t('admin.auctions.outcome.live');
+  if (auction.status === 'scheduled') return t('admin.auctions.outcome.scheduled');
+  if (auction.status === 'draft') return t('admin.auctions.outcome.draft');
+  if (auction.status === 'cancelled') return t('admin.auctions.outcome.cancelled');
+  if (auction.outcome === 'sold') return t('admin.auctions.outcome.sold');
+  if (auction.outcome === 'no_bids') return t('admin.auctions.outcome.noBids');
+  return t('admin.auctions.outcome.pending');
 }
 
 function outcomeTone(auction: AdminAuction): 'good' | 'neutral' | 'warn' | 'bad' {
@@ -120,6 +123,7 @@ function outcomeTone(auction: AdminAuction): 'good' | 'neutral' | 'warn' | 'bad'
 const BIDS_PAGE_SIZE = 100;
 
 function AdminAuctionsContent() {
+  const { t, lang } = useUiLocale();
   const session = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -305,7 +309,7 @@ function AdminAuctionsContent() {
         headers: session.authHeaders(),
       });
       setOpenModal(false);
-      setNotice(`Auction opened for ${openTarget.title.en ?? openTarget.listingReference}.`);
+      setNotice(`Auction opened for ${localizedText(openTarget.title, lang, openTarget.listingReference)}.`);
       selectProduct(openTarget.listingReference);
       history.reload();
       listings.reload({ soft: true });
@@ -360,8 +364,8 @@ function AdminAuctionsContent() {
   return (
     <div style={css('display: flex; flex-direction: column; gap: 16px')}>
       <PageHeader
-        title="Auctions"
-        subtitle="Search auction products, review past runs, and open new timed auctions."
+        title={t('admin.auctions.title')}
+        subtitle={t('admin.auctions.subtitle')}
       />
 
       {notice && (
@@ -370,20 +374,20 @@ function AdminAuctionsContent() {
         </p>
       )}
 
-      <Panel title="Auction products" subtitle="Published catalogue items set to the auction listing method.">
+      <Panel title={t('admin.auctions.productsPanel')} subtitle={t('admin.auctions.productsSubtitle')}>
         <form className="adm-filters" onSubmit={applyFilters}>
           <div className="adm-filter" style={css('flex: 2 1 280px')}>
-            <Label htmlFor="auc-search">Search</Label>
+            <Label htmlFor="auc-search">{t('admin.field.search')}</Label>
             <input
               id="auc-search"
               className="field"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Title or Ad reference…"
+              placeholder={t('admin.auctions.searchPlaceholder')}
             />
           </div>
           <div className="adm-actions">
-            <PrimaryButton>Search</PrimaryButton>
+            <PrimaryButton>{t('common.search')}</PrimaryButton>
             <GhostButton
               type="button"
               onClick={() => {
@@ -401,20 +405,20 @@ function AdminAuctionsContent() {
           loading={listings.loading}
           error={listings.error}
           empty={auctionProducts.length === 0}
-          emptyText="No published auction products match this search."
+          emptyText={t('admin.auctions.emptyProducts')}
           onRetry={listings.reload}
         >
-          <TableWrap label="Auction products">
+          <TableWrap label={t('admin.auctions.productsPanel')}>
             <table className="adm-table adm-table--sticky-head">
               <thead>
                 <tr>
-                  <th scope="col">Product</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Audience</th>
-                  <th scope="col">Live</th>
-                  <th scope="col">Runs</th>
-                  <th scope="col">Unsold</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col">{t('admin.products.colProduct')}</th>
+                  <th scope="col">{t('admin.common.colStatus')}</th>
+                  <th scope="col">{t('admin.products.colAudience')}</th>
+                  <th scope="col">{t('admin.auctions.live')}</th>
+                  <th scope="col">{t('admin.auctions.colRuns')}</th>
+                  <th scope="col">{t('admin.auctions.colUnsold')}</th>
+                  <th scope="col">{t('admin.common.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -434,7 +438,7 @@ function AdminAuctionsContent() {
                           style={css('font-weight: 600; text-align: left')}
                           onClick={() => selectProduct(listing.listingReference)}
                         >
-                          {listing.title.en ?? listing.title.ar ?? 'Untitled'}
+                          {localizedText(listing.title, lang, t('admin.products.untitled'))}
                         </button>
                         <div className="adm-hint">Ad {listing.listingReference}</div>
                       </td>
@@ -443,7 +447,7 @@ function AdminAuctionsContent() {
                       </td>
                       <td>{listing.audience ? AUDIENCE_LABEL[listing.audience] : '—'}</td>
                       <td>
-                        {listing.liveLotReference ? <Badge tone="good">Live</Badge> : '—'}
+                        {listing.liveLotReference ? <Badge tone="good">{t('admin.auctions.live')}</Badge> : '—'}
                       </td>
                       <td>{stats ? stats.runs : '…'}</td>
                       <td>
@@ -454,15 +458,15 @@ function AdminAuctionsContent() {
                       <td>
                         <div className="adm-row-actions">
                           <button type="button" className="adm-link-btn" onClick={() => selectProduct(listing.listingReference)}>
-                            History
+                            {t('admin.auctions.historyBtn')}
                           </button>
                           {mayManage && (
                             <button type="button" className="adm-link-btn" onClick={() => beginOpenAuction(listing)}>
-                              Open auction
+                              {t('admin.auctions.openBtn')}
                             </button>
                           )}
                           <Link href={`/admin/listings/${listing.listingReference}`} className="adm-link-btn">
-                            Edit
+                            {t('admin.common.edit')}
                           </Link>
                         </div>
                       </td>
@@ -474,9 +478,9 @@ function AdminAuctionsContent() {
           </TableWrap>
 
           {totalPages > 1 && (
-            <nav className="adm-pager" aria-label="Products pages" style={css('margin-top: 14px')}>
+            <nav className="adm-pager" aria-label={t('admin.auctions.productsPages')} style={css('margin-top: 14px')}>
               <GhostButton type="button" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-                Previous
+                {t('admin.common.previousPlain')}
               </GhostButton>
               {pageWindow(page, totalPages).map((p) => (
                 <button
@@ -489,7 +493,7 @@ function AdminAuctionsContent() {
                 </button>
               ))}
               <GhostButton type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
-                Next
+                {t('admin.common.nextPlain')}
               </GhostButton>
             </nav>
           )}
@@ -499,23 +503,23 @@ function AdminAuctionsContent() {
       <Modal
         open={Boolean(selectedRef)}
         onClose={closeHistoryModal}
-        title="Auction history"
+        title={t('admin.auctions.history')}
         size="lg"
         subtitle={
           selectedRef
             ? selectedListing
-              ? `${selectedListing.title.en ?? selectedListing.title.ar ?? selectedRef} · Ad ${selectedRef} · ${auctionCount} auction${auctionCount === 1 ? '' : 's'}`
+              ? `${localizedText(selectedListing.title, lang, selectedRef)} · Ad ${selectedRef} · ${auctionCount} auction${auctionCount === 1 ? '' : 's'}`
               : `Ad ${selectedRef} · ${auctionCount} auction${auctionCount === 1 ? '' : 's'}`
             : undefined
         }
         footer={
           <div className="adm-actions">
             <GhostButton type="button" onClick={closeHistoryModal}>
-              Close
+              {t('admin.common.close')}
             </GhostButton>
             {mayManage && selectedListing ? (
               <PrimaryButton type="button" onClick={() => beginOpenAuction(selectedListing)}>
-                Open auction
+                {t('admin.auctions.openBtn')}
               </PrimaryButton>
             ) : null}
           </div>
@@ -525,20 +529,20 @@ function AdminAuctionsContent() {
           loading={history.loading}
           error={history.error}
           empty={!history.loading && (history.data?.auctions.length ?? 0) === 0}
-          emptyText="No auctions have been run for this product yet."
+          emptyText={t('admin.auctions.emptyHistory')}
           onRetry={history.reload}
         >
-          <TableWrap label="Auction history for product">
+          <TableWrap label={t('admin.auctions.historyTable')}>
             <table className="adm-table adm-table--sticky-head">
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Outcome</th>
-                  <th scope="col">Bids</th>
-                  <th scope="col">Schedule</th>
-                  <th scope="col">Top bid</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col">{t('admin.common.colStatus')}</th>
+                  <th scope="col">{t('admin.auctions.colOutcome')}</th>
+                  <th scope="col">{t('admin.auctions.colBids')}</th>
+                  <th scope="col">{t('admin.auctions.colSchedule')}</th>
+                  <th scope="col">{t('admin.auctions.colTopBid')}</th>
+                  <th scope="col">{t('admin.common.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -552,22 +556,22 @@ function AdminAuctionsContent() {
                       <Badge tone={AUCTION_STATUS_TONE[auction.status] ?? 'neutral'}>{auction.status}</Badge>
                     </td>
                     <td>
-                      <Badge tone={outcomeTone(auction)}>{outcomeLabel(auction)}</Badge>
+                      <Badge tone={outcomeTone(auction)}>{outcomeLabel(auction, t)}</Badge>
                     </td>
                     <td>{auction.bidCount}</td>
                     <td className="wrap">
                       <div>{fmtBusinessDateTime(auction.startsAt)}</div>
                       <div className="adm-hint">→ {fmtBusinessDateTime(auction.endsAt)}</div>
-                      {auction.closedAt ? <div className="adm-hint">Closed {fmtBusinessDateTime(auction.closedAt)}</div> : null}
+                      {auction.closedAt ? <div className="adm-hint">{t('admin.auctions.closedAt', { at: fmtBusinessDateTime(auction.closedAt) })}</div> : null}
                     </td>
                     <td>
                       {auction.currentAmountMinor != null ? fmtMinor(auction.currentAmountMinor) : fmtMinor(auction.startingBidMinor)}
-                      <div className="adm-hint">Start {fmtMinor(auction.startingBidMinor)}</div>
+                      <div className="adm-hint">{t('admin.auctions.startLabel', { amount: fmtMinor(auction.startingBidMinor) })}</div>
                     </td>
                     <td>
                       <div className="adm-row-actions">
                         <button type="button" className="adm-link-btn" onClick={() => openBidsModal(auction.lotReference)}>
-                          View bids
+                          {t('admin.auctions.viewBids')}
                         </button>
                         {auction.orderReference ? (
                           <span className="adm-hint">{auction.orderReference}</span>
@@ -585,23 +589,23 @@ function AdminAuctionsContent() {
       <Modal
         open={openModal}
         onClose={() => !openBusy && setOpenModal(false)}
-        title="Open auction"
+        title={t('admin.auctions.openAuction')}
         subtitle={
           openTarget
-            ? `${openTarget.title.en ?? openTarget.title.ar ?? 'Product'} · Ad ${openTarget.listingReference}`
+            ? `${localizedText(openTarget.title, lang, t('admin.products.untitled'))} · Ad ${openTarget.listingReference}`
             : undefined
         }
         footer={
           <div className="adm-actions">
             <GhostButton type="button" disabled={openBusy} onClick={() => setOpenModal(false)}>
-              Cancel
+              {t('admin.common.cancel')}
             </GhostButton>
             <PrimaryButton
               type="button"
               disabled={openBusy}
               onClick={() => void submitOpenAuction({ preventDefault: () => {} } as FormEvent)}
             >
-              {openBusy ? 'Working…' : 'Create and open'}
+              {openBusy ? t('admin.auctions.working') : t('admin.auctions.createOpen')}
             </PrimaryButton>
           </div>
         }
@@ -610,7 +614,7 @@ function AdminAuctionsContent() {
         <form className="adm-form" onSubmit={(event) => void submitOpenAuction(event)}>
           <div className="adm-grid">
             <div>
-              <Label htmlFor="open-start">Starting bid (QAR)</Label>
+              <Label htmlFor="open-start">{t('admin.auctions.startingBid')}</Label>
               <input
                 id="open-start"
                 className="field"
@@ -621,7 +625,7 @@ function AdminAuctionsContent() {
               />
             </div>
             <div>
-              <Label htmlFor="open-inc">Bid increment (QAR)</Label>
+              <Label htmlFor="open-inc">{t('admin.auctions.bidIncrement')}</Label>
               <input
                 id="open-inc"
                 className="field"
@@ -632,7 +636,7 @@ function AdminAuctionsContent() {
               />
             </div>
             <div>
-              <Label htmlFor="open-starts">Starts at</Label>
+              <Label htmlFor="open-starts">{t('admin.auctions.startsAt')}</Label>
               <input
                 id="open-starts"
                 className="field"
@@ -643,7 +647,7 @@ function AdminAuctionsContent() {
               />
             </div>
             <div>
-              <Label htmlFor="open-ends">Ends at</Label>
+              <Label htmlFor="open-ends">{t('admin.auctions.endsAt')}</Label>
               <input
                 id="open-ends"
                 className="field"
@@ -654,36 +658,33 @@ function AdminAuctionsContent() {
               />
             </div>
           </div>
-          <Hint>
-            Start/end are Qatar time ({BUSINESS_TIMEZONE}), not your PC clock. Defaults use Qatar “now”.
-            The public catalogue only shows the product while that start–end window contains the real current time (UTC under the hood).
-          </Hint>
+          <Hint>{t('admin.auctions.scheduleHint', { tz: BUSINESS_TIMEZONE })}</Hint>
         </form>
       </Modal>
 
       <Modal
         open={bidsModalLot !== null}
         onClose={() => setBidsModalLot(null)}
-        title="Bid history"
-        subtitle={bidsModalLot ? `Auction id ${bidsModalLot}` : undefined}
+        title={t('admin.auctions.bidHistory')}
+        subtitle={bidsModalLot ? t('admin.auctions.auctionId', { id: bidsModalLot }) : undefined}
         size="lg"
       >
         <StateBlock
           loading={bidsLoading && bids.length === 0}
           error={null}
           empty={!bidsLoading && bids.length === 0}
-          emptyText={bidsMessage ?? 'No bids loaded.'}
+          emptyText={bidsMessage ?? t('admin.auctions.noBidsLoaded')}
         >
           {bids.length > 0 && (
             <>
-              <TableWrap label="Accepted bids">
+              <TableWrap label={t('admin.auctions.bidsTable')}>
                 <table className="adm-table adm-table--sticky-head">
                   <thead>
                     <tr>
                       <th scope="col">#</th>
-                      <th scope="col">Bidder</th>
-                      <th scope="col">Amount</th>
-                      <th scope="col">Accepted</th>
+                      <th scope="col">{t('admin.auctions.colBidder')}</th>
+                      <th scope="col">{t('admin.auctions.colAmount')}</th>
+                      <th scope="col">{t('admin.auctions.colAccepted')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -704,7 +705,7 @@ function AdminAuctionsContent() {
               {bidsHasMore && (
                 <div className="adm-actions" style={css('margin-top: 14px')}>
                   <GhostButton type="button" onClick={() => void loadMoreBids()} disabled={bidsLoading}>
-                    {bidsLoading ? 'Loading…' : 'Load more'}
+                    {bidsLoading ? t('admin.common.loading') : t('admin.auctions.loadMore')}
                   </GhostButton>
                 </div>
               )}
@@ -716,15 +717,18 @@ function AdminAuctionsContent() {
   );
 }
 
+function AuctionsLoadingFallback() {
+  const { t } = useUiLocale();
+  return (
+    <p role="status" className="adm-state" data-state="loading">
+      {t('admin.auctions.loading')}
+    </p>
+  );
+}
+
 export default function AdminAuctionsPage() {
   return (
-    <Suspense
-      fallback={
-        <p role="status" className="adm-state" data-state="loading">
-          Loading auctions…
-        </p>
-      }
-    >
+    <Suspense fallback={<AuctionsLoadingFallback />}>
       <AdminAuctionsContent />
     </Suspense>
   );

@@ -1,8 +1,9 @@
 import type { UiLang } from './uiLocale.ts';
+import { ADMIN_AR, ADMIN_EN } from './adminUiMessages.ts';
 
 /**
- * Customer-site UI strings. English is the source of truth for the key set; the Arabic dictionary is
- * typed against it so a missing translation fails typecheck. Admin is intentionally not covered.
+ * Site and admin UI strings. English is the source of truth for the key set; the Arabic dictionary is
+ * typed against it so a missing translation fails typecheck.
  * Placeholders use {name} and are filled by `translate`.
  */
 const EN = {
@@ -61,6 +62,10 @@ const EN = {
   'header.switchLanguage': 'Switch language',
   'header.selectLanguage': 'Select language',
   'header.selectCity': 'Select city',
+  'header.themeToDark': 'Switch to dark theme',
+  'header.themeToLight': 'Switch to light theme',
+  'header.themeDark': 'Dark',
+  'header.themeLight': 'Light',
   'header.mainNav': 'Main',
   'header.mobileNav': 'Mobile',
   'header.brandHome': 'Araq & Kahraman Auctions home',
@@ -665,6 +670,7 @@ const EN = {
   'account.noBidsLink': 'See auction listings',
   'account.openListing': 'Open listing',
   'account.liveAuction': 'Live auction',
+  ...ADMIN_EN,
 } as const;
 
 export type MessageKey = keyof typeof EN;
@@ -724,6 +730,10 @@ const AR: Record<MessageKey, string> = {
   'header.switchLanguage': 'تغيير اللغة',
   'header.selectLanguage': 'اختر اللغة',
   'header.selectCity': 'اختر المدينة',
+  'header.themeToDark': 'التبديل إلى الوضع الداكن',
+  'header.themeToLight': 'التبديل إلى الوضع الفاتح',
+  'header.themeDark': 'داكن',
+  'header.themeLight': 'فاتح',
   'header.mainNav': 'الرئيسية',
   'header.mobileNav': 'الجوال',
   'header.brandHome': 'مزادات عراق وكهرمان — الصفحة الرئيسية',
@@ -1321,6 +1331,7 @@ const AR: Record<MessageKey, string> = {
   'account.noBidsLink': 'شاهد قوائم المزاد',
   'account.openListing': 'افتح الإعلان',
   'account.liveAuction': 'مزاد مباشر',
+  ...ADMIN_AR,
 };
 
 export const MESSAGES: Record<UiLang, Record<MessageKey, string>> = { en: EN, ar: AR };

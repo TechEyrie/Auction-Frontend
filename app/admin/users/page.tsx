@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiFetch, ApiRequestError } from '../../../lib/api';
 import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import { Badge, GhostButton, PageHeader, Panel, StateBlock, TableWrap } from '../ui';
 
 type AdminUser = {
@@ -16,6 +17,7 @@ type AdminUser = {
 };
 
 export default function AdminUsersPage() {
+  const { t } = useUiLocale();
   const session = useSession();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,26 +61,26 @@ export default function AdminUsersPage() {
   }
 
   if (!session.capabilities.includes('users.view')) {
-    return <p>This account cannot view users.</p>;
+    return <p>{t('admin.users.noAccess')}</p>;
   }
 
   return (
     <div style={css('display: flex; flex-direction: column; gap: 16px')}>
-      <PageHeader title="Users" subtitle="Accounts on this server. Suspending someone stops them signing in." />
+      <PageHeader title={t('admin.users.title')} subtitle={t('admin.users.subtitle')} />
 
-      <Panel title="All accounts" actions={<GhostButton onClick={() => void load()}>Reload</GhostButton>}>
+      <Panel title={t('admin.users.allAccounts')} actions={<GhostButton onClick={() => void load()}>{t('admin.common.reload')}</GhostButton>}>
         {error && <p role="alert" className="adm-note" data-tone="bad">{error}</p>}
         {notice && <p role="status" className="adm-note" data-tone="good">{notice}</p>}
 
-        <StateBlock loading={loading} error={null} empty={users.length === 0} emptyText="No users found." onRetry={load}>
-          <TableWrap label="Users">
+        <StateBlock loading={loading} error={null} empty={users.length === 0} emptyText={t('admin.users.empty')} onRetry={load}>
+          <TableWrap label={t('admin.users.tableCaption')}>
             <table className="adm-table adm-table--sticky-head">
               <thead>
                 <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Contact</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Access</th>
+                  <th scope="col">{t('admin.users.colName')}</th>
+                  <th scope="col">{t('admin.users.colContact')}</th>
+                  <th scope="col">{t('admin.users.colStatus')}</th>
+                  <th scope="col">{t('admin.users.colAccess')}</th>
                   <th scope="col" />
                 </tr>
               </thead>
@@ -90,11 +92,11 @@ export default function AdminUsersPage() {
                     <td>
                       <Badge tone={user.status === 'active' ? 'good' : 'warn'}>{user.status}</Badge>
                     </td>
-                    <td>{user.roles.includes('customer') && user.roles.length === 1 ? 'Customer' : 'Admin'}</td>
+                    <td>{user.roles.includes('customer') && user.roles.length === 1 ? t('admin.users.customer') : t('admin.roleSuffix')}</td>
                     <td>
                       {mayManage && user.publicReference !== session.user?.publicReference && (
                         <button type="button" className="adm-link-btn" onClick={() => void setStatus(user, user.status === 'active' ? 'suspended' : 'active')}>
-                          {user.status === 'active' ? 'Suspend' : 'Restore'}
+                          {user.status === 'active' ? t('admin.users.suspend') : t('admin.users.restore')}
                         </button>
                       )}
                     </td>

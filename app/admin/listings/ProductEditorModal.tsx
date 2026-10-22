@@ -17,15 +17,11 @@ import {
   attributePayload,
   mapListingConditionToItemCondition,
   withSyncedItemCondition,
-  AUDIENCE_LABEL,
   AUDIENCES,
-  CONDITION_LABEL,
   conditionOptionsFor,
   coverAfterChange,
-  LANGUAGE_MODE_LABEL,
   LANGUAGE_MODES,
   LISTING_METHODS,
-  METHOD_LABEL,
   localizedProblems,
   mediaPayload,
   moveMedia,
@@ -41,6 +37,8 @@ import {
 } from '../../../lib/listings';
 import { BUSINESS_TIMEZONE, fmtBusinessDateTime } from '../../../lib/format';
 import type { SessionValue } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
+import { conditionLabel, methodLabel } from '../../../lib/uiMessages';
 import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Modal, PrimaryButton, Toggle } from '../ui';
 import './listings.css';
 
@@ -202,6 +200,7 @@ export default function ProductEditorModal({
   onDeleted?: (listingReference: string) => void;
   onDuplicated?: (listing: AdminListing) => void;
 }) {
+  const { t, lang } = useUiLocale();
   const [form, setForm] = useState<EditorForm>(emptyForm());
   const formRef = useRef(form);
   formRef.current = form;
@@ -545,7 +544,7 @@ export default function ProductEditorModal({
     void loadSchema(categoryKey);
   }
 
-  const title = mode === 'add' ? (ref ? 'Add product' : 'Add product') : 'Edit product';
+  const title = mode === 'add' ? t('admin.editor.addProduct') : t('admin.editor.editProduct');
   const timeBits = listing
     ? [
         listing.createdAt ? `Created ${fmtBusinessDateTime(listing.createdAt)}` : null,
@@ -557,7 +556,7 @@ export default function ProductEditorModal({
     : '';
   const subtitle = ref
     ? [
-        `${listing?.status ?? 'draft'} · ${METHOD_LABEL[form.listingMethod]}`,
+        `${listing?.status ?? 'draft'} · ${methodLabel(lang, form.listingMethod)}`,
         listing?.publicUrl ?? null,
         timeBits || null,
         `Times ${BUSINESS_TIMEZONE}`,
@@ -595,7 +594,7 @@ export default function ProductEditorModal({
                   setError(null);
                 }}
               >
-                Duplicate as unsold
+                {t('admin.products.duplicateUnsold')}
               </GhostButton>
             ) : null}
             {mayManage && listing && listing.status !== 'archived' ? (
@@ -608,21 +607,21 @@ export default function ProductEditorModal({
                   setError(null);
                 }}
               >
-                <span style={css('color: #8A2C11; font-weight: 600')}>Delete</span>
+                <span style={css('color: #8A2C11; font-weight: 600')}>{t('admin.common.delete')}</span>
               </GhostButton>
             ) : null}
             <GhostButton type="button" disabled={busy || loading} onClick={onClose}>
-              Close
+              {t('admin.common.close')}
             </GhostButton>
           </div>
           <div style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto')}>
             {mayManage && listing && listing.status !== 'published' && listing.status !== 'archived' ? (
               <PrimaryButton type="button" disabled={busy || loading || !confirmPublish || !canPublish} onClick={() => void handlePublish()}>
-                {busy ? 'Working…' : 'Publish'}
+                {busy ? t('admin.common.pleaseWait') : t('admin.common.publish')}
               </PrimaryButton>
             ) : null}
             <PrimaryButton type="button" disabled={busy || loading || !mayManage} onClick={() => void handleSave()}>
-              {busy ? 'Saving…' : ref ? 'Save product' : 'Create & save'}
+              {busy ? t('admin.common.saving') : t('admin.common.save')}
             </PrimaryButton>
           </div>
         </>
@@ -630,7 +629,7 @@ export default function ProductEditorModal({
     >
       {loading ? (
         <p role="status" className="adm-state" data-state="loading">
-          Loading product…
+          {t('admin.common.loading')}
         </p>
       ) : (
         <form className="adm-form adm-form--modal" onSubmit={(event) => void handleSave(event)}>
@@ -653,11 +652,11 @@ export default function ProductEditorModal({
           ) : null}
 
           <section className="adm-section" data-listing-section="basics">
-            <h3>Basics</h3>
-            <p className="adm-section-hint">Audience, category, listing type, condition and location.</p>
+            <h3>{t('admin.editor.basics')}</h3>
+            <p className="adm-section-hint">{t('admin.editor.basicsHint')}</p>
             <div className="adm-grid adm-grid--2">
               <div>
-                <Label htmlFor="pe-audience">Audience</Label>
+                <Label htmlFor="pe-audience">{t('admin.field.audience')}</Label>
                 <select
                   id="pe-audience"
                   className="field"
@@ -665,17 +664,17 @@ export default function ProductEditorModal({
                   value={form.audience}
                   onChange={(event) => setForm({ ...form, audience: event.target.value as Audience | '' })}
                 >
-                  <option value="">Choose Men, Women or Unisex…</option>
+                  <option value="">{t('admin.editor.chooseAudience')}</option>
                   {AUDIENCES.map((entry) => (
                     <option key={entry} value={entry}>
-                      {AUDIENCE_LABEL[entry]}
+                      {t(`common.${entry}`)}
                     </option>
                   ))}
                 </select>
                 <FieldError>{inlineFieldError('audience')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="pe-category">Category</Label>
+                <Label htmlFor="pe-category">{t('admin.field.category')}</Label>
                 <select
                   id="pe-category"
                   className="field"
@@ -683,7 +682,7 @@ export default function ProductEditorModal({
                   value={form.categoryKey}
                   onChange={(event) => chooseCategory(event.target.value)}
                 >
-                  <option value="">Choose category…</option>
+                  <option value="">{t('admin.editor.chooseCategoryOpt')}</option>
                   {categories.map((entry) => (
                     <option key={entry.key} value={entry.key}>
                       {'—'.repeat(entry.depth + 1)} {entry.name}
@@ -693,7 +692,7 @@ export default function ProductEditorModal({
                 <FieldError>{inlineFieldError('categoryKey')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="pe-method">Listing method</Label>
+                <Label htmlFor="pe-method">{t('admin.field.listingMethod')}</Label>
                 <select
                   id="pe-method"
                   className="field"
@@ -719,16 +718,16 @@ export default function ProductEditorModal({
           >
             {methods.map((method) => (
               <option key={method} value={method}>
-                {METHOD_LABEL[method]}
+                {methodLabel(lang, method)}
               </option>
             ))}
           </select>
-          <Hint>Auction needs no price here — the auction engine sets bidding later. Fixed price requires a QAR amount.</Hint>
+          <Hint>{t('admin.wizard.hint.auctionMethod')}</Hint>
           <FieldError>{inlineFieldError('listingMethod')}</FieldError>
         </div>
         {form.listingMethod === 'fixed_price' ? (
           <div>
-            <Label htmlFor="pe-price">Price (QAR)</Label>
+            <Label htmlFor="pe-price">{t('admin.field.priceQar')}</Label>
             <input
               id="pe-price"
               className="field"
@@ -745,7 +744,7 @@ export default function ProductEditorModal({
           </div>
         ) : null}
               <div>
-                <Label htmlFor="pe-language">Advertisement language</Label>
+                <Label htmlFor="pe-language">{t('admin.field.adLanguage')}</Label>
                 <select
                   id="pe-language"
                   className="field"
@@ -755,14 +754,14 @@ export default function ProductEditorModal({
                 >
                   {LANGUAGE_MODES.map((mode) => (
                     <option key={mode} value={mode}>
-                      {LANGUAGE_MODE_LABEL[mode]}
+                      {mode === 'en' ? t('admin.wizard.langEnOnly') : mode === 'ar' ? t('admin.wizard.langArOnly') : t('admin.wizard.langBoth')}
                     </option>
                   ))}
                 </select>
                 <FieldError>{inlineFieldError('languageMode')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="pe-condition">Condition</Label>
+                <Label htmlFor="pe-condition">{t('admin.field.condition')}</Label>
                 <select
                   id="pe-condition"
                   className="field"
@@ -780,15 +779,15 @@ export default function ProductEditorModal({
                 >
                   {conditions.map((condition) => (
                     <option key={condition} value={condition}>
-                      {CONDITION_LABEL[condition]}
+                      {conditionLabel(lang, condition)}
                     </option>
                   ))}
                 </select>
-                <Hint>Also fills Category details → Condition (refurbished maps to Used).</Hint>
+                <Hint>{t('admin.editor.itemConditionHint')}</Hint>
                 <FieldError>{inlineFieldError('condition')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="pe-location">Location</Label>
+                <Label htmlFor="pe-location">{t('admin.field.location')}</Label>
                 <select
                   id="pe-location"
                   className="field"
@@ -796,7 +795,7 @@ export default function ProductEditorModal({
                   value={form.locationKey ?? ''}
                   onChange={(event) => setForm({ ...form, locationKey: event.target.value || null })}
                 >
-                  <option value="">Not set</option>
+                  <option value="">{t('admin.editor.notSetLocation')}</option>
                   {locations
                     .filter((loc) => loc.active !== false)
                     .map((loc) => (
@@ -811,11 +810,11 @@ export default function ProductEditorModal({
           </section>
 
           <section className="adm-section" data-listing-section="content">
-            <h3>The ad</h3>
-            <p className="adm-section-hint">Titles and descriptions shoppers see. Required languages follow the advertisement language above.</p>
+            <h3>{t('admin.editor.theAd')}</h3>
+            <p className="adm-section-hint">{t('admin.editor.contentHint')}</p>
             {locales.includes('en') ? (
               <div>
-                <Label htmlFor="pe-title-en">Title (English)</Label>
+                <Label htmlFor="pe-title-en">{t('admin.field.titleEn')}</Label>
                 <input
                   id="pe-title-en"
                   className="field"
@@ -828,7 +827,7 @@ export default function ProductEditorModal({
             ) : null}
             {locales.includes('ar') ? (
               <div>
-                <Label htmlFor="pe-title-ar">Title (Arabic)</Label>
+                <Label htmlFor="pe-title-ar">{t('admin.field.titleAr')}</Label>
                 <input
                   id="pe-title-ar"
                   className="field"
@@ -842,7 +841,7 @@ export default function ProductEditorModal({
             ) : null}
             {locales.includes('en') ? (
               <div>
-                <Label htmlFor="pe-desc-en">Description (English)</Label>
+                <Label htmlFor="pe-desc-en">{t('admin.field.descEn')}</Label>
                 <textarea
                   id="pe-desc-en"
                   className="field"
@@ -856,7 +855,7 @@ export default function ProductEditorModal({
             ) : null}
             {locales.includes('ar') ? (
               <div>
-                <Label htmlFor="pe-desc-ar">Description (Arabic)</Label>
+                <Label htmlFor="pe-desc-ar">{t('admin.field.descAr')}</Label>
                 <textarea
                   id="pe-desc-ar"
                   className="field"
@@ -872,16 +871,16 @@ export default function ProductEditorModal({
           </section>
 
           <section className="adm-section" data-listing-section="attributes">
-            <h3>Category details</h3>
+            <h3>{t('admin.editor.attributes')}</h3>
             <p className="adm-section-hint">
               {form.categoryKey
                 ? schemaFields.length > 0
-                  ? 'Structured fields from this category’s published attribute schema. Required fields must be set before publish.'
-                  : 'This category has no published attribute schema yet.'
-                : 'Choose a category to load its detail fields.'}
+                  ? t('admin.editor.attrSchemaHint')
+                  : t('admin.editor.noSchemaYet')
+                : t('admin.editor.chooseCategory')}
             </p>
             {form.categoryKey && schemaFields.length === 0 ? (
-              <p className="adm-state">Nothing to fill for this category.</p>
+              <p className="adm-state">{t('admin.editor.noAttributes')}</p>
             ) : null}
             {visible.length > 0 ? (
               <div className="adm-grid adm-grid--2">
@@ -891,7 +890,7 @@ export default function ProductEditorModal({
                       {entry.labelEn}
                       {entry.unit ? ` (${entry.unit})` : ''}
                       {entry.required ? ' *' : ''}
-                      {entry.adminOnly ? ' · staff only' : ''}
+                      {entry.adminOnly ? ` ${t('admin.editor.staffOnly')}` : ''}
                     </Label>
                     {entry.type === 'select' && (
                       <select
@@ -903,7 +902,7 @@ export default function ProductEditorModal({
                           setForm({ ...form, attributes: { ...form.attributes, [entry.key]: event.target.value || null } })
                         }
                       >
-                        <option value="">Not set</option>
+                        <option value="">{t('admin.editor.notSetLocation')}</option>
                         {entry.options.map((option) => (
                           <option key={option.key} value={option.key}>
                             {option.labelEn}
@@ -914,7 +913,7 @@ export default function ProductEditorModal({
                     {entry.type === 'boolean' && (
                       <Toggle
                         id={`pe-attr-${entry.key}`}
-                        label={form.attributes[entry.key] === true ? 'Yes' : form.attributes[entry.key] === false ? 'No' : 'Not set'}
+                        label={form.attributes[entry.key] === true ? t('admin.common.yes') : form.attributes[entry.key] === false ? t('admin.common.no') : t('admin.editor.notSet')}
                         checked={form.attributes[entry.key] === true}
                         onChange={(next) => setForm({ ...form, attributes: { ...form.attributes, [entry.key]: next } })}
                       />
@@ -961,7 +960,7 @@ export default function ProductEditorModal({
                     )}
                     {entry.helpEn ? <Hint>{entry.helpEn}</Hint> : null}
                     {entry.key === 'item_condition' ? (
-                      <Hint>When empty, Basics → Condition fills this automatically.</Hint>
+                      <Hint>{t('admin.editor.itemConditionHint')}</Hint>
                     ) : null}
                     <FieldError>{inlineFieldError(`attributes.${entry.key}`)}</FieldError>
                   </div>
@@ -970,24 +969,24 @@ export default function ProductEditorModal({
             ) : null}
             {missingRequired.length > 0 ? (
               <p className="adm-note" data-tone="warn" style={css('margin: 12px 0 0')}>
-                Required before publish (category details): {missingRequired.join(', ')}
+                {t('admin.editor.requiredPublish', { list: missingRequired.join(', ') })}
               </p>
             ) : null}
             <FieldError>{inlineFieldError('attributes')}</FieldError>
           </section>
 
           <section className="adm-section" data-listing-section="media">
-            <h3>Photos</h3>
+            <h3>{t('admin.editor.media')}</h3>
             <p className="adm-section-hint">
-              Upload JPEG, PNG or WebP. Choose a cover, reorder, and add alt text. At least one photo is required to publish.
-              {!ref ? ' Saving or uploading will create the draft first.' : ''}
+              {t('admin.editor.photosHint')}
+              {!ref ? t('admin.editor.photosHintCreate') : ''}
             </p>
             <div className="lw-media-step">
               <label className={mayManage && !busy ? 'lw-upload-zone' : 'lw-upload-zone lw-upload-zone--disabled'}>
-                <p className="lw-upload-zone__title">Drop an image here or click to upload</p>
+                <p className="lw-upload-zone__title">{t('admin.editor.dropImage')}</p>
                 <p className="lw-upload-zone__hint">
-                  One file per upload. The server verifies the file and strips metadata.
-                  {progress !== null ? ` · Uploading ${progress}%` : ''}
+                  {t('admin.editor.uploadHintShort')}
+                  {progress !== null ? t('admin.editor.uploadingPct', { pct: progress }) : ''}
                 </p>
                 <input
                   type="file"
@@ -1003,7 +1002,7 @@ export default function ProductEditorModal({
               </label>
 
               {form.media.length === 0 ? (
-                <p className="lw-media-empty">No images yet. Upload at least one to publish.</p>
+                <p className="lw-media-empty">{t('admin.editor.noImages')}</p>
               ) : (
                 <div className="lw-media-grid">
                   {form.media.map((entry, index) => {
@@ -1014,19 +1013,19 @@ export default function ProductEditorModal({
                           {asset?.url ? (
                             <img src={`${API_BASE_URL}${asset.url}`} alt={entry.alt.en ?? `Photo ${index + 1}`} />
                           ) : (
-                            <div className="ph">Processing…</div>
+                            <div className="ph">{t('admin.editor.processing')}</div>
                           )}
                         </div>
                         <div className="lw-media-card__head">
                           <Badge tone={form.coverAssetId === entry.assetId ? 'good' : 'neutral'}>
-                            {form.coverAssetId === entry.assetId ? 'Cover' : `Photo ${index + 1}`}
+                            {form.coverAssetId === entry.assetId ? t('admin.common.cover') : t('admin.editor.photoN', { n: index + 1 })}
                           </Badge>
                           {asset ? <span className="adm-hint">{formatBytes(asset.bytes)}</span> : null}
                         </div>
                         <figcaption className="lw-media-card__body">
                           <div className="lw-media-card__alts">
                             <div>
-                              <Label htmlFor={`pe-alt-en-${entry.assetId}`}>Alt (English)</Label>
+                              <Label htmlFor={`pe-alt-en-${entry.assetId}`}>{t('admin.field.altEn')}</Label>
                               <input
                                 id={`pe-alt-en-${entry.assetId}`}
                                 className="field"
@@ -1042,7 +1041,7 @@ export default function ProductEditorModal({
                             </div>
                             {form.languageMode !== 'en' ? (
                               <div>
-                                <Label htmlFor={`pe-alt-ar-${entry.assetId}`}>Alt (Arabic)</Label>
+                                <Label htmlFor={`pe-alt-ar-${entry.assetId}`}>{t('admin.field.altAr')}</Label>
                                 <input
                                   id={`pe-alt-ar-${entry.assetId}`}
                                   className="field"
@@ -1079,7 +1078,7 @@ export default function ProductEditorModal({
                               disabled={busy || !mayManage || form.coverAssetId === entry.assetId}
                               onClick={() => setForm({ ...form, coverAssetId: coverAfterChange(form.media, entry.assetId) })}
                             >
-                              Set cover
+                              {t('admin.editor.setCover')}
                             </GhostButton>
                             <GhostButton
                               type="button"
@@ -1089,7 +1088,7 @@ export default function ProductEditorModal({
                                 setForm({ ...form, media, coverAssetId: coverAfterChange(media, form.coverAssetId) });
                               }}
                             >
-                              Remove
+                              {t('admin.common.remove')}
                             </GhostButton>
                           </div>
                         </figcaption>
@@ -1103,19 +1102,19 @@ export default function ProductEditorModal({
           </section>
 
           <section className="adm-section" data-listing-section="review">
-            <h3>Staff options</h3>
+            <h3>{t('admin.editor.staffOptions')}</h3>
             <div className="adm-grid adm-grid--2">
               <div>
                 <Toggle
                   id="pe-featured"
-                  label="Featured on homepage"
+                  label={t('admin.field.featured')}
                   checked={form.featured}
                   onChange={(next) => setForm({ ...form, featured: next })}
                 />
-                <Hint>Featured placement is a staff decision.</Hint>
+                <Hint>{t('admin.editor.featuredHint')}</Hint>
               </div>
               <div>
-                <Label htmlFor="pe-notes">Admin notes</Label>
+                <Label htmlFor="pe-notes">{t('admin.field.adminNotes')}</Label>
                 <textarea
                   id="pe-notes"
                   className="field"
@@ -1123,35 +1122,35 @@ export default function ProductEditorModal({
                   disabled={busy || !mayManage}
                   value={form.adminNotes}
                   onChange={(event) => setForm({ ...form, adminNotes: event.target.value })}
-                  placeholder="Private notes — never shown publicly"
+                  placeholder={t('admin.field.privateNotes')}
                 />
               </div>
             </div>
           </section>
 
           <section className="adm-section">
-            <h3>Publish checklist</h3>
+            <h3>{t('admin.editor.publishChecklist')}</h3>
             <ul className="lw-checklist" style={css('list-style: none; margin: 0; padding: 0; display: grid; gap: 6px')}>
               <li className={problems.length === 0 ? 'lw-check ok' : 'lw-check bad'}>
-                {problems.length === 0 ? 'Advertisement language is complete' : problems.join(' · ')}
+                {problems.length === 0 ? t('admin.editor.checklistLang') : problems.join(' · ')}
               </li>
               <li className={form.media.length > 0 ? 'lw-check ok' : 'lw-check bad'}>
-                {form.media.length > 0 ? `${form.media.length} image(s) attached` : 'At least one image required to publish'}
+                {form.media.length > 0 ? t('admin.editor.checklistImages', { count: form.media.length }) : t('admin.editor.checklistImagesNeed')}
               </li>
               <li className={missingRequired.length === 0 ? 'lw-check ok' : 'lw-check bad'}>
                 {missingRequired.length === 0
                   ? schemaFields.length > 0
-                    ? 'Required category details are set'
-                    : 'No category attribute schema (or none required)'
-                  : `Missing category details: ${missingRequired.join(', ')}`}
+                    ? t('admin.editor.checklistAttrsOk')
+                    : t('admin.editor.checklistAttrsNone')
+                  : t('admin.editor.requiredPublish', { list: missingRequired.join(', ') })}
               </li>
-              {listing?.status === 'published' ? <li className="lw-check ok">Already published</li> : null}
+              {listing?.status === 'published' ? <li className="lw-check ok">{t('admin.editor.alreadyPublished')}</li> : null}
             </ul>
             {mayManage && listing && listing.status !== 'published' && listing.status !== 'archived' ? (
               <div style={css('margin-top: 10px')}>
                 <Toggle
                   id="pe-confirm-publish"
-                  label="I reviewed the content, details and photos"
+                  label={t('admin.editor.confirmPublish')}
                   checked={confirmPublish}
                   onChange={setConfirmPublish}
                 />
@@ -1165,48 +1164,45 @@ export default function ProductEditorModal({
     <Modal
       open={duplicateOpen}
       onClose={() => !busy && setDuplicateOpen(false)}
-      title="Duplicate as unsold"
-      subtitle={listing ? `Ad ${listing.listingReference}` : undefined}
+      title={t('admin.products.duplicateTitle')}
+      subtitle={listing ? t('admin.common.adRef', { ref: listing.listingReference }) : undefined}
       size="sm"
       footer={
         <>
-          <GhostButton type="button" disabled={busy} onClick={() => setDuplicateOpen(false)}>Cancel</GhostButton>
+          <GhostButton type="button" disabled={busy} onClick={() => setDuplicateOpen(false)}>{t('admin.common.cancel')}</GhostButton>
           <PrimaryButton type="button" disabled={busy} onClick={() => void handleDuplicate()}>
-            Duplicate
+            {t('admin.common.duplicate')}
           </PrimaryButton>
         </>
       }
     >
-      <p style={css('margin: 0; line-height: 1.5')}>
-        This creates a new draft copy with fresh reference and photos. Availability is reset to unsold.
-        The original product, its sale history, auctions and orders stay exactly as they are.
-      </p>
+      <p style={css('margin: 0; line-height: 1.5')}>{t('admin.products.duplicateBody')}</p>
     </Modal>
 
     <Modal
       open={deleteOpen}
       onClose={() => !busy && setDeleteOpen(false)}
-      title="Delete product"
-      subtitle={listing ? `Ad ${listing.listingReference}` : undefined}
+      title={t('admin.products.deleteTitle')}
+      subtitle={listing ? t('admin.common.adRef', { ref: listing.listingReference }) : undefined}
       size="sm"
       footer={
         <>
-          <GhostButton type="button" disabled={busy} onClick={() => setDeleteOpen(false)}>Cancel</GhostButton>
+          <GhostButton type="button" disabled={busy} onClick={() => setDeleteOpen(false)}>{t('admin.common.cancel')}</GhostButton>
           <PrimaryButton type="button" disabled={busy} onClick={() => void handleDelete()}>
-            Delete
+            {t('admin.common.delete')}
           </PrimaryButton>
         </>
       }
     >
       <form onSubmit={(event) => void handleDelete(event)}>
-        <Label htmlFor="pe-delete-reason">Reason</Label>
+        <Label htmlFor="pe-delete-reason">{t('admin.products.deleteReason')}</Label>
         <textarea
           id="pe-delete-reason"
           className="field"
           rows={3}
           value={deleteReason}
           onChange={(event) => setDeleteReason(event.target.value)}
-          placeholder="Why is this product being removed?"
+          placeholder={t('admin.products.deletePlaceholder')}
         />
       </form>
     </Modal>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { apiFetch, ApiRequestError } from '../../../lib/api';
 import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import { useAsync } from '../../../lib/useAsync';
 import { fieldError } from '../../../lib/admin';
 import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Panel, PrimaryButton, StateBlock, TableWrap } from '../ui';
@@ -38,6 +39,7 @@ function apiMessage(err: unknown): string {
  * private address is therefore never published by accident.
  */
 export default function AdminLocationsPage() {
+  const { t } = useUiLocale();
   const session = useSession();
   const mayEdit = session.capabilities.includes('inventory.manage');
   const list = useAsync<{ locations: Location[] }>(() => apiFetch('/api/admin/locations', { cache: 'no-store' }), []);
@@ -72,23 +74,23 @@ export default function AdminLocationsPage() {
 
   return (
     <div style={css('display: flex; flex-direction: column; gap: 20px')}>
-      <Panel title="Locations" subtitle="Country, city and area identifiers used by listings and forms. Public precision is enforced server-side.">
+      <Panel title={t('admin.locations.title')} subtitle={t('admin.locations.subtitle')}>
         <ErrorNote>{error}</ErrorNote>
         {notice && <p className="adm-note" data-tone="good" style={css('margin-bottom: 14px')}>{notice}</p>}
 
-        <StateBlock loading={list.loading} error={list.error} empty={(list.data?.locations.length ?? 0) === 0} emptyText="No locations configured yet. Seed the QA locations or add one below." onRetry={list.reload}>
-          <TableWrap label="Locations">
+        <StateBlock loading={list.loading} error={list.error} empty={(list.data?.locations.length ?? 0) === 0} emptyText={t('admin.locations.empty')} onRetry={list.reload}>
+          <TableWrap label={t('admin.locations.tableLabel')}>
             <table className="adm-table">
-              <caption>{list.data?.locations.length ?? 0} location(s)</caption>
+              <caption>{t('admin.locations.caption', { count: list.data?.locations.length ?? 0 })}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Key</th>
-                  <th scope="col">Label</th>
-                  <th scope="col">Country / city / area</th>
-                  <th scope="col">Coordinates</th>
-                  <th scope="col">Public precision</th>
-                  <th scope="col">State</th>
-                  <th scope="col">Actions</th>
+                  <th scope="col">{t('admin.locations.colKey')}</th>
+                  <th scope="col">{t('admin.locations.colLabel')}</th>
+                  <th scope="col">{t('admin.locations.colGeo')}</th>
+                  <th scope="col">{t('admin.locations.colCoords')}</th>
+                  <th scope="col">{t('admin.locations.colPrecision')}</th>
+                  <th scope="col">{t('admin.locations.colState')}</th>
+                  <th scope="col">{t('admin.common.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,7 +109,7 @@ export default function AdminLocationsPage() {
                       <Badge tone={location.publicPrecision === 'exact' ? 'warn' : 'neutral'}>{location.publicPrecision}</Badge>
                     </td>
                     <td>
-                      <Badge tone={location.active ? 'good' : 'neutral'}>{location.active ? 'active' : 'inactive'}</Badge>
+                      <Badge tone={location.active ? 'good' : 'neutral'}>{location.active ? t('admin.locations.stateActive') : t('admin.locations.stateInactive')}</Badge>
                     </td>
                     <td>
                       {mayEdit && (
@@ -127,7 +129,7 @@ export default function AdminLocationsPage() {
                           }}
                           style={css('border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: #9A6B12; cursor: pointer')}
                         >
-                          Edit
+                          {t('admin.common.edit')}
                         </button>
                       )}
                     </td>
@@ -141,9 +143,9 @@ export default function AdminLocationsPage() {
 
       {editKey && mayEdit && (
         <Panel
-          title={`Edit ${editKey}`}
-          subtitle="Identifiers are immutable; only labels, precision, coordinates, order and state change."
-          actions={<GhostButton onClick={() => setEditKey(null)}>Close</GhostButton>}
+          title={t('admin.locations.edit', { key: editKey })}
+          subtitle={t('admin.locations.editSubtitle')}
+          actions={<GhostButton onClick={() => setEditKey(null)}>{t('admin.common.close')}</GhostButton>}
         >
           <form
             className="adm-form"
@@ -167,48 +169,48 @@ export default function AdminLocationsPage() {
           >
             <div className="adm-grid">
               <div>
-                <Label htmlFor="loc-label">English label</Label>
+                <Label htmlFor="loc-label">{t('admin.locations.labelEn')}</Label>
                 <input id="loc-label" className="field" value={edit.labelEn} onChange={(event) => setEdit({ ...edit, labelEn: event.target.value })} />
                 <FieldError>{fieldError(fields, 'labelEn')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="loc-label-ar">Arabic label</Label>
+                <Label htmlFor="loc-label-ar">{t('admin.locations.labelAr')}</Label>
                 <input id="loc-label-ar" className="field" value={edit.labelAr} onChange={(event) => setEdit({ ...edit, labelAr: event.target.value })} />
               </div>
               <div>
-                <Label htmlFor="loc-lat">Latitude</Label>
+                <Label htmlFor="loc-lat">{t('admin.locations.lat')}</Label>
                 <input id="loc-lat" className="field" value={edit.lat} onChange={(event) => setEdit({ ...edit, lat: event.target.value })} />
                 <FieldError>{fieldError(fields, 'lat') ?? fieldError(fields, 'coordinates')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="loc-lng">Longitude</Label>
+                <Label htmlFor="loc-lng">{t('admin.locations.lng')}</Label>
                 <input id="loc-lng" className="field" value={edit.lng} onChange={(event) => setEdit({ ...edit, lng: event.target.value })} />
                 <FieldError>{fieldError(fields, 'lng')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="loc-precision">Public precision</Label>
+                <Label htmlFor="loc-precision">{t('admin.locations.publicPrecision')}</Label>
                 <select id="loc-precision" className="field" value={edit.publicPrecision} onChange={(event) => setEdit({ ...edit, publicPrecision: event.target.value })}>
-                  <option value="city">city — no coordinates published</option>
-                  <option value="area">area — area key published, no coordinates</option>
-                  <option value="exact">exact — coordinates published (requires approval)</option>
+                  <option value="city">{t('admin.locations.precisionCity')}</option>
+                  <option value="area">{t('admin.locations.precisionArea')}</option>
+                  <option value="exact">{t('admin.locations.precisionExact')}</option>
                 </select>
               </div>
               <div>
-                <Label htmlFor="loc-order">Order</Label>
+                <Label htmlFor="loc-order">{t('admin.locations.order')}</Label>
                 <input id="loc-order" className="field" type="number" min={0} value={edit.order} onChange={(event) => setEdit({ ...edit, order: event.target.value })} />
               </div>
             </div>
             <label htmlFor="loc-active" style={css('display: inline-flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600')}>
               <input id="loc-active" type="checkbox" checked={edit.active} onChange={(event) => setEdit({ ...edit, active: event.target.checked })} />
-              Active
+              {t('admin.locations.active')}
             </label>
-            <PrimaryButton disabled={busy}>{busy ? 'Saving…' : 'Save location'}</PrimaryButton>
+            <PrimaryButton disabled={busy}>{busy ? t('admin.common.saving') : t('admin.locations.saveLocation')}</PrimaryButton>
           </form>
         </Panel>
       )}
 
       {mayEdit && (
-        <Panel title="Add a location" subtitle="Coordinates are optional; they are validated to real ranges before storage.">
+        <Panel title={t('admin.locations.add')} subtitle={t('admin.locations.addSubtitle')}>
           <form
             className="adm-form"
             onSubmit={async (event) => {
@@ -233,36 +235,36 @@ export default function AdminLocationsPage() {
           >
             <div className="adm-grid">
               <div>
-                <Label htmlFor="new-loc-country">Country (ISO 3166-1 alpha-2)</Label>
+                <Label htmlFor="new-loc-country">{t('admin.locations.countryIso')}</Label>
                 <input id="new-loc-country" className="field" value={create.countryCode} onChange={(event) => setCreate({ ...create, countryCode: event.target.value })} />
                 <FieldError>{fieldError(fields, 'countryCode')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="new-loc-city">City key</Label>
+                <Label htmlFor="new-loc-city">{t('admin.locations.cityKey')}</Label>
                 <input id="new-loc-city" className="field" value={create.cityKey} onChange={(event) => setCreate({ ...create, cityKey: event.target.value })} placeholder="doha" />
                 <FieldError>{fieldError(fields, 'cityKey')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="new-loc-area">Area key</Label>
+                <Label htmlFor="new-loc-area">{t('admin.locations.areaKey')}</Label>
                 <input id="new-loc-area" className="field" value={create.areaKey} onChange={(event) => setCreate({ ...create, areaKey: event.target.value })} placeholder="al-sadd" />
                 <FieldError>{fieldError(fields, 'areaKey')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="new-loc-label">English label</Label>
+                <Label htmlFor="new-loc-label">{t('admin.locations.labelEn')}</Label>
                 <input id="new-loc-label" className="field" value={create.labelEn} onChange={(event) => setCreate({ ...create, labelEn: event.target.value })} />
                 <FieldError>{fieldError(fields, 'labelEn')}</FieldError>
               </div>
               <div>
-                <Label htmlFor="new-loc-lat">Latitude</Label>
+                <Label htmlFor="new-loc-lat">{t('admin.locations.lat')}</Label>
                 <input id="new-loc-lat" className="field" value={create.lat} onChange={(event) => setCreate({ ...create, lat: event.target.value })} />
               </div>
               <div>
-                <Label htmlFor="new-loc-lng">Longitude</Label>
+                <Label htmlFor="new-loc-lng">{t('admin.locations.lng')}</Label>
                 <input id="new-loc-lng" className="field" value={create.lng} onChange={(event) => setCreate({ ...create, lng: event.target.value })} />
               </div>
             </div>
-            <Hint>Keys are lowercase letters, digits and dashes. The combined key becomes `qa-doha-al-sadd`.</Hint>
-            <PrimaryButton disabled={busy}>{busy ? 'Saving…' : 'Create location'}</PrimaryButton>
+            <Hint>{t('admin.locations.keysHint')}</Hint>
+            <PrimaryButton disabled={busy}>{busy ? t('admin.common.saving') : t('admin.locations.createLocation')}</PrimaryButton>
           </form>
         </Panel>
       )}

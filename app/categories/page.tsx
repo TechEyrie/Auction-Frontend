@@ -117,10 +117,10 @@ function CategoriesContent() {
       <title>{ct('categories.title')}</title>
       <SiteHeader active="categories" />
 
-      <section style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
-        <div style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 40px; display: flex; flex-wrap: wrap; gap: 24px; align-items: end; justify-content: space-between')}>
+      <section className="categories-hero">
+        <div className="categories-hero__inner">
           <div>
-            <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
+            <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: var(--mkt-muted); margin-bottom: 10px')}>
               <Link href="/">Home</Link> <span aria-hidden="true">/</span>{' '}
               <Link href={categoriesHref()}>{ct('categories.breadcrumb')}</Link>
               {parentCat && (
@@ -133,12 +133,12 @@ function CategoriesContent() {
             <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4vw, 3rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>
               {ct('categories.h1')}
             </h1>
-            <p style={css('margin: 8px 0 0; color: #5B636B; font-size: 18px')}>
+            <p style={css('margin: 8px 0 0; color: var(--mkt-muted); font-size: 18px')}>
               {ct('categories.lead')}
             </p>
           </div>
-          <div style={css('flex: 0 1 420px; min-width: 0; display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 16px; border: 1px solid #DAD7D0; border-radius: 14px; background: #FFFFFF')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B636B" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <div className="categories-search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z M20 20l-4-4"></path>
             </svg>
             <label htmlFor="cq" className="sr">
@@ -150,15 +150,14 @@ function CategoriesContent() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={ct('categories.searchPlaceholder')}
-              style={css('flex: 1; min-width: 0; height: 48px; border: 0; font: inherit; font-size: 16px; background: transparent; outline-offset: 6px')}
             />
           </div>
         </div>
       </section>
 
-      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 24px')}>
+      <section className="categories-body">
         <div style={css('margin-bottom: 28px; max-width: 520px')}>
-          <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>{ct('categories.shopFor')}</p>
+          <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--mkt-muted)')}>{ct('categories.shopFor')}</p>
           <AudiencePicker
             value={audience}
             onChange={(next) => pushCategories({ audience: next })}
@@ -180,11 +179,11 @@ function CategoriesContent() {
         )}
 
         {!categories.loading && !categories.error && visibleRoots.length === 0 && (
-          <div style={css('background: #FFFFFF; border: 1px dashed #DAD7D0; border-radius: 18px; padding: 48px 24px; text-align: center')}>
+          <div className="categories-empty">
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>
               {q ? ct('categories.emptySearch', { q }) : ct('categories.emptyTitle')}
             </h2>
-            <p style={css('margin: 8px 0 0; color: #5B636B')}>
+            <p style={css('margin: 8px 0 0; color: var(--mkt-muted)')}>
               {q ? (
                 <>
                   {ct('categories.emptySearchHintPrefix')}
@@ -198,7 +197,7 @@ function CategoriesContent() {
           </div>
         )}
 
-        <div style={css('display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px')}>
+        <div className="categories-grid">
           {visibleRoots.map((root) => {
             const kids = visibleChildrenForRoot(root);
             const highlight = parentCat?.key === root.key;
@@ -207,12 +206,10 @@ function CategoriesContent() {
               <article
                 key={root.key}
                 id={highlight ? `category-${root.key}` : undefined}
-                style={css(
-                  `background: #FFFFFF; border: 1px solid ${highlight ? '#9A6B12' : '#E6E4DF'}; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 12px${highlight ? '; box-shadow: 0 0 0 1px rgba(154,107,18,.12)' : ''}`,
-                )}
+                className={highlight ? 'categories-card is-highlight' : 'categories-card'}
               >
                 <div style={css('display: flex; gap: 14px; align-items: flex-start')}>
-                  <span style={css('flex: 0 0 48px; height: 48px; border-radius: 12px; background: #F6EEDC; display: flex; align-items: center; justify-content: center')}>
+                  <span className="categories-card__icon">
                     <CategoryIcon icon={root.icon} size={26} />
                   </span>
                   <div style={css('min-width: 0; flex: 1')}>
@@ -261,17 +258,17 @@ function CategoriesContent() {
         </div>
       </section>
 
-      <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 80px')}>
-        <div style={css('background: #15191E; color: #FFFFFF; border-radius: 24px; padding: clamp(28px, 5vw, 48px); display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between')}>
+      <section className="categories-cta">
+        <div className="categories-cta-panel">
           <div style={css('flex: 1 1 420px; min-width: 0')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.02em; font-weight: 700")}>
               Can&apos;t find what you need?
             </h2>
-            <p style={css('margin: 10px 0 0; font-size: 17px; color: #C9CFCB')}>
+            <p style={css('margin: 10px 0 0; font-size: 17px; color: var(--mkt-hero-feature-muted)')}>
               Send us an enquiry and our team will look through the inventory with you.
             </p>
           </div>
-          <Link href="/contact" className="btn-primary" style={css('height: 52px; padding: 0 24px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; display: flex; align-items: center')}>
+          <Link href="/contact" className="btn-primary" style={css('height: 52px; padding: 0 24px; border-radius: 12px; background: var(--mkt-gold); color: #FFFFFF; font-weight: 700; display: flex; align-items: center')}>
             Contact the team
           </Link>
         </div>

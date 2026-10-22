@@ -1,11 +1,22 @@
-body{margin:0;background:#FBFAF7}
+body{margin:0;background:var(--mkt-bg)}
 *{box-sizing:border-box}
-a{color:#9A6B12;text-decoration:none}a:hover{color:#7D5610}
-.navlink{color:#2A3036;font-weight:500}.navlink:hover{color:#9A6B12}
-.btn-primary:hover{background:#7D5610 !important}
-.btn-ghost:hover{background:#F3F1EC !important}
-.toc{color:#2A3036}.toc:hover{color:#9A6B12}
-.foot a{color:#C9CFCB}.foot a:hover{color:#FFFFFF}
-input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid #9A6B12;outline-offset:2px}
+a{color:var(--mkt-gold);text-decoration:none}a:hover{color:var(--mkt-gold-deep)}
+.navlink{color:var(--mkt-text-2);font-weight:500}.navlink:hover{color:var(--mkt-gold)}
+.btn-primary:hover{background:var(--mkt-gold-deep) !important}
+.btn-ghost:hover{background:var(--mkt-surface-2) !important}
+.toc{color:var(--mkt-text-2)}.toc:hover{color:var(--mkt-gold)}
+.foot a{color:var(--mkt-footer-fg)}.foot a:hover{color:#FFFFFF}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--mkt-gold);outline-offset:2px}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,65,12,.45)}70%{box-shadow:0 0 0 8px rgba(194,65,12,0)}100%{box-shadow:0 0 0 0 rgba(194,65,12,0)}}
 .live-dot{animation:pulse 1.8s infinite}
+.legal-body{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(220px,280px) minmax(0,1fr);
+  gap:40px;
+  align-items:start;
+}
+.legal-article{min-width:0;width:100%}
+@media (max-width:900px){
+  .legal-body{grid-template-columns:1fr}
+}

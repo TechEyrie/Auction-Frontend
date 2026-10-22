@@ -123,11 +123,11 @@ export default function ResetPasswordPage() {
         </section>
         <section
           style={css(
-            'flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px)',
+            'flex: 1 1 420px; min-width: 0; background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px); color: var(--mkt-text)',
           )}
         >
           {token === null ? (
-            <p style={css('margin: 0; font-size: 15px; color: #5B636B')}>{ct('auth.reset.loading')}</p>
+            <p style={css('margin: 0; font-size: 15px; color: var(--mkt-muted)')}>{ct('auth.reset.loading')}</p>
           ) : missingToken ? (
             <div style={css('display: flex; flex-direction: column; gap: 18px')}>
               <h2
@@ -137,10 +137,10 @@ export default function ResetPasswordPage() {
               >
                 {ct('auth.reset.invalid.title')}
               </h2>
-              <p role="alert" style={css('margin: 0; font-size: 15px; color: #5B636B')}>
+              <p role="alert" style={css('margin: 0; font-size: 15px; color: var(--mkt-muted)')}>
                 {ct('auth.reset.invalid.body')}
               </p>
-              <Link href="/forgot-password" style={css('color: #9A6B12; font-weight: 700; font-size: 15px')}>
+              <Link href="/forgot-password" style={css('color: var(--mkt-gold); font-weight: 700; font-size: 15px')}>
                 {ct('auth.reset.requestNewLink')}
               </Link>
             </div>

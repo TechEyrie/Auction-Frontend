@@ -19,4 +19,4 @@ export function css(text: string): CSSProperties {
 
 /* The wrapper style every page carries (identical in all 12 templates). */
 export const PAGE_ROOT =
-  "font-family: 'Figtree', system-ui, sans-serif; color: #15191E; background: #FBFAF7; min-width: 0; font-size: 16px; line-height: 1.5; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column";
+  "font-family: 'Figtree', system-ui, sans-serif; color: var(--mkt-text); background: var(--mkt-bg); min-width: 0; font-size: 16px; line-height: 1.5; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column";

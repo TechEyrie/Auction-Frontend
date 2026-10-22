@@ -8,7 +8,7 @@ import type { MessageKey } from '../lib/uiMessages';
 import { chromeTranslate, useSiteChromeBody } from '../lib/siteChrome';
 
 const COL = 'flex: 1 1 140px; display: flex; flex-direction: column; gap: 10px; font-size: 15px';
-const COL_HEAD = 'color: #FFFFFF; font-weight: 600; margin-bottom: 4px';
+const COL_HEAD = 'color: #F3F1EC; font-weight: 600; margin-bottom: 4px';
 
 function FooterDevelopedBy({ t }: { t: (key: 'footer.developedBy') => string }) {
   return (
@@ -35,7 +35,7 @@ export default function SiteFooter({ minimal, safetyHref = '/help' }: Props) {
   );
   if (minimal) {
     return (
-      <footer className="foot" style={css('background: #15191E; color: #C9CFCB')}>
+      <footer className="foot" style={css('background: var(--mkt-footer-bg); color: var(--mkt-footer-fg)')}>
         <div className="site-footer__bottom site-footer__bottom--minimal">
           <span className="site-footer__bottom-start">{t('footer.rights')}</span>
           <span className="site-footer__bottom-center">
@@ -53,12 +53,12 @@ export default function SiteFooter({ minimal, safetyHref = '/help' }: Props) {
   }
 
   return (
-    <footer className="foot" style={css('background: #15191E; color: #C9CFCB')}>
+    <footer className="foot" style={css('background: var(--mkt-footer-bg); color: var(--mkt-footer-fg)')}>
       <div className="site-footer__grid" style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 56px var(--mkt-gutter-x) 32px; display: flex; flex-wrap: wrap; gap: 40px 64px')}>
         <div style={css('flex: 2 1 260px; min-width: 0')}>
           <div style={css('display: flex; align-items: center; gap: 14px')}>
             <img src="/logo.png" alt="" width={64} height={64} style={css('width: 64px; height: 64px; object-fit: contain; display: block')} />
-            <div style={css("font-family: 'Schibsted Grotesk', sans-serif; font-weight: 800; font-size: 20px; color: #FFFFFF; letter-spacing: 0.01em; line-height: 1.15")}>
+            <div style={css("font-family: 'Schibsted Grotesk', sans-serif; font-weight: 800; font-size: 20px; color: #F3F1EC; letter-spacing: 0.01em; line-height: 1.15")}>
               {t('footer.brandName')}
               <span style={css('display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.32em; color: #D4A84B')}>{t('footer.brandSub')}</span>
             </div>

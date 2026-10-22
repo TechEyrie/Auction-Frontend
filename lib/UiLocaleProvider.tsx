@@ -1,12 +1,9 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   applyDocumentLocale,
-  isAdminPath,
   readStoredUiLang,
-  resetDocumentLocale,
   uiDir,
   writeStoredUiLang,
   type UiLang,
@@ -23,7 +20,6 @@ export type UiLocaleValue = {
 const UiLocaleContext = createContext<UiLocaleValue | null>(null);
 
 export function UiLocaleProvider({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   // Server render and first client render are always English so hydration matches; the stored
   // choice is applied in an effect right after mount.
   const [lang, setLangState] = useState<UiLang>('en');
@@ -34,13 +30,8 @@ export function UiLocaleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (isAdminPath(pathname)) {
-      // Admin stays English/LTR and must not inherit RTL from a customer page.
-      resetDocumentLocale();
-      return;
-    }
-    applyDocumentLocale(lang, pathname);
-  }, [lang, pathname]);
+    applyDocumentLocale(lang);
+  }, [lang]);
 
   const setLang = useCallback((next: UiLang) => {
     setLangState(next);

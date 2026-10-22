@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
         </section>
         <section
           style={css(
-            'flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px)',
+            'flex: 1 1 420px; min-width: 0; background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-left: 0; border-radius: 0 24px 24px 0; padding: clamp(28px, 4vw, 48px); color: var(--mkt-text)',
           )}
         >
           {done ? (
@@ -90,12 +90,12 @@ export default function ForgotPasswordPage() {
               >
                 {ct('auth.forgot.success.title')}
               </h2>
-              <p role="status" style={css('margin: 0; font-size: 15px; color: #5B636B')}>
+              <p role="status" style={css('margin: 0; font-size: 15px; color: var(--mkt-muted)')}>
                 {ct('auth.forgot.success.body')}
               </p>
               <Link
                 href="/signin?mode=in"
-                style={css('color: #9A6B12; font-weight: 700; font-size: 15px')}
+                style={css('color: var(--mkt-gold); font-weight: 700; font-size: 15px')}
               >
                 {ct('auth.backToSignIn')}
               </Link>
@@ -144,7 +144,7 @@ export default function ForgotPasswordPage() {
               </button>
               <Link
                 href="/signin?mode=in"
-                style={css('align-self: flex-start; color: #9A6B12; font-weight: 700; font-size: 15px')}
+                style={css('align-self: flex-start; color: var(--mkt-gold); font-weight: 700; font-size: 15px')}
               >
                 {ct('auth.backToSignIn')}
               </Link>

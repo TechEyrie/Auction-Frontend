@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
 import { css } from '../../../lib/css';
 import { useSession } from '../../../lib/session';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import { useAsync } from '../../../lib/useAsync';
 import { formatBytes, moveItem } from '../../../lib/admin';
 import { Badge, ErrorNote, FieldError, GhostButton, Hint, Label, Panel, PrimaryButton, StateBlock, TableWrap } from '../ui';
@@ -56,6 +57,7 @@ const STATUS_TONE: Record<Asset['status'], 'good' | 'warn' | 'bad' | 'neutral'> 
  * reason instead of a silent nothing.
  */
 export default function AdminMediaPage() {
+  const { t } = useUiLocale();
   const session = useSession();
   const mayManage = session.capabilities.includes('inventory.manage');
   const [collectionKey, setCollectionKey] = useState('listing-draft-1');
@@ -132,12 +134,12 @@ export default function AdminMediaPage() {
   return (
     <div style={css('display: flex; flex-direction: column; gap: 20px')}>
       <Panel
-        title="Media"
-        subtitle="Uploads are validated by content signature, size and dimensions before they are stored. Video is not enabled."
+        title={t('admin.media.title')}
+        subtitle={t('admin.media.subtitle')}
         actions={
           limit && (
             <Badge tone={limit.videoEnabled ? 'warn' : 'neutral'}>
-              {limit.videoEnabled ? 'video enabled' : 'images only'}
+              {limit.videoEnabled ? t('admin.media.videoEnabled') : t('admin.media.imagesOnly')}
             </Badge>
           )
         }
@@ -153,15 +155,15 @@ export default function AdminMediaPage() {
           }}
         >
           <div className="adm-filter">
-            <Label htmlFor="media-collection">Collection key</Label>
+            <Label htmlFor="media-collection">{t('admin.media.collectionKey')}</Label>
             <input id="media-collection" className="field" value={collectionKey} onChange={(event) => setCollectionKey(event.target.value)} />
-            <Hint>A draft listing's key in Phase 05. Order and cover are stored per collection.</Hint>
+            <Hint>{t('admin.media.collectionHint')}</Hint>
           </div>
           <div className="adm-actions">
-            <PrimaryButton>Load collection</PrimaryButton>
+            <PrimaryButton>{t('admin.media.loadCollection')}</PrimaryButton>
             {mayManage && (
               <GhostButton onClick={() => resource.reload()} disabled={resource.loading}>
-                Reload
+                {t('admin.common.reload')}
               </GhostButton>
             )}
           </div>
@@ -170,19 +172,19 @@ export default function AdminMediaPage() {
         {limit && (
           <dl className="adm-grid" style={css('margin: 0 0 16px; font-size: 14px; color: #5B636B')}>
             <div>
-              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>Max files per collection</dt>
+              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>{t('admin.media.maxFiles')}</dt>
               <dd style={css('margin: 4px 0 0')}>{limit.maxFiles}</dd>
             </div>
             <div>
-              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>Max size</dt>
+              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>{t('admin.media.maxSize')}</dt>
               <dd style={css('margin: 4px 0 0')}>{formatBytes(limit.maxBytes)}</dd>
             </div>
             <div>
-              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>Max dimension</dt>
+              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>{t('admin.media.maxDimension')}</dt>
               <dd style={css('margin: 4px 0 0')}>{limit.maxDimension}px</dd>
             </div>
             <div>
-              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>Accepted types</dt>
+              <dt style={css('font-weight: 700; text-transform: uppercase; font-size: 12px')}>{t('admin.media.acceptedTypes')}</dt>
               <dd style={css('margin: 4px 0 0')}>{limit.allowedTypes.join(', ')}</dd>
             </div>
           </dl>
@@ -190,7 +192,7 @@ export default function AdminMediaPage() {
 
         {mayManage && (
           <div style={css('margin-bottom: 16px')}>
-            <Label htmlFor="media-file">Upload an image</Label>
+            <Label htmlFor="media-file">{t('admin.media.uploadImage')}</Label>
             <input
               id="media-file"
               ref={fileInput}
@@ -208,10 +210,10 @@ export default function AdminMediaPage() {
                 <div className="adm-progress">
                   <span style={{ display: 'block', height: '100%', width: `${progress}%`, background: '#9A6B12' }} />
                 </div>
-                <p className="adm-hint">Uploading… {progress}%</p>
+                <p className="adm-hint">{t('admin.media.uploading', { pct: progress })}</p>
               </div>
             )}
-            <Hint>One image per upload. EXIF/metadata is stripped before the file is stored.</Hint>
+            <Hint>{t('admin.media.uploadExifHint')}</Hint>
           </div>
         )}
 
@@ -219,7 +221,7 @@ export default function AdminMediaPage() {
           loading={resource.loading}
           error={resource.error}
           empty={assets.length === 0}
-          emptyText="This collection has no media yet."
+          emptyText={t('admin.media.emptyCollection')}
           onRetry={resource.reload}
         >
           <div className="adm-thumbs">
@@ -228,12 +230,12 @@ export default function AdminMediaPage() {
                 {asset.status === 'ready' && asset.url ? (
                   <img src={`${API_BASE_URL}${asset.url}`} alt={`Preview of ${asset.assetId}`} />
                 ) : (
-                  <div className="ph">{asset.status === 'failed' ? 'Processing failed' : asset.status === 'rejected' ? 'Rejected' : 'Not available'}</div>
+                  <div className="ph">{asset.status === 'failed' ? t('admin.media.processingFailed') : asset.status === 'rejected' ? t('admin.media.rejectedLabel') : t('admin.media.notAvailable')}</div>
                 )}
                 <figcaption style={css('display: flex; flex-direction: column; gap: 8px')}>
                   <div className="adm-actions">
                     <Badge tone={STATUS_TONE[asset.status]}>{asset.status}</Badge>
-                    {asset.isCover && <Badge tone="good">cover</Badge>}
+                    {asset.isCover && <Badge tone="good">{t('admin.media.coverBadge')}</Badge>}
                     <span className="adm-hint">#{index + 1}</span>
                   </div>
                   <span className="adm-hint">
@@ -241,13 +243,13 @@ export default function AdminMediaPage() {
                     {asset.image ? ` · ${asset.image.width}×${asset.image.height}` : ''}
                   </span>
                   <span className="adm-hint">
-                    {asset.metadataStripped ? 'metadata stripped' : 'metadata not processed'} · {asset.assetId}
+                    {asset.metadataStripped ? t('admin.media.metadataStripped') : t('admin.media.metadataNotProcessed')} · {asset.assetId}
                   </span>
                   {asset.statusReason && <FieldError>{asset.statusReason}</FieldError>}
                   {mayManage && (
                     <div className="adm-actions">
                       <GhostButton
-                        title="Move earlier"
+                        title={t('admin.media.moveEarlier')}
                         disabled={busy || index === 0}
                         onClick={() =>
                           void reorder(moveItem(readyAssets.map((item) => item.assetId), readyAssets.indexOf(asset), readyAssets.indexOf(asset) - 1))
@@ -256,7 +258,7 @@ export default function AdminMediaPage() {
                         ↑
                       </GhostButton>
                       <GhostButton
-                        title="Move later"
+                        title={t('admin.media.moveLater')}
                         disabled={busy || index === readyAssets.length - 1 || asset.status !== 'ready'}
                         onClick={() =>
                           void reorder(moveItem(readyAssets.map((item) => item.assetId), readyAssets.indexOf(asset), readyAssets.indexOf(asset) + 1))
@@ -265,15 +267,15 @@ export default function AdminMediaPage() {
                         ↓
                       </GhostButton>
                       <GhostButton disabled={busy || asset.status !== 'ready' || asset.isCover} onClick={() => void call(`/api/admin/media/collection/${activeKey}/cover`, 'PATCH', { assetId: asset.assetId }, 'Cover updated.')}>
-                        Make cover
+                        {t('admin.media.makeCover')}
                       </GhostButton>
                       {asset.status === 'failed' && (
                         <GhostButton disabled={busy} onClick={() => void call(`/api/admin/media/${asset.assetId}/retry`, 'POST', {}, 'Upload promoted.')}>
-                          Retry
+                          {t('admin.media.retry')}
                         </GhostButton>
                       )}
                       <GhostButton disabled={busy} onClick={() => void remove(asset)}>
-                        Delete
+                        {t('admin.common.delete')}
                       </GhostButton>
                     </div>
                   )}
@@ -285,21 +287,21 @@ export default function AdminMediaPage() {
       </Panel>
 
       {mayManage && (
-        <Panel title="Orphan cleanup" subtitle="Only uploads that never became usable are candidates, and a referenced asset is never touched.">
+        <Panel title={t('admin.media.orphanTitle')} subtitle={t('admin.media.orphanSubtitle')}>
           <CleanupPanel run={(json) => call<{ candidates: string[]; removed: string[] }>('/api/admin/media/cleanup', 'POST', json, 'Cleanup finished.')} busy={busy} />
         </Panel>
       )}
 
-      <TableWrap label="Asset records">
+      <TableWrap label={t('admin.media.recordsTable')}>
         <table className="adm-table">
-          <caption>Every upload leaves a record, including the rejected ones.</caption>
+          <caption>{t('admin.media.recordsCaption')}</caption>
           <thead>
             <tr>
-              <th scope="col">Asset</th>
-              <th scope="col">Status</th>
-              <th scope="col">Position</th>
-              <th scope="col">Size</th>
-              <th scope="col">Stored</th>
+              <th scope="col">{t('admin.media.colAsset')}</th>
+              <th scope="col">{t('admin.media.colStatus')}</th>
+              <th scope="col">{t('admin.media.colPosition')}</th>
+              <th scope="col">{t('admin.media.colSize')}</th>
+              <th scope="col">{t('admin.media.colStored')}</th>
             </tr>
           </thead>
           <tbody>
@@ -311,7 +313,7 @@ export default function AdminMediaPage() {
                 </td>
                 <td>{asset.position}</td>
                 <td>{formatBytes(asset.bytes)}</td>
-                <td>{asset.storageKey ? 'yes' : 'no'}</td>
+                <td>{asset.storageKey ? t('admin.media.storedYes') : t('admin.media.storedNo')}</td>
               </tr>
             ))}
           </tbody>
@@ -342,6 +344,7 @@ function CleanupPanel({
   run: (json: { olderThanHours: number; apply: boolean }) => Promise<{ candidates: string[]; removed: string[] } | null>;
   busy: boolean;
 }) {
+  const { t } = useUiLocale();
   const [hours, setHours] = useState('24');
   const [result, setResult] = useState<{ candidates: string[]; removed: string[] } | null>(null);
 
@@ -349,7 +352,7 @@ function CleanupPanel({
     <div className="adm-form">
       <div className="adm-grid">
         <div>
-          <Label htmlFor="cleanup-hours">Older than (hours)</Label>
+          <Label htmlFor="cleanup-hours">{t('admin.media.cleanupHours')}</Label>
           <input id="cleanup-hours" className="field" type="number" min={1} value={hours} onChange={(event) => setHours(event.target.value)} />
         </div>
       </div>
@@ -360,7 +363,7 @@ function CleanupPanel({
             setResult(await run({ olderThanHours: Number(hours), apply: false }));
           }}
         >
-          Dry run
+          {t('admin.media.dryRun')}
         </GhostButton>
         <GhostButton
           disabled={busy}
@@ -368,13 +371,13 @@ function CleanupPanel({
             setResult(await run({ olderThanHours: Number(hours), apply: true }));
           }}
         >
-          Apply cleanup
+          {t('admin.media.applyCleanup')}
         </GhostButton>
       </div>
       {result && (
         <div role="status" className="adm-hint">
-          <p style={css('margin: 0 0 6px')}>Candidates: {result.candidates.length === 0 ? 'none' : result.candidates.join(', ')}</p>
-          <p style={css('margin: 0')}>Removed: {result.removed.length === 0 ? 'none' : result.removed.join(', ')}</p>
+          <p style={css('margin: 0 0 6px')}>{t('admin.media.candidates', { list: result.candidates.length === 0 ? t('admin.media.none') : result.candidates.join(', ') })}</p>
+          <p style={css('margin: 0')}>{t('admin.media.removed', { list: result.removed.length === 0 ? t('admin.media.none') : result.removed.join(', ') })}</p>
         </div>
       )}
     </div>

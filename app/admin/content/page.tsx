@@ -31,6 +31,9 @@ import {
   type ChromeDocKey,
   type ChromeFieldMeta,
 } from '../../../lib/siteChrome';
+import { cmsFieldAdminHint, cmsFieldAdminLabel, cmsGroupLabel } from '../../../lib/cmsAdminChrome';
+import { useUiLocale } from '../../../lib/UiLocaleProvider';
+import type { MessageKey } from '../../../lib/uiMessages';
 import { PageHeader, Panel, StateBlock } from '../ui';
 
 type ChromeDocResponse = {
@@ -60,6 +63,7 @@ function ChromeSection({
   const [saved, setSaved] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const session = useSession();
+  const { t, lang } = useUiLocale();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -98,10 +102,10 @@ function ChromeSection({
       });
       setVersion(result.version);
       invalidateSiteChromeCache(docKey);
-      setSaved('Saved and published.');
+      setSaved(t('admin.content.savedPublished'));
       void load();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Save failed');
+      setSaveError(err instanceof Error ? err.message : t('admin.content.saveFailed'));
     } finally {
       setBusy(false);
     }
@@ -112,9 +116,9 @@ function ChromeSection({
       title={title}
       actions={
         version !== null ? (
-          <span className="adm-hint">Published version {version}</span>
+          <span className="adm-hint">{t('admin.content.publishedVersion', { version })}</span>
         ) : (
-          <span className="adm-hint">Not published yet — defaults from site copy</span>
+          <span className="adm-hint">{t('admin.content.notPublished')}</span>
         )
       }
     >
@@ -124,16 +128,14 @@ function ChromeSection({
           {meta.map((field, index) => (
             <Fragment key={field.key}>
             {field.group && (index === 0 || meta[index - 1]?.group !== field.group) ? (
-              <h3 style={css('margin: 16px 0 0; font-size: 18px; font-weight: 700; color: #15191E')}>{field.group}</h3>
+              <h3 className="adm-cms-group">{cmsGroupLabel(field.group, lang)}</h3>
             ) : null}
-            <div
-              style={css('border: 1px solid #E6E4DF; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; background: #FBFAF7')}
-            >
+            <div className="adm-fieldrow">
               <div>
-                <div style={css('font-weight: 700; color: #15191E; font-size: 16px')}>{field.label}</div>
-                {field.hint ? <div className="adm-hint">{field.hint}</div> : null}
+                <div className="adm-cms-field-title">{cmsFieldAdminLabel(field, lang)}</div>
+                {field.hint ? <div className="adm-hint">{cmsFieldAdminHint(field, lang)}</div> : null}
               </div>
-              <div style={css('display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))')}>
+              <div className="adm-grid">
                 {(['en', 'ar'] as const).map((locale) => {
                   const fallback = defaultLabelPreview(locale, field.key);
                   const longCopy = defaultLabelPreview('en', field.key).length > 80;
@@ -149,10 +151,10 @@ function ChromeSection({
                       }),
                   };
                   return (
-                    <label key={locale} style={css('display: flex; flex-direction: column; gap: 6px; font-size: 14px')}>
-                      <span style={css('font-weight: 600')}>{locale === 'en' ? 'English' : 'Arabic'}</span>
+                    <label key={locale} className="adm-cms-locale">
+                      <span>{locale === 'en' ? t('admin.field.localeEn') : t('admin.field.localeAr')}</span>
                       {longCopy ? <textarea {...shared} rows={4} /> : <input {...shared} />}
-                      <span className="adm-hint">Leave empty to keep: {fallback}</span>
+                      <span className="adm-hint">{t('admin.content.leaveEmpty', { fallback })}</span>
                     </label>
                   );
                 })}
@@ -160,14 +162,10 @@ function ChromeSection({
             </div>
             </Fragment>
           ))}
-          {saveError ? <p role="alert" style={css('margin: 0; color: #8A3B05')}>{saveError}</p> : null}
-          {saved ? <p role="status" style={css('margin: 0; color: #2F6B3A; font-weight: 600')}>{saved}</p> : null}
-          <button
-            type="submit"
-            disabled={busy}
-            style={css('align-self: flex-start; height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}
-          >
-            {busy ? 'Saving…' : `Save ${title.toLowerCase()}`}
+          {saveError ? <p role="alert" className="adm-field-error" style={css('margin: 0')}>{saveError}</p> : null}
+          {saved ? <p role="status" className="adm-note" data-tone="good">{saved}</p> : null}
+          <button type="submit" disabled={busy} className="btn-primary adm-cms-save">
+            {busy ? t('admin.common.saving') : t('admin.content.saveSection', { section: title })}
           </button>
         </form>
       </StateBlock>
@@ -177,8 +175,8 @@ function ChromeSection({
 
 type LabelNavItem = {
   id: string;
-  label: string;
-  subtitle: string;
+  labelKey: MessageKey;
+  subtitleKey: MessageKey;
   docKey: ChromeDocKey;
   fields: readonly string[];
   meta: ChromeFieldMeta[];
@@ -187,144 +185,144 @@ type LabelNavItem = {
 const LABEL_NAV: LabelNavItem[] = [
   {
     id: 'header',
-    label: 'Header',
-    subtitle: 'Logo, menus, search, and place filter. Sign in / Sign out buttons are under Sign in / Sign out.',
+    labelKey: 'admin.cms.header',
+    subtitleKey: 'admin.cms.headerSub',
     docKey: 'header',
     fields: HEADER_CMS_META.map((field) => field.key),
     meta: HEADER_CMS_META,
   },
   {
     id: 'footer',
-    label: 'Footer',
-    subtitle: 'Brand block, link columns, and the bottom bar — same order as on the site.',
+    labelKey: 'admin.cms.footer',
+    subtitleKey: 'admin.cms.footerSub',
     docKey: 'footer',
     fields: FOOTER_CMS_META.map((field) => field.key),
     meta: FOOTER_CMS_META,
   },
   {
     id: 'signin',
-    label: 'Sign in / Sign out',
-    subtitle: 'Login form, plus the Sign out button in the header after login. New accounts are under Create account.',
+    labelKey: 'admin.cms.signin',
+    subtitleKey: 'admin.cms.signinSub',
     docKey: 'auth',
     fields: SIGN_IN_CMS_META.map((field) => field.key),
     meta: SIGN_IN_CMS_META,
   },
   {
     id: 'register',
-    label: 'Create account',
-    subtitle: 'The Create account tab on the same page as Sign in.',
+    labelKey: 'admin.cms.register',
+    subtitleKey: 'admin.cms.registerSub',
     docKey: 'auth',
     fields: CREATE_ACCOUNT_CMS_META.map((field) => field.key),
     meta: CREATE_ACCOUNT_CMS_META,
   },
   {
     id: 'forgot',
-    label: 'Forgot password',
-    subtitle: 'The forgot-password page: left panel, email form, and success message.',
+    labelKey: 'admin.cms.forgot',
+    subtitleKey: 'admin.cms.forgotSub',
     docKey: 'auth',
     fields: FORGOT_CMS_META.map((field) => field.key),
     meta: FORGOT_CMS_META,
   },
   {
     id: 'reset',
-    label: 'Reset password',
-    subtitle: 'The reset-password page: new password form and invalid-link state.',
+    labelKey: 'admin.cms.reset',
+    subtitleKey: 'admin.cms.resetSub',
     docKey: 'auth',
     fields: RESET_CMS_META.map((field) => field.key),
     meta: RESET_CMS_META,
   },
   {
     id: 'account-mfa',
-    label: 'Account authenticator',
-    subtitle: 'Two-step verification when signing in, plus replace-authenticator on the Account page.',
+    labelKey: 'admin.cms.accountMfa',
+    subtitleKey: 'admin.cms.accountMfaSub',
     docKey: 'auth',
     fields: ACCOUNT_MFA_CMS_META.map((field) => field.key),
     meta: ACCOUNT_MFA_CMS_META,
   },
   {
     id: 'home',
-    label: 'Home',
-    subtitle: 'Hero, ending soon, categories, auctions, how it works, and trust blocks on /.',
+    labelKey: 'admin.cms.home',
+    subtitleKey: 'admin.cms.homeSub',
     docKey: 'home',
     fields: HOME_CMS_META.map((field) => field.key),
     meta: HOME_CMS_META,
   },
   {
     id: 'browse',
-    label: 'Browse',
-    subtitle: 'Search, filters, results, and pagination on /browse.',
+    labelKey: 'admin.cms.browse',
+    subtitleKey: 'admin.cms.browseSub',
     docKey: 'browse',
     fields: BROWSE_CMS_META.map((field) => field.key),
     meta: BROWSE_CMS_META,
   },
   {
     id: 'auctions',
-    label: 'Auctions',
-    subtitle: 'Intro, how bidding works, and the live auctions list on /auctions.',
+    labelKey: 'admin.cms.auctions',
+    subtitleKey: 'admin.cms.auctionsSub',
     docKey: 'auctions',
     fields: AUCTIONS_CMS_META.map((field) => field.key),
     meta: AUCTIONS_CMS_META,
   },
   {
     id: 'calendar',
-    label: 'Auction calendar',
-    subtitle: 'Calendar page copy and month navigation on /auction-calendar.',
+    labelKey: 'admin.cms.calendar',
+    subtitleKey: 'admin.cms.calendarSub',
     docKey: 'calendar',
     fields: CALENDAR_CMS_META.map((field) => field.key),
     meta: CALENDAR_CMS_META,
   },
   {
     id: 'categories',
-    label: 'Categories',
-    subtitle: 'Category directory search and empty states on /categories.',
+    labelKey: 'admin.cms.categories',
+    subtitleKey: 'admin.cms.categoriesSub',
     docKey: 'categories',
     fields: CATEGORIES_CMS_META.map((field) => field.key),
     meta: CATEGORIES_CMS_META,
   },
   {
     id: 'product',
-    label: 'Product',
-    subtitle: 'Tabs, gallery, errors, and checkout chrome on listing detail. Bid math stays in code.',
+    labelKey: 'admin.cms.product',
+    subtitleKey: 'admin.cms.productSub',
     docKey: 'product',
     fields: PRODUCT_CMS_META.map((field) => field.key),
     meta: PRODUCT_CMS_META,
   },
   {
     id: 'help',
-    label: 'Help',
-    subtitle: 'Help centre topics, FAQs, and safety tips.',
+    labelKey: 'admin.cms.help',
+    subtitleKey: 'admin.cms.helpSub',
     docKey: 'help',
     fields: HELP_CMS_META.map((field) => field.key),
     meta: HELP_CMS_META,
   },
   {
     id: 'about',
-    label: 'About',
-    subtitle: 'Hardcoded copy on /about.',
+    labelKey: 'admin.cms.about',
+    subtitleKey: 'admin.cms.aboutSub',
     docKey: 'about',
     fields: ABOUT_CMS_META.map((field) => field.key),
     meta: ABOUT_CMS_META,
   },
   {
     id: 'legal',
-    label: 'Legal',
-    subtitle: 'Terms and privacy page copy. Phone numbers and emails stay in code.',
+    labelKey: 'admin.cms.legal',
+    subtitleKey: 'admin.cms.legalSub',
     docKey: 'legal',
     fields: LEGAL_CMS_META.map((field) => field.key),
     meta: LEGAL_CMS_META,
   },
   {
     id: 'contact',
-    label: 'Contact',
-    subtitle: 'Form labels and channel names. Address and phone stay in code.',
+    labelKey: 'admin.cms.contact',
+    subtitleKey: 'admin.cms.contactSub',
     docKey: 'contact',
     fields: CONTACT_CMS_META.map((field) => field.key),
     meta: CONTACT_CMS_META,
   },
   {
     id: 'account',
-    label: 'Account',
-    subtitle: 'Profile, purchases, and bids on /account. Authenticator copy is under Account authenticator.',
+    labelKey: 'admin.cms.account',
+    subtitleKey: 'admin.cms.accountSub',
     docKey: 'account',
     fields: ACCOUNT_CMS_META.map((field) => field.key),
     meta: ACCOUNT_CMS_META,
@@ -332,20 +330,18 @@ const LABEL_NAV: LabelNavItem[] = [
 ];
 
 export default function AdminSiteContentPage() {
+  const { t, lang } = useUiLocale();
   const [navId, setNavId] = useState(LABEL_NAV[0].id);
   const current = LABEL_NAV.find((item) => item.id === navId) ?? LABEL_NAV[0];
 
   return (
     <div style={css('display: flex; flex-direction: column; gap: 16px')}>
       <PageHeader
-        title="Site labels"
-        subtitle="Pick a section. English and Arabic labels only — links, phones, and API errors stay in code. Empty field = built-in default."
+        title={t('admin.content.title')}
+        subtitle={t('admin.content.subtitle')}
       />
       <div style={css('display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap')}>
-        <nav
-          aria-label="Site label sections"
-          style={css('flex: 0 0 220px; width: 220px; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 2px')}
-        >
+        <nav aria-label={t('admin.content.navAria')} className="adm-cms-nav">
           {LABEL_NAV.map((item) => {
             const active = item.id === current.id;
             return (
@@ -354,11 +350,8 @@ export default function AdminSiteContentPage() {
                 type="button"
                 aria-current={active ? 'page' : undefined}
                 onClick={() => setNavId(item.id)}
-                style={css(
-                  `text-align: start; border: 0; background: ${active ? '#F3F1EC' : 'transparent'}; color: #15191E; padding: 10px 14px; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer`,
-                )}
               >
-                {item.label}
+                {t(item.labelKey)}
               </button>
             );
           })}
@@ -367,8 +360,8 @@ export default function AdminSiteContentPage() {
           <ChromeSection
             key={current.id}
             docKey={current.docKey}
-            title={current.label}
-            subtitle={current.subtitle}
+            title={t(current.labelKey)}
+            subtitle={t(current.subtitleKey)}
             fields={current.fields}
             meta={current.meta}
           />

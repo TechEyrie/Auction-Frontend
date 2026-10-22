@@ -595,7 +595,7 @@ export default function ProductPage() {
                 ) : (
                   <dl style={css('margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 32px')}>
                     {publicAttributes.map(([key, value]) => (
-                      <div key={key} style={css('display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid #EEECE7')}>
+                      <div key={key} style={css('display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--mkt-border)')}>
                         <dt style={css('color: #5B636B')}>{attributeLabels.get(key) ?? key}</dt>
                         <dd style={css('margin: 0; font-weight: 600; text-align: right')}>{attributeText(value)}</dd>
                       </div>
@@ -664,7 +664,7 @@ export default function ProductPage() {
               <div className="live-auction-panel">
                 <div>
                   <strong style={css('display: block; font-size: 15px')}>Live auction</strong>
-                  <p className="mkt-hint" style={css('color: #3D3420; margin: 4px 0 0')}>
+                  <p className="mkt-hint" style={css('color: var(--mkt-text); margin: 4px 0 0')}>
                     Times shown in Qatar (Asia/Qatar).
                   </p>
                 </div>
@@ -730,7 +730,7 @@ export default function ProductPage() {
                         placeholder={minimumQarPlaceholder}
                         required
                         aria-label="Your bid in QAR"
-                        style={css('height: 48px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 12px; font: inherit; width: 100%; box-sizing: border-box; background: #FFFFFF')}
+                        style={css('height: 48px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 12px; font: inherit; width: 100%; box-sizing: border-box; background: var(--mkt-surface); color: var(--mkt-text)')}
                       />
                       <button
                         type="submit"
@@ -742,13 +742,13 @@ export default function ProductPage() {
                       </button>
                     </div>
                     {minimumMinor !== null && incrementMinor > 0 ? (
-                      <p style={css('margin: 0; font-size: 14px; font-weight: 600; color: #3D3420; line-height: 1.45')}>
+                      <p style={css('margin: 0; font-size: 14px; font-weight: 600; color: var(--mkt-text); line-height: 1.45')}>
                         {effectiveBidCountForMinimum === 0
                           ? `Enter at least ${fmtMinor(minimumMinor)} (opening bid).`
                           : `Minimum next bid: ${fmtMinor(minimumMinor)} (current + ${fmtMinor(incrementMinor)} increment).`}
                       </p>
                     ) : minimumMinor !== null ? (
-                      <p style={css('margin: 0; font-size: 14px; font-weight: 600; color: #3D3420; line-height: 1.45')}>
+                      <p style={css('margin: 0; font-size: 14px; font-weight: 600; color: var(--mkt-text); line-height: 1.45')}>
                         Enter at least {fmtMinor(minimumMinor)}.
                       </p>
                     ) : null}
@@ -779,7 +779,7 @@ export default function ProductPage() {
                 </p>
               </div>
             ) : data.listingMethod === 'auction' ? (
-              <div style={css('padding: 14px 16px; border-radius: 14px; background: #FBFAF7; border: 1px solid #EEECE7; color: #3D3420')}>
+              <div style={css('padding: 14px 16px; border-radius: 14px; background: var(--mkt-bg); border: 1px solid var(--mkt-border); color: var(--mkt-text)')}>
                 <p className="mkt-hint" style={css('margin: 0')}>
                   This listing is recorded for auction. Staff will open bidding on this listing when it should begin — there is no
                   bid button until then.
@@ -794,7 +794,7 @@ export default function ProductPage() {
                 ) : null}
               </div>
             ) : data.listingMethod === 'fixed_price' ? (
-              <div style={css('padding: 14px 16px; border-radius: 14px; background: #F6EEDC; color: #3D3420; display: grid; gap: 12px')}>
+              <div style={css('padding: 14px 16px; border-radius: 14px; background: var(--mkt-gold-soft); color: var(--mkt-text); display: grid; gap: 12px')}>
                 {data.availability === 'sold' ? (
                   <>
                     <span className="mkt-badge" style={css('justify-self: start')}>Sold</span>
@@ -844,7 +844,7 @@ export default function ProductPage() {
                 ) : null}
               </div>
             ) : (
-              <div style={css('padding: 14px 16px; border-radius: 14px; background: #FBFAF7; border: 1px solid #EEECE7; color: #3D3420; display: grid; gap: 12px')}>
+              <div style={css('padding: 14px 16px; border-radius: 14px; background: var(--mkt-bg); border: 1px solid var(--mkt-border); color: var(--mkt-text); display: grid; gap: 12px')}>
                 <p className="mkt-hint" style={css('margin: 0')}>This listing is enquiry-only. There is no bid or buy-now checkout on this item.</p>
                 <Link
                   href={`/contact?ref=${encodeURIComponent(data.listingReference)}`}
@@ -857,23 +857,23 @@ export default function ProductPage() {
             )}
 
             <div style={css('display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px')}>
-              <div style={css('background: #FBFAF7; border: 1px solid #EEECE7; border-radius: 12px; padding: 10px 12px')}>
+              <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
                 <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Seller</div>
                 <div style={css('font-weight: 600')}>{data.seller.displayName}</div>
               </div>
-              <div style={css('background: #FBFAF7; border: 1px solid #EEECE7; border-radius: 12px; padding: 10px 12px')}>
+              <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
                 <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Category</div>
                 <div style={css('font-weight: 600')}>{category?.name ?? data.category.key}</div>
               </div>
-              <div style={css('background: #FBFAF7; border: 1px solid #EEECE7; border-radius: 12px; padding: 10px 12px')}>
+              <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
                 <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Location</div>
                 <div style={css('font-weight: 600')}>{data.location.label ?? 'Not published'}</div>
               </div>
-              <div style={css('background: #FBFAF7; border: 1px solid #EEECE7; border-radius: 12px; padding: 10px 12px')}>
+              <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
                 <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Method</div>
                 <div style={css('font-weight: 600')}>{METHOD_LABEL[data.listingMethod]}</div>
               </div>
-              <div style={css('background: #FBFAF7; border: 1px solid #EEECE7; border-radius: 12px; padding: 10px 12px')}>
+              <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
                 <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Images</div>
                 <div style={css('font-weight: 600')}>{media.length}</div>
               </div>
@@ -881,9 +881,9 @@ export default function ProductPage() {
 
           </div>
 
-          <div style={css('background: #F6EEDC; border-radius: 20px; padding: 20px')}>
+          <div style={css('background: var(--mkt-gold-soft); border-radius: 20px; padding: 20px; color: var(--mkt-text)')}>
             <h2 style={css('margin: 0 0 8px; font-size: 16px; font-weight: 700')}>Stay safe</h2>
-            <ul style={css('margin: 0; padding-left: 20px; font-size: 14px; color: #3D3420; display: flex; flex-direction: column; gap: 4px')}>
+            <ul style={css('margin: 0; padding-left: 20px; font-size: 14px; color: var(--mkt-text); display: flex; flex-direction: column; gap: 4px')}>
               <li>Inspect the item before paying anything.</li>
               <li>Never send a deposit to someone you have not met.</li>
               <li>Report anything that looks wrong — the ad reference is {data.listingReference}.</li>

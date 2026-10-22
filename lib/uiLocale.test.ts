@@ -34,7 +34,7 @@ test('uiDir and isAdminPath', () => {
 });
 
 test('applyDocumentLocale is a no-op without a DOM', () => {
-  assert.doesNotThrow(() => applyDocumentLocale('ar', '/browse'));
+  assert.doesNotThrow(() => applyDocumentLocale('ar'));
 });
 
 test('header, footer and chrome messages exist in both languages', () => {

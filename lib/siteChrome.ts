@@ -87,6 +87,10 @@ export const HEADER_LABEL_FIELDS = [
   'header.switchLanguage',
   'header.selectLanguage',
   'header.selectCity',
+  'header.themeToDark',
+  'header.themeToLight',
+  'header.themeDark',
+  'header.themeLight',
   'header.mainNav',
   'header.mobileNav',
   'header.brandHome',
@@ -237,6 +241,9 @@ export type ChromeFieldMeta = {
   label: string;
   hint?: string;
   group?: string;
+  labelAr?: string;
+  hintAr?: string;
+  groupAr?: string;
 };
 
 /** Header CMS — top bar in page order. Login / Sign out are under Sign in / Sign out. */
@@ -289,6 +296,10 @@ export const HEADER_CMS_META: ChromeFieldMeta[] = [
   { key: 'header.switchLanguage', label: 'Switch language', group: 'Top bar buttons' },
   { key: 'header.langName', label: 'Current language name', group: 'Top bar buttons', hint: 'e.g. English' },
   { key: 'header.langCode', label: 'Current language code', group: 'Top bar buttons', hint: 'e.g. EN' },
+  { key: 'header.themeToDark', label: 'Theme toggle (to dark)', group: 'Top bar buttons', hint: 'Screen reader label.' },
+  { key: 'header.themeToLight', label: 'Theme toggle (to light)', group: 'Top bar buttons', hint: 'Screen reader label.' },
+  { key: 'header.themeDark', label: 'Dark theme label', group: 'Top bar buttons', hint: 'Mobile menu target label.' },
+  { key: 'header.themeLight', label: 'Light theme label', group: 'Top bar buttons', hint: 'Mobile menu target label.' },
   { key: 'header.register', label: 'Register', group: 'Top bar buttons' },
   { key: 'header.account', label: 'Account', group: 'Top bar buttons' },
   { key: 'header.admin', label: 'Admin', group: 'Top bar buttons', hint: 'Shown for staff only.' },
