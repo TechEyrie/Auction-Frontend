@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useCallback } from 'react';
 import { css } from '../lib/css';
 import { useUiLocale } from '../lib/UiLocaleProvider';
+import type { MessageKey } from '../lib/uiMessages';
+import { chromeTranslate, useSiteChromeBody } from '../lib/siteChrome';
 
 const COL = 'flex: 1 1 140px; display: flex; flex-direction: column; gap: 10px; font-size: 15px';
 const COL_HEAD = 'color: #FFFFFF; font-weight: 600; margin-bottom: 4px';
@@ -24,7 +27,12 @@ type Props = {
 };
 
 export default function SiteFooter({ minimal, safetyHref = '/help' }: Props) {
-  const { t } = useUiLocale();
+  const { lang, t: baseT } = useUiLocale();
+  const footerChrome = useSiteChromeBody('footer');
+  const t = useCallback(
+    (key: MessageKey, vars?: Record<string, string | number>) => chromeTranslate(lang, baseT, footerChrome, key, vars),
+    [lang, baseT, footerChrome],
+  );
   if (minimal) {
     return (
       <footer className="foot" style={css('background: #15191E; color: #C9CFCB')}>
@@ -51,8 +59,8 @@ export default function SiteFooter({ minimal, safetyHref = '/help' }: Props) {
           <div style={css('display: flex; align-items: center; gap: 14px')}>
             <img src="/logo.png" alt="" width={64} height={64} style={css('width: 64px; height: 64px; object-fit: contain; display: block')} />
             <div style={css("font-family: 'Schibsted Grotesk', sans-serif; font-weight: 800; font-size: 20px; color: #FFFFFF; letter-spacing: 0.01em; line-height: 1.15")}>
-              ARAQ &amp; KAHRAMAN
-              <span style={css('display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.32em; color: #D4A84B')}>AUCTIONS</span>
+              {t('footer.brandName')}
+              <span style={css('display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.32em; color: #D4A84B')}>{t('footer.brandSub')}</span>
             </div>
           </div>
           <p style={css('margin: 10px 0 0; max-width: 34ch; font-size: 15px')}>{t('footer.tagline')}</p>

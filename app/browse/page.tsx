@@ -11,6 +11,7 @@ import SiteHeader from '../../components/SiteHeader';
 import { API_BASE_URL, apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
+import { useChromeTranslate } from '../../lib/siteChrome';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import { categoryRoots } from '../../lib/catalog';
 import {
@@ -43,7 +44,7 @@ function thumbUrl(listing: PublicListing): string | null {
   return url ? mediaUrl(API_BASE_URL, url) : null;
 }
 
-type Translate = ReturnType<typeof useUiLocale>['t'];
+type Translate = ReturnType<typeof useChromeTranslate>;
 
 function loadingStatusLabel(state: BrowseState, t: Translate): string {
   if (state.q) return t('browse.searching');
@@ -71,7 +72,8 @@ function BrowseListingSkeletonGrid({ count = SKELETON_COUNT }: { count?: number 
 
 function BrowseContent() {
   const router = useRouter();
-  const { lang, t } = useUiLocale();
+  const { lang } = useUiLocale();
+  const t = useChromeTranslate('browse');
   const searchParams = useSearchParams();
   const state = useMemo(() => parseBrowseState(new URLSearchParams(searchParams.toString())), [searchParams]);
 
@@ -309,7 +311,7 @@ function BrowseContent() {
 }
 
 export default function BrowsePage() {
-  const { t } = useUiLocale();
+  const t = useChromeTranslate('browse');
   return (
     <Suspense
       fallback={

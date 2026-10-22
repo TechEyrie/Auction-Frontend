@@ -8,6 +8,7 @@ import SiteHeader from '../../../components/SiteHeader';
 import { apiFetch } from '../../../lib/api';
 import { css, PAGE_ROOT } from '../../../lib/css';
 import { productPath } from '../../../lib/listings';
+import { useChromeTranslate } from '../../../lib/siteChrome';
 import { useAsync } from '../../../lib/useAsync';
 import '../lot.css';
 
@@ -17,6 +18,7 @@ type AuctionState = {
 
 /** Legacy `/lot/:id` URLs redirect to the product page; show neutral copy while resolving. */
 export default function LotRedirectPage() {
+  const ct = useChromeTranslate('lot');
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = typeof params?.id === 'string' ? params.id : '';
@@ -36,18 +38,18 @@ export default function LotRedirectPage() {
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>Opening product — Araq &amp; Kahraman Auctions</title>
+      <title>{ct('lot.title')}</title>
       <SiteHeader active="auctions" navCurrent={false} />
       <main style={css('max-width: 640px; margin: 0 auto; padding: 64px 24px 80px; display: grid; gap: 12px')}>
         {resolving ? (
-          <p role="status" style={css('margin: 0; font-size: 18px; font-weight: 600')}>Opening product…</p>
+          <p role="status" style={css('margin: 0; font-size: 18px; font-weight: 600')}>{ct('lot.opening')}</p>
         ) : (
           <>
             <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 1.75rem; font-weight: 700")}>
-              This auction is not open
+              {ct('lot.notOpen')}
             </h1>
             <p style={css('margin: 0; color: #5B636B')}>
-              Bidding happens on the product page when staff have opened a live auction for a listing.
+              {ct('lot.notOpenBody')}
             </p>
             <div style={css('display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px')}>
               <Link href="/auctions" className="btn-primary" style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 20px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}>

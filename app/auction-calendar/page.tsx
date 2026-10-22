@@ -20,6 +20,7 @@ import { mediaUrl } from '../../lib/listings';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { qatarDateKey } from '../../lib/prayerTimes';
 import { useAsync } from '../../lib/useAsync';
+import { useChromeTranslate } from '../../lib/siteChrome';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import '../main.css';
 import './auction-calendar.css';
@@ -48,7 +49,8 @@ function monthLabel(year: number, month: number, lang: string): string {
 function AuctionCalendarContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, lang } = useUiLocale();
+  const { lang } = useUiLocale();
+  const t = useChromeTranslate('calendar');
   const todayKey = qatarDateKey();
   const todayParts = yearMonthFromDateKey(todayKey);
 
@@ -229,7 +231,7 @@ function AuctionCalendarContent() {
 }
 
 export default function AuctionCalendarPage() {
-  const { t } = useUiLocale();
+  const t = useChromeTranslate('calendar');
   return (
     <div className="ac-page" style={css(PAGE_ROOT)}>
       <title>{t('auctionCalendar.title')}</title>

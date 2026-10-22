@@ -12,6 +12,7 @@ import { css, PAGE_ROOT } from '../../../lib/css';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtBusinessDateTime, fmtMinor, qarToMinor, relativeTimeLabel } from '../../../lib/format';
 import { useSession } from '../../../lib/session';
+import { useChromeTranslate } from '../../../lib/siteChrome';
 import { useUiLocale } from '../../../lib/UiLocaleProvider';
 import { localizedText } from '../../../lib/uiLocale';
 import {
@@ -177,6 +178,7 @@ export default function ProductPage() {
   const [tab, setTab] = useState<'description' | 'specifications' | 'location'>('description');
   const session = useSession();
   const { lang, t } = useUiLocale();
+  const pt = useChromeTranslate('product');
   const [amountQar, setAmountQar] = useState('');
   const [bidMessage, setBidMessage] = useState<string | null>(null);
   const [bidCooldownUntil, setBidCooldownUntil] = useState<number | null>(null);
@@ -419,21 +421,21 @@ export default function ProductPage() {
         <SiteHeader active="buy" navCurrent={false} />
         <section style={css('max-width: 720px; margin: 0 auto; padding: 72px 24px 96px')}>
           <h1 style={css("margin: 0 0 10px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 30px; font-weight: 700")}>
-            {missing ? 'This listing is not available' : 'The listing could not be loaded'}
+            {missing ? pt('product.unavailable') : pt('product.loadFailed')}
           </h1>
           <p style={css('margin: 0 0 12px; color: #5B636B')}>
             {missing
-              ? 'It may have been withdrawn, archived, or it was never published. Archived listings leave public view but keep their history internally.'
+              ? pt('product.unavailableBody')
               : listing.error}
           </p>
           <div style={css('display: flex; gap: 10px; flex-wrap: wrap')}>
             {listing.error && (
               <button type="button" onClick={() => listing.reload()} className="btn-primary" style={css('height: 48px; padding: 0 20px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}>
-                Try again
+                {pt('product.tryAgain')}
               </button>
             )}
             <Link href="/browse" style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 20px; border: 1px solid #DAD7D0; border-radius: 12px; font-weight: 600')}>
-              Browse published listings
+              {pt('product.browseLink')}
             </Link>
           </div>
         </section>
@@ -443,9 +445,9 @@ export default function ProductPage() {
   }
 
   const tabs = [
-    { id: 'description' as const, label: 'Description' },
-    { id: 'specifications' as const, label: 'Specifications' },
-    { id: 'location' as const, label: 'Location' },
+    { id: 'description' as const, label: pt('product.tab.description') },
+    { id: 'specifications' as const, label: pt('product.tab.specifications') },
+    { id: 'location' as const, label: pt('product.tab.location') },
   ];
   const publicAttributes = Object.entries(data.attributes);
   const isLiveAuction = data.listingMethod === 'auction' && Boolean(data.liveLotReference);
@@ -536,7 +538,7 @@ export default function ProductPage() {
             )}
             {shot && (
               <span style={css('position: absolute; left: 16px; bottom: 16px; padding: 6px 12px; border-radius: 999px; background: rgba(21,25,30,.72); color: #FFFFFF; font-size: 13px; font-weight: 600')}>
-                {shot.isCover ? 'Cover' : `Photo ${shotIdx + 1}`} · {shotIdx + 1} / {media.length}
+                {shot.isCover ? pt('product.cover') : pt('product.photo', { n: shotIdx + 1 })} · {shotIdx + 1} / {media.length}
               </span>
             )}
           </div>
@@ -548,7 +550,7 @@ export default function ProductPage() {
                   type="button"
                   className="product-gallery-thumb"
                   onClick={() => setShotIdx(index)}
-                  aria-label={`Show photo ${index + 1}`}
+                  aria-label={pt('product.showPhoto', { n: index + 1 })}
                   aria-pressed={index === shotIdx}
                 >
                   <img src={mediaUrl(API_BASE_URL, entry.url)} alt={localizedText(entry.alt, lang)} loading="lazy" />
@@ -558,8 +560,8 @@ export default function ProductPage() {
           )}
         </section>
 
-        <section className="product-tabs-panel" aria-label="Listing details">
-          <div role="tablist" aria-label="Listing details" className="product-tabs-list">
+        <section className="product-tabs-panel" aria-label={pt('product.detailsAria')}>
+          <div role="tablist" aria-label={pt('product.detailsAria')} className="product-tabs-list">
             {tabs.map((entry) => (
               <button
                 key={entry.id}
@@ -634,7 +636,7 @@ export default function ProductPage() {
         </section>
         </div>
 
-        <aside className="product-sidebar" aria-label="Listing summary">
+        <aside className="product-sidebar" aria-label={pt('product.summaryAria')}>
           <div className="product-sidebar-card product-sidebar-card--commerce">
             <div>
               <div style={css('font-size: 13px; color: #5B636B; font-weight: 600')}>
@@ -826,7 +828,7 @@ export default function ProductPage() {
                         </div>
                         <CheckoutDetailsFields value={buyForm} onChange={setBuyForm} idPrefix="buy" />
                         <button type="submit" disabled={buyBusy} style={css('height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}>
-                          {buyBusy ? 'Creating order…' : 'Continue to payment'}
+                          {buyBusy ? pt('product.creatingOrder') : pt('product.continuePayment')}
                         </button>
                         {buyError ? <p role="alert" style={css('margin: 0; color: #8B1A1A')}>{buyError}</p> : null}
                       </form>
@@ -893,7 +895,7 @@ export default function ProductPage() {
       {relatedListings.length > 0 && (
         <section className="product-related">
           <div style={css('display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 20px; flex-wrap: wrap')}>
-            <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 28px; letter-spacing: -0.02em; font-weight: 700")}>Related listings</h2>
+            <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 28px; letter-spacing: -0.02em; font-weight: 700")}>{pt('product.related')}</h2>
             <Link href={`/browse?category=${encodeURIComponent(categoryKey)}`} style={css('font-weight: 600')}>
               View all →
             </Link>

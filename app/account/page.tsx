@@ -11,6 +11,7 @@ import { fmtMinor } from '../../lib/format';
 import { productPath } from '../../lib/listings';
 import { otpauthQrDataUrl } from '../../lib/otpQr';
 import { orderSourceLabel, paymentStateLabel } from '../../lib/qatarPlaces';
+import { useChromeTranslate } from '../../lib/siteChrome';
 import { useSession } from '../../lib/session';
 import { useAsync } from '../../lib/useAsync';
 
@@ -32,6 +33,8 @@ type Account = {
 
 export default function AccountPage() {
   const session = useSession();
+  const ct = useChromeTranslate('auth');
+  const at = useChromeTranslate('account');
   const router = useRouter();
   const account = useAsync<Account>(
     () => {
@@ -163,46 +166,46 @@ export default function AccountPage() {
       <SiteHeader />
       <main style={css('max-width: 880px; margin: 0 auto; padding: 32px 24px 64px; display: grid; gap: 20px')}>
         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center')}>
-          <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif")}>Your account</h1>
+          <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif")}>{at('account.h1')}</h1>
           {session.user ? (
             <button type="button" onClick={() => void signOut()} style={css('height: 42px; padding: 0 16px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-              Sign out
+              {ct('auth.signOut')}
             </button>
           ) : null}
         </div>
 
-        {session.status === 'loading' || (!account.data && !account.error) ? <p>Loading your profile, bids and purchases…</p> : null}
+        {session.status === 'loading' || (!account.data && !account.error) ? <p>{at('account.loading')}</p> : null}
         {account.error ? (
           <p role="alert">
             {account.error}{' '}
-            <button type="button" onClick={() => account.reload()}>Retry</button>
+            <button type="button" onClick={() => account.reload()}>{at('account.retry')}</button>
             {' · '}
-            <Link href="/signin?returnTo=/account">Sign in</Link>
+            <Link href="/signin?returnTo=/account">{at('account.signIn')}</Link>
           </p>
         ) : null}
 
         {account.data ? (
           <>
             <section style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 18px 20px; display: grid; gap: 8px')}>
-              <h2 style={css('margin: 0; font-size: 18px')}>Profile</h2>
+              <h2 style={css('margin: 0; font-size: 18px')}>{at('account.profile')}</h2>
               <p style={css('margin: 0')}>{account.data.profile.fullName}</p>
-              <p style={css('margin: 0; color: #5B636B')}>{account.data.profile.email ?? 'No email on file'} · {account.data.profile.phone ?? 'No phone on file'}</p>
-              <p style={css('margin: 0')}>Accepted terms version: {account.data.profile.termsVersion ?? 'none yet'}</p>
+              <p style={css('margin: 0; color: #5B636B')}>{account.data.profile.email ?? at('account.noEmail')} · {account.data.profile.phone ?? at('account.noPhone')}</p>
+              <p style={css('margin: 0')}>{at('account.termsAccepted', { version: account.data.profile.termsVersion ?? at('account.termsNone') })}</p>
               {terms.data ? (
                 <button type="button" onClick={() => void accept(terms.data!.version)} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                  Accept published terms version {terms.data.version}
+                  {at('account.acceptTerms', { version: terms.data.version })}
                 </button>
               ) : (
-                <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>No published terms document yet.</p>
+                <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>{at('account.noTermsDoc')}</p>
               )}
               {notice ? <p role="status">{notice}</p> : null}
             </section>
 
             {session.mfaEnabled ? (
               <section style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 16px; padding: 18px 20px; display: grid; gap: 12px')}>
-                <h2 style={css('margin: 0; font-size: 18px')}>Authenticator</h2>
+                <h2 style={css('margin: 0; font-size: 18px')}>{ct('auth.account.mfa.title')}</h2>
                 <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
-                  Two-step verification is on for this account. To move to a new device, replace your authenticator with a fresh QR code.
+                  {ct('auth.account.mfa.enabledIntro')}
                 </p>
                 {!mfaReplaceOpen ? (
                   <button
@@ -214,7 +217,7 @@ export default function AccountPage() {
                     }}
                     style={css('justify-self: start; height: 42px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}
                   >
-                    Replace authenticator
+                    {ct('auth.account.mfa.replace')}
                   </button>
                 ) : (
                   <>
@@ -222,15 +225,15 @@ export default function AccountPage() {
                     {mfaStep === 'verify' ? (
                       <form onSubmit={submitMfaReplaceStart} style={css('display: grid; gap: 12px')}>
                         <div>
-                          <label htmlFor="mfa-replace-current" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>Current authenticator or recovery code</label>
+                          <label htmlFor="mfa-replace-current" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>{ct('auth.account.mfa.currentCodeLabel')}</label>
                           <input id="mfa-replace-current" className="field" inputMode="text" autoComplete="one-time-code" value={mfaCurrentCode} onChange={(e) => setMfaCurrentCode(e.target.value)} />
                         </div>
                         <div style={css('display: flex; flex-wrap: wrap; gap: 10px')}>
                           <button type="submit" disabled={mfaBusy} style={css('height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                            {mfaBusy ? 'Please wait…' : 'Continue'}
+                            {mfaBusy ? ct('auth.pleaseWait') : ct('auth.account.mfa.continue')}
                           </button>
                           <button type="button" onClick={resetMfaReplace} style={css('height: 42px; padding: 0 14px; border: 1px solid #DAD7D0; border-radius: 10px; background: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                            Cancel
+                            {ct('auth.account.mfa.cancel')}
                           </button>
                         </div>
                       </form>
@@ -238,31 +241,31 @@ export default function AccountPage() {
                     {mfaStep === 'qr' ? (
                       <form onSubmit={submitMfaReplaceConfirm} style={css('display: grid; gap: 12px')}>
                         {mfaQrDataUrl ? (
-                          <img src={mfaQrDataUrl} alt="Authenticator QR code" width={200} height={200} style={css('border-radius: 12px; border: 1px solid #E6E4DF')} />
+                          <img src={mfaQrDataUrl} alt={ct('auth.account.mfa.qrAlt')} width={200} height={200} style={css('border-radius: 12px; border: 1px solid #E6E4DF')} />
                         ) : null}
                         <p style={css('margin: 0; font-size: 14px; color: #5B636B; word-break: break-all')}>
-                          <span style={css('font-weight: 600; color: #15191E')}>Manual key: </span>
+                          <span style={css('font-weight: 600; color: #15191E')}>{ct('auth.account.mfa.manualKeyPrefix')}</span>
                           {mfaSecret}
                         </p>
                         <div>
-                          <label htmlFor="mfa-replace-new" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>6-digit code from the new app</label>
+                          <label htmlFor="mfa-replace-new" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>{ct('auth.account.mfa.newCodeLabel')}</label>
                           <input id="mfa-replace-new" className="field" inputMode="numeric" maxLength={6} autoComplete="one-time-code" value={mfaNewCode} onChange={(e) => setMfaNewCode(e.target.value)} />
                         </div>
                         <button type="submit" disabled={mfaBusy} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                          {mfaBusy ? 'Please wait…' : 'Confirm new authenticator'}
+                          {mfaBusy ? ct('auth.pleaseWait') : ct('auth.account.mfa.confirmNew')}
                         </button>
                       </form>
                     ) : null}
                     {mfaStep === 'recovery' ? (
                       <div style={css('display: grid; gap: 12px')}>
-                        <p style={css('margin: 0; font-size: 14px; color: #5B636B')}>Save these new recovery codes. Each works once if you lose your app.</p>
+                        <p style={css('margin: 0; font-size: 14px; color: #5B636B')}>{ct('auth.account.mfa.saveRecovery')}</p>
                         <ul style={css('margin: 0; padding: 16px; list-style: none; background: #F3F1EC; border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8')}>
                           {mfaRecoveryCodes.map((code) => (
                             <li key={code}>{code}</li>
                           ))}
                         </ul>
                         <button type="button" onClick={resetMfaReplace} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                          Done
+                          {ct('auth.account.mfa.done')}
                         </button>
                       </div>
                     ) : null}
@@ -272,18 +275,18 @@ export default function AccountPage() {
             ) : null}
 
             <section style={css('display: grid; gap: 10px')}>
-              <h2 style={css('margin: 0')}>Your purchases</h2>
+              <h2 style={css('margin: 0')}>{at('account.purchases')}</h2>
               <p style={css('margin: 0; color: #5B636B; font-size: 14px')}>
-                Auction wins and buy-now items you reserved. Enter delivery details to confirm cash on delivery, or reopen a COD-confirmed order.
+                {at('account.purchasesLead')}
               </p>
               {account.data.orders.length === 0 ? (
                 <p style={css('margin: 0; padding: 16px; border-radius: 14px; border: 1px dashed #DAD7D0; background: #FBFAF7; color: #5B636B')}>
-                  No purchases yet. <Link href="/browse">Browse listings</Link> or <Link href="/auctions">live auctions</Link>.
+                  {at('account.noPurchasesPrefix')}<Link href="/browse">{at('account.noPurchasesBrowse')}</Link>{at('account.noPurchasesOr')}<Link href="/auctions">{at('account.noPurchasesAuctions')}</Link>.
                 </p>
               ) : (
                 <ul style={css('list-style: none; margin: 0; padding: 0; display: grid; gap: 10px')}>
                   {account.data.orders.map((order) => {
-                    const title = order.listingTitle?.trim() || 'Purchased item';
+                    const title = order.listingTitle?.trim() || at('account.purchasedItem');
                     const needsPay = order.paymentState === 'awaiting_payment' || order.paymentState === 'failed';
                     return (
                       <li
@@ -314,7 +317,7 @@ export default function AccountPage() {
                                 : 'display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid #DAD7D0; background: #FFFFFF; color: #15191E; font-weight: 700; white-space: nowrap',
                             )}
                           >
-                            {needsPay ? 'Enter delivery details' : 'View order'}
+                            {needsPay ? at('account.enterDelivery') : at('account.viewOrder')}
                           </Link>
                         </div>
                       </li>
@@ -325,9 +328,9 @@ export default function AccountPage() {
             </section>
 
             <section style={css('display: grid; gap: 10px')}>
-              <h2 style={css('margin: 0')}>Your bids</h2>
+              <h2 style={css('margin: 0')}>{at('account.bids')}</h2>
               {account.data.bids.length === 0 ? (
-                <p>No bids yet. <Link href="/auctions">See auction listings</Link></p>
+                <p>{at('account.noBidsPrefix')}<Link href="/auctions">{at('account.noBidsLink')}</Link></p>
               ) : (
                 <ul style={css('list-style: none; margin: 0; padding: 0; display: grid; gap: 8px')}>
                   {account.data.bids.map((bid) => {
@@ -336,7 +339,7 @@ export default function AccountPage() {
                     return (
                       <li key={`${bid.lotReference}-${bid.sequence}`} style={css('background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 12px; padding: 12px 14px')}>
                         <Link href={bidHref} style={css('font-weight: 700')}>
-                          {listingReference ? 'Open listing' : 'Live auction'}
+                          {listingReference ? at('account.openListing') : at('account.liveAuction')}
                         </Link>
                         {' · '}{fmtMinor(bid.amountMinor)}{' · '}bid #{bid.sequence}
                         <div style={css('color: #5B636B; font-size: 13px; margin-top: 4px')}>{new Date(bid.acceptedAt).toLocaleString()}</div>

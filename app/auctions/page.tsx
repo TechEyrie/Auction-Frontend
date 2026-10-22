@@ -10,7 +10,7 @@ import { useAsync } from '../../lib/useAsync';
 import { type PublicListing } from '../../lib/listings';
 import { useLive } from '../../lib/live';
 import { appendPlaceQuery, useUiPlaceQueryKey } from '../../lib/uiPlace';
-import { useUiLocale } from '../../lib/UiLocaleProvider';
+import { useChromeTranslate } from '../../lib/siteChrome';
 import './auctions.css';
 
 type ListingsResponse = { listings: PublicListing[]; total: number };
@@ -22,7 +22,7 @@ type ListingsResponse = { listings: PublicListing[]; total: number };
  * public catalogue API, so cards without a live lot reference should not appear.
  */
 export default function AuctionsPage() {
-  const { t } = useUiLocale();
+  const t = useChromeTranslate('auctions');
   const placeKey = useUiPlaceQueryKey();
   const listings = useAsync<ListingsResponse>(
     () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?method=auction&limit=24'), { cache: 'no-store' }),

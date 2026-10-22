@@ -31,6 +31,7 @@ const SECTIONS: Array<{ label: string; href: string; capability?: string }> = [
   { label: 'Media', href: '/admin/media' },
   { label: 'Users', href: '/admin/users', capability: 'users.view' },
   { label: 'Finance', href: '/admin/finance', capability: 'finance.view' },
+  { label: 'Site labels', href: '/admin/content', capability: 'content.manage' },
   { label: 'Enquiries', href: '/admin/enquiries', capability: 'content.manage' },
 ];
 
@@ -211,7 +212,7 @@ function Gate({
   action?: ReactNode;
 }) {
   return (
-    <main style={css('max-width: 640px; margin: 0 auto; padding: 72px 24px 96px')}>
+    <main className="adm-gate" style={css('max-width: 640px; margin: 0 auto; padding: 72px 24px 96px')}>
       <h1 style={css("margin: 0 0 10px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700")}>{title}</h1>
       <p style={css('margin: 0 0 18px; color: #5B636B')}>{body}</p>
       {action}

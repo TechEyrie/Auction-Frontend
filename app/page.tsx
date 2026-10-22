@@ -7,13 +7,13 @@ import { appendPlaceQuery, useUiPlaceQueryKey } from '../lib/uiPlace';
 import AudiencePicker from '../components/AudiencePicker';
 import CategoryMenu from '../components/CategoryMenu';
 import LocalInfoBar from '../components/LocalInfoBar';
-import ProductCarousel from '../components/ProductCarousel';
 import ProductListingCard from '../components/ProductListingCard';
 import SiteFooter from '../components/SiteFooter';
 import SiteHeader from '../components/SiteHeader';
 import { API_BASE_URL, apiFetch } from '../lib/api';
 import { css, PAGE_ROOT } from '../lib/css';
 import { useAsync } from '../lib/useAsync';
+import { useChromeTranslate } from '../lib/siteChrome';
 import { useUiLocale } from '../lib/UiLocaleProvider';
 import { localizedText, type UiLang } from '../lib/uiLocale';
 import { conditionLabel, methodLabel, type MessageKey } from '../lib/uiMessages';
@@ -72,7 +72,8 @@ function startingOrPrice(price: { kind: string; minor: number }, t: Translate): 
 
 export default function HomePage() {
   const router = useRouter();
-  const { lang, t } = useUiLocale();
+  const { lang } = useUiLocale();
+  const t = useChromeTranslate('home');
   const [auctionStep, setAuctionStep] = useState(0);
   const [search, setSearch] = useState('');
   const [heroCategory, setHeroCategory] = useState('');
@@ -176,7 +177,17 @@ export default function HomePage() {
             </form>
             <div style={css('margin-top: 22px; max-width: 520px')}>
               <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>{t('common.shopFor')}</p>
-              <AudiencePicker value={heroAudience} onChange={setHeroAudience} />
+              <AudiencePicker
+                value={heroAudience}
+                onChange={(audience) => {
+                  setHeroAudience(audience);
+                  const params = new URLSearchParams();
+                  if (search.trim()) params.set('q', search.trim());
+                  if (audience) params.set('audience', audience);
+                  if (heroCategory) params.set('category', heroCategory);
+                  router.push(params.toString() ? `/browse?${params.toString()}` : '/browse');
+                }}
+              />
             </div>
             <div style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; align-items: center')}>
               <Link href="/browse?audience=men" style={css('padding: 6px 12px; border-radius: 999px; border: 1px solid #9A6B12; background: #F6EEDC; color: #7D5610; font-size: 14px; font-weight: 600')}>
@@ -257,33 +268,66 @@ export default function HomePage() {
         </div>
       </section>
 
-      <ProductCarousel
-        title={t('home.endingSoonTitle')}
-        subtitle={t('home.endingSoonSub')}
-        listings={endingSoonListings}
-        emptyText={
-          endingSoon.error
-            ? t('home.endingSoonError', { error: endingSoon.error })
-            : endingSoon.loading
-              ? t('home.endingSoonLoading')
-              : t('home.endingSoonEmpty')
-        }
-        aria-label={t('home.endingSoonTitle')}
-        lang={lang}
-        imageFallbackAlt={t('common.listingImage')}
-      />
-
       <LocalInfoBar />
 
+      <section className="home-section" aria-label={t('home.endingSoonTitle')}>
+        <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 28px')}>
+          <div>
+            <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
+              {t('home.endingSoonTitle')}
+            </h2>
+            <p style={css('margin: 6px 0 0; color: #5B636B')}>{t('home.endingSoonSub')}</p>
+          </div>
+        </div>
+        {endingSoonListings.length === 0 ? (
+          <p className="mkt-state">
+            {endingSoon.error
+              ? t('home.endingSoonError', { error: endingSoon.error })
+              : endingSoon.loading
+                ? t('home.endingSoonLoading')
+                : t('home.endingSoonEmpty')}
+          </p>
+        ) : (
+          <div className="plc-grid">
+            {endingSoonListings.map((listing) => {
+              const image = cardImage(listing, lang, t('common.listingImage'));
+              return (
+                <ProductListingCard
+                  key={listing.listingReference}
+                  listing={listing}
+                  imageUrl={image.url}
+                  imageAlt={image.alt}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       {featuredCarouselListings.length > 0 && (
-        <ProductCarousel
-          title={t('home.featuredCarouselTitle')}
-          subtitle={t('home.featuredCarouselSub')}
-          listings={featuredCarouselListings}
-          aria-label={t('home.featuredCarouselTitle')}
-          lang={lang}
-          imageFallbackAlt={t('common.listingImage')}
-        />
+        <section className="home-section" aria-label={t('home.featuredCarouselTitle')}>
+          <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 28px')}>
+            <div>
+              <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 32px; letter-spacing: -0.02em; font-weight: 700")}>
+                {t('home.featuredCarouselTitle')}
+              </h2>
+              <p style={css('margin: 6px 0 0; color: #5B636B')}>{t('home.featuredCarouselSub')}</p>
+            </div>
+          </div>
+          <div className="plc-grid">
+            {featuredCarouselListings.map((listing) => {
+              const image = cardImage(listing, lang, t('common.listingImage'));
+              return (
+                <ProductListingCard
+                  key={listing.listingReference}
+                  listing={listing}
+                  imageUrl={image.url}
+                  imageAlt={image.alt}
+                />
+              );
+            })}
+          </div>
+        </section>
       )}
 
       <section id="categories" className="home-section">

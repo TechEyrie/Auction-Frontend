@@ -11,7 +11,8 @@ body{margin:0;background:#FBFAF7}
 .adm-topbar__account{margin-inline-start:auto;display:flex;align-items:center;gap:12px;flex:0 0 auto}
 .adm-topbar__identity{font-size:14px;color:#C9CFCB;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .adm-topbar__signout{height:40px;padding:0 16px;border:1px solid #4B535A;border-radius:10px;background:transparent;color:#FFFFFF;font:inherit;font-weight:600;font-size:14px;cursor:pointer}
-.adm-shell{width:100%;max-width:none;margin:0;padding:clamp(16px,2vw,28px) clamp(16px,2vw,32px);display:flex;gap:20px;align-items:flex-start;box-sizing:border-box}
+.adm-shell{flex:1 1 auto;width:100%;max-width:none;margin:0;padding:clamp(16px,2vw,28px) clamp(16px,2vw,32px);display:flex;gap:20px;align-items:flex-start;box-sizing:border-box}
+.adm-gate{flex:1 1 auto}
 .adm-main{flex:1 1 auto;min-width:0;width:100%;display:flex;flex-direction:column;gap:20px}
 .adm-main>section,.adm-main>*{width:100%;max-width:none;box-sizing:border-box}
 .adm-nav--desktop{position:sticky;top:16px;flex:0 0 220px;width:220px;max-height:calc(100vh - 32px);overflow-y:auto;background:#FFFFFF;border:1px solid #E6E4DF;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:2px}

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { css } from '../lib/css';
 import { apiFetch } from '../lib/api';
 import { applyBrowseChange, browseQuery, parseBrowseState } from '../lib/listings';
@@ -17,6 +17,7 @@ import {
 import { useAsync } from '../lib/useAsync';
 import { useUiLocale } from '../lib/UiLocaleProvider';
 import type { MessageKey } from '../lib/uiMessages';
+import { chromeTranslate, useSiteChromeBody } from '../lib/siteChrome';
 import { HeaderSearchDrawerTrigger, HeaderSearchOverlay } from './HeaderSearchOverlay';
 
 const ALL_QATAR_PLACE_KEY = '';
@@ -266,13 +267,23 @@ type Props = {
   showSignIn?: boolean;
 };
 
-function BrandMark({ home, homeLabel }: { home?: boolean; homeLabel: string }) {
+function BrandMark({
+  home,
+  homeLabel,
+  brandName,
+  brandSub,
+}: {
+  home?: boolean;
+  homeLabel: string;
+  brandName: string;
+  brandSub: string;
+}) {
   const inner = (
     <>
       <img src="/logo.png" alt="" width={44} height={44} className="site-header__logo" />
       <span className="site-header__brand-text">
-        <span className="site-header__brand-name">ARAQ &amp; KAHRAMAN</span>
-        <span className="site-header__brand-sub">AUCTIONS</span>
+        <span className="site-header__brand-name">{brandName}</span>
+        <span className="site-header__brand-sub">{brandSub}</span>
       </span>
     </>
   );
@@ -329,7 +340,14 @@ export default function SiteHeader({
   const router = useRouter();
   const pathname = usePathname();
   const session = useSession();
-  const { lang, setLang, t } = useUiLocale();
+  const { lang, setLang, t: baseT } = useUiLocale();
+  const headerChrome = useSiteChromeBody('header');
+  const authChrome = useSiteChromeBody('auth');
+  const t = useCallback(
+    (key: MessageKey, vars?: Record<string, string | number>) =>
+      chromeTranslate(lang, baseT, key.startsWith('auth.') ? authChrome : headerChrome, key, vars),
+    [lang, baseT, headerChrome, authChrome],
+  );
   const signedInName = session.user?.fullName ?? null;
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -708,11 +726,11 @@ export default function SiteHeader({
   const authButton =
     showSignIn && signedInName ? (
       <button type="button" className="site-header__action site-header__auth-btn site-header__signout" onClick={() => void handleSignOut()}>
-        {t('header.signOut')}
+        {t('auth.signOut')}
       </button>
     ) : showSignIn ? (
       <Link href="/signin" className="site-header__action site-header__action--solid site-header__auth-btn">
-        {t('header.login')}
+        {t('auth.login')}
       </Link>
     ) : null;
 
@@ -722,7 +740,7 @@ export default function SiteHeader({
         {t('header.register')}
       </Link>
       <Link href="/signin" className="site-header__action site-header__action--solid site-header__auth-btn">
-        {t('header.login')}
+        {t('auth.login')}
       </Link>
     </>
   ) : null;
@@ -740,7 +758,7 @@ export default function SiteHeader({
         ) : null}
         <span className="site-header__user">{signedInName}</span>
         <button type="button" className="site-header__action site-header__auth-btn site-header__signout" onClick={() => void handleSignOut()}>
-          {t('header.signOut')}
+          {t('auth.signOut')}
         </button>
       </>
     ) : (
@@ -761,7 +779,7 @@ export default function SiteHeader({
         ) : null}
         <span className="site-header__user">{signedInName}</span>
         <button type="button" className="site-header__action site-header__signout" onClick={() => void handleSignOut()}>
-          {t('header.signOut')}
+          {t('auth.signOut')}
         </button>
       </>
     ) : showSignIn ? (
@@ -770,7 +788,7 @@ export default function SiteHeader({
           {t('header.register')}
         </Link>
         <Link href="/signin" className="site-header__action site-header__action--solid" onClick={() => setMenuOpen(false)}>
-          {t('header.login')}
+          {t('auth.login')}
         </Link>
       </>
     ) : null;
@@ -895,7 +913,12 @@ export default function SiteHeader({
   return (
     <header className={headerFloating ? 'site-header site-header--floating' : 'site-header'}>
       <div className="site-header__inner">
-        <BrandMark home={home} homeLabel={t('header.brandHome')} />
+        <BrandMark
+          home={home}
+          homeLabel={t('header.brandHome')}
+          brandName={t('header.brandName')}
+          brandSub={t('header.brandSub')}
+        />
 
         <nav ref={navRef} aria-label={t('header.mainNav')} className="site-header__nav site-header__nav--desktop">
           {items.map((item) => renderDesktopNavItem(item))}
@@ -954,7 +977,7 @@ export default function SiteHeader({
         </div>
       ) : null}
 
-      <HeaderSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <HeaderSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} chromeT={t} />
     </header>
   );
 }

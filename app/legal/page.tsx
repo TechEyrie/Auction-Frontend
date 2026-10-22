@@ -5,37 +5,41 @@ import { Fragment, useState } from 'react';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { css, PAGE_ROOT } from '../../lib/css';
+import { useChromeTranslate } from '../../lib/siteChrome';
+import type { MessageKey } from '../../lib/uiMessages';
 import './legal.css';
 
-const DOCS: Record<string, { title: string; sections: [string, string][] }> = {
-  terms: { title: 'Terms of use', sections: [
-    ['Who we are', 'This website is operated by [Company legal name], registered in Qatar under commercial registration [CR number]. By using the site you agree to these terms.'],
-    ['Your account', 'You must be 18 or over and give accurate details. Keep your password private — you are responsible for activity on your account.'],
-    ['Posting ads', 'Only list items you own or are authorised to sell. Descriptions and photos must be accurate. Prohibited and illegal items are not allowed, and we may remove any ad that breaks these rules.'],
-    ['Buying at a fixed price', 'Fixed-price sales are agreed directly between buyer and seller. We are not a party to the sale, so always inspect items before paying.'],
-    ['Bidding at auction', "Every bid is a binding offer to buy. If you win, you must complete the purchase at your final bid plus the buyer's premium shown on the listing. Bids in the final 2 minutes extend the auction by 2 minutes."],
-    ['Fees and payment', "Standard ads are free. Auction fees, the buyer's premium and payment deadlines are shown before you bid or list. Payment for auction wins is due within [X] days."],
-    ['Our responsibility', "We work hard to keep the marketplace safe, but we can't guarantee every listing. To the extent the law allows, we aren't liable for losses arising from deals between users."],
-    ['Changes and contact', 'We may update these terms and will show the date of the latest change at the top. Questions? Contact us any time.'],
-  ] },
-  privacy: { title: 'Privacy policy', sections: [
-    ['What we collect', 'Your name, mobile number, email (if given), the ads you post, your bids, and messages sent through the site. We also collect basic device and usage data to keep the service running.'],
-    ['How we use it', "To run your account, show your ads, process bids and payments, prevent fraud, and send you alerts you've asked for — such as outbid notices."],
-    ['What others can see', 'Buyers see your ad, your first name and your seller rating. Your mobile number is only shown when you choose to reveal it. Live bids show the bidder’s name.'],
-    ['Who we share it with', 'Payment providers, SMS and email services, and authorities where the law requires. We never sell your personal data.'],
-    ['How long we keep it', 'For as long as your account is open, then for [X] years where needed for legal or accounting reasons.'],
-    ['Your choices', 'You can view, update or delete your details from your account, and turn off marketing messages at any time.'],
-    ['Cookies', 'We use essential cookies to keep you signed in, and optional analytics cookies that you can switch off.'],
-    ['Contact', 'For privacy questions or requests, contact [privacy@yourdomain.com].'],
-  ] },
-};
+const TERMS_SECTIONS: Array<[MessageKey, MessageKey]> = [
+  ['legal.terms.0.h', 'legal.terms.0.b'],
+  ['legal.terms.1.h', 'legal.terms.1.b'],
+  ['legal.terms.2.h', 'legal.terms.2.b'],
+  ['legal.terms.3.h', 'legal.terms.3.b'],
+  ['legal.terms.4.h', 'legal.terms.4.b'],
+  ['legal.terms.5.h', 'legal.terms.5.b'],
+  ['legal.terms.6.h', 'legal.terms.6.b'],
+  ['legal.terms.7.h', 'legal.terms.7.b'],
+];
+
+const PRIVACY_SECTIONS: Array<[MessageKey, MessageKey]> = [
+  ['legal.privacy.0.h', 'legal.privacy.0.b'],
+  ['legal.privacy.1.h', 'legal.privacy.1.b'],
+  ['legal.privacy.2.h', 'legal.privacy.2.b'],
+  ['legal.privacy.3.h', 'legal.privacy.3.b'],
+  ['legal.privacy.4.h', 'legal.privacy.4.b'],
+  ['legal.privacy.5.h', 'legal.privacy.5.b'],
+  ['legal.privacy.6.h', 'legal.privacy.6.b'],
+  ['legal.privacy.7.h', 'legal.privacy.7.b'],
+];
 
 export default function LegalPage() {
+  const ct = useChromeTranslate('legal');
   const [doc, setDoc] = useState('terms');
-  const data = DOCS[doc];
+  const data = doc === 'privacy'
+    ? { title: ct('legal.privacyTitle'), sections: PRIVACY_SECTIONS.map(([h, b]) => [ct(h), ct(b)] as [string, string]) }
+    : { title: ct('legal.termsTitle'), sections: TERMS_SECTIONS.map(([h, b]) => [ct(h), ct(b)] as [string, string]) };
   const tabs = [
-    { id: 'terms', label: 'Terms of use' },
-    { id: 'privacy', label: 'Privacy policy' },
+    { id: 'terms', label: ct('legal.tab.terms') },
+    { id: 'privacy', label: ct('legal.tab.privacy') },
   ].map((t) => {
     const on = doc === t.id;
     return {
@@ -53,7 +57,7 @@ export default function LegalPage() {
   });
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>Terms &amp; privacy — Araq &amp; Kahraman Auctions</title>
+      <title>{ct('legal.title')}</title>
       <SiteHeader />
 
       {/* @generated */}
@@ -63,11 +67,11 @@ export default function LegalPage() {
             <Link href="/">Home</Link>
             {' '}
             <span aria-hidden="true">/</span>
-            {" Legal"}
+            {` ${ct('legal.breadcrumb')}`}
           </nav>
           <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4vw, 3rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>{docTitle}</h1>
-          <p style={css("margin: 8px 0 24px; color: #5B636B")}>Last updated 21 October 2026 · Written in plain language</p>
-          <div role="tablist" aria-label="Document" style={css("display: flex; gap: 4px")}>
+          <p style={css("margin: 8px 0 24px; color: #5B636B")}>{ct('legal.updated')}</p>
+          <div role="tablist" aria-label={ct('legal.tablistAria')} style={css("display: flex; gap: 4px")}>
             {tabs.map((t, i) => (
               <Fragment key={i}>
               <button type="button" role="tab" aria-selected={t.selected} onClick={t.pick} style={css(`height: 52px; padding: 0 18px; border: 0; background: transparent; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer; color: ${t.fg}; box-shadow: inset 0 -3px 0 ${t.line}`)}>{t.label}</button>
@@ -78,7 +82,7 @@ export default function LegalPage() {
       </section>
       <div style={css("max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 80px; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start")}>
         <nav aria-label="On this page" style={css("flex: 1 1 240px; min-width: 0; background: #FFFFFF; border: 1px solid #E6E4DF; border-radius: 18px; padding: 20px")}>
-          <div style={css("font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5B636B; margin-bottom: 10px")}>On this page</div>
+          <div style={css("font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5B636B; margin-bottom: 10px")}>{ct('legal.toc')}</div>
           <ol style={css("margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 15px")}>
             {sections.map((s, i) => (
               <Fragment key={i}>
@@ -102,8 +106,8 @@ export default function LegalPage() {
             </Fragment>
           ))}
           <div style={css("padding: 20px; border-radius: 16px; background: #F6EEDC; color: #3D3420")}>
-            {"Questions about this page? "}
-            <Link href="/contact" style={css("font-weight: 700; color: #7D5610")}>Contact us</Link>
+            {ct('legal.questionsPrefix')}
+            <Link href="/contact" style={css("font-weight: 700; color: #7D5610")}>{ct('legal.questionsLink')}</Link>
             .
           </div>
         </article>

@@ -11,6 +11,7 @@ import { ApiRequestError } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { evaluatePassword } from '../../lib/passwordPolicy';
 import { useSession } from '../../lib/session';
+import { useChromeTranslate } from '../../lib/siteChrome';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import '../signin/signin.css';
 
@@ -25,6 +26,7 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const session = useSession();
   const { t } = useUiLocale();
+  const ct = useChromeTranslate('auth');
   const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -46,19 +48,19 @@ export default function ResetPasswordPage() {
   }, []);
 
   const pwType = showPw ? 'text' : 'password';
-  const pwBtn = showPw ? 'Hide' : 'Show';
-  const busyLabel = busy ? 'Please wait…' : null;
+  const pwBtn = showPw ? ct('auth.password.hide') : ct('auth.password.show');
+  const busyLabel = busy ? ct('auth.pleaseWait') : null;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
     if (!token) {
-      setError('This reset link is invalid or missing.');
+      setError(ct('auth.reset.invalid.body'));
       return;
     }
     if (password !== confirm) {
-      setFieldErrors({ confirm: 'Passwords do not match' });
+      setFieldErrors({ confirm: ct('auth.reset.mismatch') });
       return;
     }
     const strength = evaluatePassword(password, { email: resetEmail });
@@ -88,7 +90,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>Reset password — Araq &amp; Kahraman Auctions</title>
+      <title>{ct('auth.reset.pageTitle')}</title>
       <SiteHeader showSignIn={false} />
 
       <div
@@ -103,7 +105,7 @@ export default function ResetPasswordPage() {
         >
           <img
             src="/logo.png"
-            alt="Araq & Kahraman Auctions"
+            alt={ct('auth.logoAlt')}
             width="120"
             height="120"
             style={css('width: 120px; height: 120px; object-fit: contain; display: block')}
@@ -114,9 +116,9 @@ export default function ResetPasswordPage() {
                 "margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(28px, 3vw, 38px); letter-spacing: -0.02em; font-weight: 700; line-height: 1.1",
               )}
             >
-              Choose a new password
+              {ct('auth.reset.hero.title')}
             </h1>
-            <p style={css('margin: 10px 0 0; color: #C9CFCB; font-size: 17px')}>Links expire after 30 minutes.</p>
+            <p style={css('margin: 10px 0 0; color: #C9CFCB; font-size: 17px')}>{ct('auth.reset.hero.lead')}</p>
           </div>
         </section>
         <section
@@ -125,7 +127,7 @@ export default function ResetPasswordPage() {
           )}
         >
           {token === null ? (
-            <p style={css('margin: 0; font-size: 15px; color: #5B636B')}>Loading…</p>
+            <p style={css('margin: 0; font-size: 15px; color: #5B636B')}>{ct('auth.reset.loading')}</p>
           ) : missingToken ? (
             <div style={css('display: flex; flex-direction: column; gap: 18px')}>
               <h2
@@ -133,13 +135,13 @@ export default function ResetPasswordPage() {
                   "margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700",
                 )}
               >
-                Invalid link
+                {ct('auth.reset.invalid.title')}
               </h2>
               <p role="alert" style={css('margin: 0; font-size: 15px; color: #5B636B')}>
-                This reset link is invalid or missing.
+                {ct('auth.reset.invalid.body')}
               </p>
               <Link href="/forgot-password" style={css('color: #9A6B12; font-weight: 700; font-size: 15px')}>
-                Request a new link
+                {ct('auth.reset.requestNewLink')}
               </Link>
             </div>
           ) : (
@@ -149,7 +151,7 @@ export default function ResetPasswordPage() {
                   "margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700",
                 )}
               >
-                New password
+                {ct('auth.reset.form.title')}
               </h2>
               {error && (
                 <p
@@ -162,7 +164,7 @@ export default function ResetPasswordPage() {
                 </p>
               )}
               <div>
-                <label htmlFor="pw" className="lbl">Password</label>
+                <label htmlFor="pw" className="lbl">{ct('auth.field.password')}</label>
                 <div style={css('position: relative')}>
                   <input
                     id="pw"
@@ -199,7 +201,7 @@ export default function ResetPasswordPage() {
                 {fieldError('password')}
               </div>
               <div>
-                <label htmlFor="confirm" className="lbl">Confirm password</label>
+                <label htmlFor="confirm" className="lbl">{ct('auth.reset.confirmPassword')}</label>
                 <input
                   id="confirm"
                   className="field"
@@ -219,7 +221,7 @@ export default function ResetPasswordPage() {
                   'height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer',
                 )}
               >
-                {busyLabel ?? 'Update password'}
+                {busyLabel ?? ct('auth.reset.submit')}
               </button>
             </form>
           )}

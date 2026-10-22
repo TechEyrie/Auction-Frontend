@@ -50,18 +50,19 @@ function MapPinIcon() {
   );
 }
 
-function HeartOutlineIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 20.5s-6.5-4.2-8.8-7.4C1.4 10.2 2.6 6.8 5.8 5.6c2-.7 4.1.1 5.5 1.7 1.4-1.6 3.5-2.4 5.5-1.7 3.2 1.2 4.4 4.6 2.6 7.5C18.5 16.3 12 20.5 12 20.5z"
-        stroke="#9A6B12"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+// TEMP: wishlist heart on cards hidden until save-listing is wired.
+// function HeartOutlineIcon() {
+//   return (
+//     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+//       <path
+//         d="M12 20.5s-6.5-4.2-8.8-7.4C1.4 10.2 2.6 6.8 5.8 5.6c2-.7 4.1.1 5.5 1.7 1.4-1.6 3.5-2.4 5.5-1.7 3.2 1.2 4.4 4.6 2.6 7.5C18.5 16.3 12 20.5 12 20.5z"
+//         stroke="#9A6B12"
+//         strokeWidth="2"
+//         strokeLinejoin="round"
+//       />
+//     </svg>
+//   );
+// }
 
 export default function ProductListingCard({ listing, imageUrl, imageAlt }: ProductListingCardProps) {
   const { lang, t } = useUiLocale();
@@ -109,6 +110,7 @@ export default function ProductListingCard({ listing, imageUrl, imageAlt }: Prod
         ) : showLiveBadge ? (
           <span className="plc__badge plc__badge--live">{t('common.live')}</span>
         ) : null}
+        {/* TEMP: hide wishlist heart on card images
         <button
           type="button"
           className="plc__wish"
@@ -120,6 +122,7 @@ export default function ProductListingCard({ listing, imageUrl, imageAlt }: Prod
         >
           <HeartOutlineIcon />
         </button>
+        */}
       </div>
 
       <div className="plc__body">

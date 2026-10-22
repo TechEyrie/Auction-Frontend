@@ -6,6 +6,7 @@ import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { ApiRequestError } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
+import { useChromeTranslate } from '../../lib/siteChrome';
 import { useSession } from '../../lib/session';
 import '../signin/signin.css';
 
@@ -16,6 +17,7 @@ function describeError(err: unknown): string {
 
 export default function ForgotPasswordPage() {
   const session = useSession();
+  const ct = useChromeTranslate('auth');
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -37,11 +39,11 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const busyLabel = busy ? 'Please wait…' : null;
+  const busyLabel = busy ? ct('auth.pleaseWait') : null;
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>Forgot password — Araq &amp; Kahraman Auctions</title>
+      <title>{ct('auth.forgot.pageTitle')}</title>
       <SiteHeader showSignIn={false} />
 
       <div
@@ -56,7 +58,7 @@ export default function ForgotPasswordPage() {
         >
           <img
             src="/logo.png"
-            alt="Araq & Kahraman Auctions"
+            alt={ct('auth.logoAlt')}
             width="120"
             height="120"
             style={css('width: 120px; height: 120px; object-fit: contain; display: block')}
@@ -67,10 +69,10 @@ export default function ForgotPasswordPage() {
                 "margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(28px, 3vw, 38px); letter-spacing: -0.02em; font-weight: 700; line-height: 1.1",
               )}
             >
-              Reset your password
+              {ct('auth.forgot.hero.title')}
             </h1>
             <p style={css('margin: 10px 0 0; color: #C9CFCB; font-size: 17px')}>
-              We will email you a secure link if that address is on an account.
+              {ct('auth.forgot.hero.lead')}
             </p>
           </div>
         </section>
@@ -86,16 +88,16 @@ export default function ForgotPasswordPage() {
                   "margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700",
                 )}
               >
-                Check your email
+                {ct('auth.forgot.success.title')}
               </h2>
               <p role="status" style={css('margin: 0; font-size: 15px; color: #5B636B')}>
-                If that email is on an account, we sent a reset link.
+                {ct('auth.forgot.success.body')}
               </p>
               <Link
                 href="/signin?mode=in"
                 style={css('color: #9A6B12; font-weight: 700; font-size: 15px')}
               >
-                Back to sign in
+                {ct('auth.backToSignIn')}
               </Link>
             </div>
           ) : (
@@ -105,7 +107,7 @@ export default function ForgotPasswordPage() {
                   "margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 26px; font-weight: 700",
                 )}
               >
-                Forgot password
+                {ct('auth.forgot.form.title')}
               </h2>
               {error && (
                 <p
@@ -118,13 +120,13 @@ export default function ForgotPasswordPage() {
                 </p>
               )}
               <div>
-                <label htmlFor="email" className="lbl">Email</label>
+                <label htmlFor="email" className="lbl">{ct('auth.field.email')}</label>
                 <input
                   id="email"
                   className="field"
                   type="email"
                   autoComplete="email"
-                  placeholder="you@example.com"
+                  placeholder={ct('auth.field.emailPlaceholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -138,13 +140,13 @@ export default function ForgotPasswordPage() {
                   'height: 54px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: pointer',
                 )}
               >
-                {busyLabel ?? 'Send reset link'}
+                {busyLabel ?? ct('auth.forgot.submit')}
               </button>
               <Link
                 href="/signin?mode=in"
                 style={css('align-self: flex-start; color: #9A6B12; font-weight: 700; font-size: 15px')}
               >
-                Back to sign in
+                {ct('auth.backToSignIn')}
               </Link>
             </form>
           )}

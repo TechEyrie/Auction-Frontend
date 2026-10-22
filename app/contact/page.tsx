@@ -7,6 +7,8 @@ import SiteHeader from '../../components/SiteHeader';
 import { apiFetch, ApiRequestError } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useSession } from '../../lib/session';
+import { useChromeTranslate } from '../../lib/siteChrome';
+import type { MessageKey } from '../../lib/uiMessages';
 import {
   CONTACT_EMAIL,
   mailtoHref,
@@ -19,33 +21,44 @@ import './contact.css';
 
 const LISTING_REF_RE = /^l_[A-Za-z0-9_-]{6,32}$/;
 
-const CHANNELS: Array<{ k: string; v: string; d: string; href?: string }> = [
+const SUBJECTS: Array<{ value: string; key: MessageKey }> = [
+  { value: 'A listing or seller', key: 'contact.subject.0' },
+  { value: 'Bidding or an auction I won', key: 'contact.subject.1' },
+  { value: 'Selling at auction', key: 'contact.subject.2' },
+  { value: 'Business auctions (fleet, equipment, estate)', key: 'contact.subject.3' },
+  { value: 'My account', key: 'contact.subject.4' },
+  { value: 'Report a problem', key: 'contact.subject.5' },
+  { value: 'Careers', key: 'contact.subject.6' },
+  { value: 'Something else', key: 'contact.subject.7' },
+];
+
+const CHANNELS: Array<{ k: MessageKey; v?: string; hours?: boolean; d: string; href?: string }> = [
   {
-    k: 'Phone',
+    k: 'contact.channel.phone',
     v: PHONE_DISPLAY,
     href: telHref(),
     d: 'M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z',
   },
   {
-    k: 'WhatsApp',
+    k: 'contact.channel.whatsapp',
     v: PHONE_DISPLAY,
     href: whatsappChatUrl(),
     d: 'M4 5h16v11H8l-4 4z M8 10h8',
   },
   {
-    k: 'Email',
+    k: 'contact.channel.email',
     v: CONTACT_EMAIL,
     href: mailtoHref(),
     d: 'M3 6h18v12H3z M3 7l9 6 9-6',
   },
   {
-    k: 'Office',
+    k: 'contact.channel.office',
     v: OFFICE_ADDRESS,
     d: 'M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z M12 8a2 2 0 1 0 0 4a2 2 0 1 0 0-4z',
   },
   {
-    k: 'Opening hours',
-    v: 'Sat–Thu, 9 AM – 6 PM',
+    k: 'contact.channel.hours',
+    hours: true,
     d: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18z M12 7v5l3 2',
   },
 ];
@@ -58,6 +71,7 @@ function describeError(err: unknown): { message: string; fields: Record<string, 
 }
 
 export default function ContactPage() {
+  const ct = useChromeTranslate('contact');
   const session = useSession();
   const [sent, setSent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -141,7 +155,7 @@ export default function ContactPage() {
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>Contact us — Araq &amp; Kahraman Auctions</title>
+      <title>{ct('contact.title')}</title>
       <SiteHeader active="sell" />
 
 
@@ -151,12 +165,12 @@ export default function ContactPage() {
           <Link href="/">Home</Link>
           {' '}
           <span aria-hidden="true">/</span>
-          {" Contact"}
+          {` ${ct('contact.breadcrumb')}`}
         </nav>
-        <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4.4vw, 3.2rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>Get in touch</h1>
+        <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4.4vw, 3.2rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>{ct('contact.h1')}</h1>
         <p style={css("margin: 10px 0 0; color: #5B636B; font-size: 18px; max-width: 56ch")}>
-          {"Questions about a listing, an auction or selling with us? Send a message and it is stored for staff. For quick answers, try the "}
-          <Link href="/help" style={css("font-weight: 600")}>Help centre</Link>
+          {ct('contact.leadPrefix')}
+          <Link href="/help" style={css("font-weight: 600")}>{ct('contact.leadLink')}</Link>
           .
         </p>
       </section>
@@ -169,9 +183,9 @@ export default function ContactPage() {
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </span>
-              <h2>Message received</h2>
-              <p>Thank you. Our team can read this in the staff inbox. This page does not promise a reply time.</p>
-              <div className="contact-success__ref">Reference {sent}</div>
+              <h2>{ct('contact.successTitle')}</h2>
+              <p>{ct('contact.successBody')}</p>
+              <div className="contact-success__ref">{ct('contact.successRef', { ref: sent })}</div>
               <div className="contact-success__actions">
                 <button
                   type="button"
@@ -179,14 +193,14 @@ export default function ContactPage() {
                   onClick={again}
                   style={css('height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}
                 >
-                  Send another
+                  {ct('contact.sendAnother')}
                 </button>
                 <Link
                   href="/"
                   className="btn-ghost"
                   style={css('height: 48px; padding: 0 22px; border: 1px solid #E6E4DF; border-radius: 12px; background: #FFFFFF; color: #15191E; font-weight: 700; display: inline-flex; align-items: center')}
                 >
-                  Back to home
+                  {ct('contact.backHome')}
                 </Link>
               </div>
             </div>
@@ -195,7 +209,7 @@ export default function ContactPage() {
           {!sent && (
             <Fragment>
             <form onSubmit={onSubmit} style={css("display: flex; flex-direction: column; gap: 18px")}>
-              <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 24px; font-weight: 700")}>Send us a message</h2>
+              <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 24px; font-weight: 700")}>{ct('contact.formTitle')}</h2>
               <input
                 type="text"
                 name="website"
@@ -207,7 +221,7 @@ export default function ContactPage() {
               />
               <div style={css("display: flex; flex-wrap: wrap; gap: 18px")}>
                 <div style={css("flex: 1 1 240px")}>
-                  <label htmlFor="cn" className="lbl">Your name</label>
+                  <label htmlFor="cn" className="lbl">{ct('contact.name')}</label>
                   <input
                     id="cn"
                     name="name"
@@ -222,12 +236,12 @@ export default function ContactPage() {
                   {fieldError('name')}
                 </div>
                 <div style={css("flex: 1 1 240px")}>
-                  <label htmlFor="cp" className="lbl">Mobile number (optional)</label>
+                  <label htmlFor="cp" className="lbl">{ct('contact.phone')}</label>
                   <input id="cp" name="phone" className="field" type="tel" autoComplete="tel" placeholder="+974" />
                 </div>
               </div>
               <div>
-                <label htmlFor="ce" className="lbl">Email</label>
+                <label htmlFor="ce" className="lbl">{ct('contact.email')}</label>
                 <input
                   id="ce"
                   name="email"
@@ -242,20 +256,20 @@ export default function ContactPage() {
                 {fieldError('email')}
               </div>
               <div>
-                <label htmlFor="cref" className="lbl">About which ad? (optional)</label>
+                <label htmlFor="cref" className="lbl">{ct('contact.listingRef')}</label>
                 <input
                   id="cref"
                   name="listingReference"
                   className="field"
                   value={about}
                   onChange={(event) => setAbout(event.target.value)}
-                  placeholder="e.g. l_1a2b3c4d5"
+                  placeholder={ct('contact.listingPlaceholder')}
                   aria-invalid={fieldErrors.listingReference ? true : undefined}
                 />
                 {fieldError('listingReference')}
               </div>
               <div>
-                <label htmlFor="ct" className="lbl">What&apos;s it about?</label>
+                <label htmlFor="ct" className="lbl">{ct('contact.subject')}</label>
                 <select
                   id="ct"
                   name="subject"
@@ -264,19 +278,14 @@ export default function ContactPage() {
                   aria-invalid={fieldErrors.subject ? true : undefined}
                   defaultValue="A listing or seller"
                 >
-                  <option>A listing or seller</option>
-                  <option>Bidding or an auction I won</option>
-                  <option>Selling at auction</option>
-                  <option>Business auctions (fleet, equipment, estate)</option>
-                  <option>My account</option>
-                  <option>Report a problem</option>
-                  <option>Careers</option>
-                  <option>Something else</option>
+                  {SUBJECTS.map((subject) => (
+                    <option key={subject.value} value={subject.value}>{ct(subject.key)}</option>
+                  ))}
                 </select>
                 {fieldError('subject')}
               </div>
               <div>
-                <label htmlFor="cm" className="lbl">Message</label>
+                <label htmlFor="cm" className="lbl">{ct('contact.message')}</label>
                 <textarea
                   id="cm"
                   name="message"
@@ -289,7 +298,7 @@ export default function ContactPage() {
                   aria-invalid={fieldErrors.message ? true : undefined}
                   style={css('width: 100%; border: 1px solid #DAD7D0; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 16px; color: #15191E; resize: vertical')}
                 ></textarea>
-                <p style={css('margin: 6px 0 0; font-size: 13px; color: #5B636B')}>At least 10 characters.</p>
+                <p style={css('margin: 6px 0 0; font-size: 13px; color: #5B636B')}>{ct('contact.messageHint')}</p>
                 {fieldError('message')}
               </div>
               <button
@@ -298,7 +307,7 @@ export default function ContactPage() {
                 disabled={busy}
                 style={css(`align-self: flex-start; height: 54px; padding: 0 30px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; font-size: 17px; cursor: ${busy ? 'wait' : 'pointer'}; opacity: ${busy ? 0.7 : 1}`)}
               >
-                {busy ? 'Sending…' : 'Send message'}
+                {busy ? ct('contact.sending') : ct('contact.submit')}
               </button>
             </form>
             </Fragment>
@@ -314,7 +323,7 @@ export default function ContactPage() {
                 </svg>
               </span>
               <div style={css("min-width: 0")}>
-                <div style={css("font-size: 13px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em")}>{c.k}</div>
+                <div style={css("font-size: 13px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em")}>{ct(c.k)}</div>
                 {c.href ? (
                   <a
                     href={c.href}
@@ -324,7 +333,7 @@ export default function ContactPage() {
                     {c.v}
                   </a>
                 ) : (
-                  <div style={css("font-weight: 600")}>{c.v}</div>
+                  <div style={css("font-weight: 600")}>{c.hours ? ct('contact.hoursValue') : c.v}</div>
                 )}
               </div>
             </div>

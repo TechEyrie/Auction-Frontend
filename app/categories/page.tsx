@@ -9,6 +9,7 @@ import SiteHeader from '../../components/SiteHeader';
 import { apiFetch } from '../../lib/api';
 import { css, PAGE_ROOT } from '../../lib/css';
 import { useAsync } from '../../lib/useAsync';
+import { useChromeTranslate } from '../../lib/siteChrome';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import { categoryByKey, categoryChildren, categoryRoots } from '../../lib/catalog';
 import { CategoryIcon } from '../../lib/categoryIcons';
@@ -39,6 +40,7 @@ type Category = {
  */
 function CategoriesContent() {
   const { lang } = useUiLocale();
+  const ct = useChromeTranslate('categories');
   const router = useRouter();
   const searchParams = useSearchParams();
   const audience = parseBrowseState(new URLSearchParams(searchParams.toString())).audience;
@@ -112,7 +114,7 @@ function CategoriesContent() {
 
   return (
     <div style={css(PAGE_ROOT)}>
-      <title>All categories — Araq &amp; Kahraman Auctions</title>
+      <title>{ct('categories.title')}</title>
       <SiteHeader active="categories" />
 
       <section style={css('background: #FFFFFF; border-bottom: 1px solid #E6E4DF')}>
@@ -120,7 +122,7 @@ function CategoriesContent() {
           <div>
             <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: #5B636B; margin-bottom: 10px')}>
               <Link href="/">Home</Link> <span aria-hidden="true">/</span>{' '}
-              <Link href={categoriesHref()}>Categories</Link>
+              <Link href={categoriesHref()}>{ct('categories.breadcrumb')}</Link>
               {parentCat && (
                 <>
                   {' '}
@@ -129,10 +131,10 @@ function CategoriesContent() {
               )}
             </nav>
             <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2.2rem, 4vw, 3rem); letter-spacing: -0.03em; font-weight: 700; line-height: 1.05")}>
-              All categories
+              {ct('categories.h1')}
             </h1>
             <p style={css('margin: 8px 0 0; color: #5B636B; font-size: 18px')}>
-              Pick a category to browse the published listings inside it.
+              {ct('categories.lead')}
             </p>
           </div>
           <div style={css('flex: 0 1 420px; min-width: 0; display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 16px; border: 1px solid #DAD7D0; border-radius: 14px; background: #FFFFFF')}>
@@ -140,14 +142,14 @@ function CategoriesContent() {
               <path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z M20 20l-4-4"></path>
             </svg>
             <label htmlFor="cq" className="sr">
-              Find a category
+              {ct('categories.searchLabel')}
             </label>
             <input
               id="cq"
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Find a category, e.g. phones"
+              placeholder={ct('categories.searchPlaceholder')}
               style={css('flex: 1; min-width: 0; height: 48px; border: 0; font: inherit; font-size: 16px; background: transparent; outline-offset: 6px')}
             />
           </div>
@@ -156,7 +158,7 @@ function CategoriesContent() {
 
       <section style={css('max-width: var(--mkt-shell-max); margin: 0 auto; padding: 40px var(--mkt-gutter-x) 24px')}>
         <div style={css('margin-bottom: 28px; max-width: 520px')}>
-          <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>Shop for</p>
+          <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #5B636B')}>{ct('categories.shopFor')}</p>
           <AudiencePicker
             value={audience}
             onChange={(next) => pushCategories({ audience: next })}
@@ -164,7 +166,7 @@ function CategoriesContent() {
         </div>
         {categories.loading && (
           <p role="status" className="mkt-state" data-state="loading">
-            Loading categories…
+            {ct('categories.loading')}
           </p>
         )}
 
@@ -172,7 +174,7 @@ function CategoriesContent() {
           <div role="alert" className="mkt-state" data-state="error">
             <p style={css('margin: 0 0 10px; font-weight: 600')}>{categories.error}</p>
             <button type="button" onClick={() => categories.reload()} className="btn-primary" style={css('height: 42px; padding: 0 16px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-              Retry
+              {ct('categories.retry')}
             </button>
           </div>
         )}
@@ -180,15 +182,17 @@ function CategoriesContent() {
         {!categories.loading && !categories.error && visibleRoots.length === 0 && (
           <div style={css('background: #FFFFFF; border: 1px dashed #DAD7D0; border-radius: 18px; padding: 48px 24px; text-align: center')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>
-              {q ? `No category matches "${q}"` : 'No categories are published yet'}
+              {q ? ct('categories.emptySearch', { q }) : ct('categories.emptyTitle')}
             </h2>
             <p style={css('margin: 8px 0 0; color: #5B636B')}>
               {q ? (
                 <>
-                  Try a shorter word, or <Link href="/browse" style={css('font-weight: 600')}>search all listings</Link>.
+                  {ct('categories.emptySearchHintPrefix')}
+                  <Link href="/browse" style={css('font-weight: 600')}>{ct('categories.emptySearchLink')}</Link>
+                  {ct('categories.emptySearchHintSuffix')}
                 </>
               ) : (
-                'Our team publishes the catalogue in the admin tools; empty categories are not invented here.'
+                ct('categories.emptyNone')
               )}
             </p>
           </div>
@@ -283,19 +287,22 @@ function firstValue(params: URLSearchParams, name: string): string {
   return value === null ? '' : value.trim();
 }
 
+function CategoriesFallback() {
+  const ct = useChromeTranslate('categories');
+  return (
+    <div style={css(PAGE_ROOT)}>
+      <SiteHeader active="categories" />
+      <p role="status" className="mkt-state" data-state="loading" style={css('max-width: var(--mkt-shell-max); margin: 32px auto; padding: 18px')}>
+        {ct('categories.loading')}
+      </p>
+      <SiteFooter />
+    </div>
+  );
+}
+
 export default function CategoriesPage() {
   return (
-    <Suspense
-      fallback={
-        <div style={css(PAGE_ROOT)}>
-          <SiteHeader active="categories" />
-          <p role="status" className="mkt-state" data-state="loading" style={css('max-width: var(--mkt-shell-max); margin: 32px auto; padding: 18px')}>
-            Loading categories…
-          </p>
-          <SiteFooter />
-        </div>
-      }
-    >
+    <Suspense fallback={<CategoriesFallback />}>
       <CategoriesContent />
     </Suspense>
   );

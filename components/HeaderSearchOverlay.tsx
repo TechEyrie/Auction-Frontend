@@ -8,6 +8,7 @@ import { categoryRoots } from '../lib/catalog';
 import { CategoryIcon } from '../lib/categoryIcons';
 import { useAsync } from '../lib/useAsync';
 import { useUiLocale } from '../lib/UiLocaleProvider';
+import type { MessageKey } from '../lib/uiMessages';
 import './header-search-overlay.css';
 
 type Category = {
@@ -20,6 +21,7 @@ type Category = {
 type HeaderSearchOverlayProps = {
   open: boolean;
   onClose: () => void;
+  chromeT?: (key: MessageKey, vars?: Record<string, string | number>) => string;
 };
 
 const TRENDING_CATEGORY_KEYS = ['watches', 'perfume'] as const;
@@ -41,8 +43,9 @@ function BackChevron() {
   );
 }
 
-export function HeaderSearchOverlay({ open, onClose }: HeaderSearchOverlayProps) {
-  const { lang, t } = useUiLocale();
+export function HeaderSearchOverlay({ open, onClose, chromeT }: HeaderSearchOverlayProps) {
+  const { lang, t: baseT } = useUiLocale();
+  const t = chromeT ?? baseT;
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [mounted, setMounted] = useState(false);
