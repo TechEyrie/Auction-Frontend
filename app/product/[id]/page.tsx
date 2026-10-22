@@ -10,7 +10,7 @@ import SiteHeader from '../../../components/SiteHeader';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
 import { css, PAGE_ROOT } from '../../../lib/css';
 import { useAsync } from '../../../lib/useAsync';
-import { fmtBusinessDateTime, fmtMinor, qarToMinor, relativeTimeLabel } from '../../../lib/format';
+import { clock, fmtBusinessDateTime, fmtMinor, qarToMinor, relativeTimeLabel } from '../../../lib/format';
 import { useSession } from '../../../lib/session';
 import { useChromeTranslate } from '../../../lib/siteChrome';
 import { useUiLocale } from '../../../lib/UiLocaleProvider';
@@ -95,7 +95,7 @@ function liveTopBidLabel(
     (bidCount ?? 0) > 0 ||
     (typeof currentAmountMinor === 'number' && currentAmountMinor > startingBidMinor);
   if (hasBids && typeof currentAmountMinor === 'number') return fmtMinor(currentAmountMinor);
-  return `No bids yet — opening at ${fmtMinor(startingBidMinor)}`;
+  return fmtMinor(startingBidMinor);
 }
 
 function ProductPageSkeleton() {
@@ -182,6 +182,7 @@ export default function ProductPage() {
   const [amountQar, setAmountQar] = useState('');
   const [bidMessage, setBidMessage] = useState<string | null>(null);
   const [bidCooldownUntil, setBidCooldownUntil] = useState<number | null>(null);
+  const [auctionSecondsRemaining, setAuctionSecondsRemaining] = useState<number | null>(null);
   const [flashAmountMinor, setFlashAmountMinor] = useState<number | null>(null);
   const [flashBidCount, setFlashBidCount] = useState<number | null>(null);
   const [optimisticBids, setOptimisticBids] = useState<PublicBidRow[]>([]);
@@ -381,6 +382,20 @@ export default function ProductPage() {
   }, [id]);
 
   const data = listing.data?.listing ?? null;
+  const auctionEndsAtForTimer = data?.endsAt ?? liveAuction.data?.auction?.endsAt ?? null;
+  useEffect(() => {
+    if (!auctionEndsAtForTimer) {
+      setAuctionSecondsRemaining(null);
+      return;
+    }
+    const tick = () => {
+      const seconds = Math.ceil((new Date(auctionEndsAtForTimer).getTime() - Date.now()) / 1000);
+      setAuctionSecondsRemaining(seconds);
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [auctionEndsAtForTimer]);
   const displayTitle = useMemo(
     () => (data ? localizedText(data.title, lang, data.listingReference) : ''),
     [data, lang],
@@ -675,10 +690,18 @@ export default function ProductPage() {
                       {typeof startingBidMinor === 'number' ? fmtMinor(startingBidMinor) : 'Loading…'}
                     </div>
                   </div>
-                  <div className="live-auction-stat live-auction-stat--wide">
+                  <div className="live-auction-stat">
                     <div className="live-auction-stat-label">Current top bid</div>
                     <div className="live-auction-stat-value">
                       {liveTopBidLabel(startingBidMinor, currentAmountMinor, bidCount)}
+                    </div>
+                  </div>
+                  <div className="live-auction-stat live-auction-stat--wide">
+                    <div className="live-auction-stat-label">Time remaining</div>
+                    <div className="live-auction-stat-value live-auction-stat-value--md">
+                      {auctionEndsAt && auctionSecondsRemaining !== null
+                        ? clock(auctionSecondsRemaining)
+                        : 'Loading…'}
                     </div>
                   </div>
                   <div className="live-auction-stat">
@@ -719,7 +742,7 @@ export default function ProductPage() {
                 ) : (
                   <p className="mkt-hint" style={css('margin: 0')}>No bids yet — be the first.</p>
                 )}
-                {auctionLive && session.user ? (
+                {auctionLive && session.user && !session.mfaRequired ? (
                   <form onSubmit={placeBid} style={css('display: grid; gap: 10px')}>
                     <span style={css('font-size: 14px; font-weight: 600')}>Your bid (QAR)</span>
                     <div className="live-auction-bid-row">
@@ -754,17 +777,26 @@ export default function ProductPage() {
                     ) : null}
                   </form>
                 ) : null}
-                {auctionLive && !session.user ? (
+                {auctionLive && (!session.user || session.mfaRequired) ? (
                   <Link
                     href={`/signin?returnTo=${encodeURIComponent(productReturnTo)}`}
                     className="btn-primary"
                     style={css('display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; box-sizing: border-box')}
                   >
-                    Sign in to place a bid
+                    {session.mfaRequired && !session.mfaEnabled
+                      ? 'Enter your email code to bid'
+                      : 'Sign in to place a bid'}
                   </Link>
                 ) : null}
                 {bidMessage ? (
-                  <p role="status" style={css('margin: 0; font-weight: 600')}>{bidMessage}</p>
+                  <p
+                    role="status"
+                    style={css(
+                      `margin: 0; font-weight: 600${bidMessage === 'Bid accepted' ? '' : '; color: #B42318'}`,
+                    )}
+                  >
+                    {bidMessage}
+                  </p>
                 ) : null}
                 {!auctionLive && unpaidWinOrder ? (
                   <Link

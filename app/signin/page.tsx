@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Fragment, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { Fragment, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import PasswordGenerator from '../../components/PasswordGenerator';
 import PasswordStrength, { passwordFieldMessage } from '../../components/PasswordStrength';
 import SiteFooter from '../../components/SiteFooter';
@@ -64,6 +64,8 @@ export default function SignInPage() {
   const [mfaRecovery, setMfaRecovery] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [verifyBusy, setVerifyBusy] = useState(false);
+  const [pendingVerifyEmail, setPendingVerifyEmail] = useState<string | null>(null);
+  const verifyEmailStarted = useRef(false);
 
   const field = (key: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
     const target = e.target as HTMLInputElement;
@@ -76,36 +78,31 @@ export default function SignInPage() {
       typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('returnTo'),
     );
 
-  const emailVerified = session.user?.emailVerified === true;
-  const needsEmailVerify =
-    session.status === 'authenticated' && !emailVerified && !verifyBusy;
+  const needsEmailVerify = Boolean(pendingVerifyEmail) && !verifyBusy;
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('verifyEmail');
-    if (!token) return;
-    let cancelled = false;
+    if (!token || verifyEmailStarted.current) return;
+    verifyEmailStarted.current = true;
     setVerifyBusy(true);
     setError(null);
     void session
       .verifyEmail(token)
       .then(() => {
-        if (cancelled) return;
+        setPendingVerifyEmail(null);
+        setMode('in');
         setNotice(t('email.verify.verified'));
         const url = new URL(window.location.href);
         url.searchParams.delete('verifyEmail');
         window.history.replaceState({}, '', `${url.pathname}${url.search}`);
       })
       .catch((err) => {
-        if (cancelled) return;
         const described = describeError(err);
         setError(described.message || t('email.verify.expired'));
       })
       .finally(() => {
-        if (!cancelled) setVerifyBusy(false);
+        setVerifyBusy(false);
       });
-    return () => {
-      cancelled = true;
-    };
   }, [session, t]);
 
   /** `null` means "stay on this page" (used when a step still has to happen, e.g. MFA). */
@@ -120,6 +117,10 @@ export default function SignInPage() {
       const described = describeError(err);
       setError(described.message);
       setFieldErrors(described.fields);
+      if (err instanceof ApiRequestError && err.body.details?.code === 'EMAIL_NOT_VERIFIED') {
+        const id = form.identifier.trim();
+        if (id.includes('@')) setPendingVerifyEmail(id);
+      }
     } finally {
       setBusy(false);
     }
@@ -149,13 +150,15 @@ export default function SignInPage() {
       return;
     }
     void run(async () => {
+      const email = form.email.trim();
       await session.register({
         fullName: form.fullName.trim(),
-        email: form.email.trim(),
+        email,
         password: form.password,
         termsAccepted: form.termsAccepted,
         returnTo: requestedReturnTo(),
       });
+      setPendingVerifyEmail(email);
       setNotice(t('email.verify.checkInbox'));
       return null;
     });
@@ -163,7 +166,7 @@ export default function SignInPage() {
 
   const submitResendVerify = () => {
     void run(async () => {
-      await session.resendVerificationEmail();
+      await session.resendVerificationEmail(pendingVerifyEmail ?? undefined);
       setNotice(t('email.verify.checkInbox'));
       return null;
     });
@@ -200,7 +203,7 @@ export default function SignInPage() {
     });
   };
 
-  const mfaRequired = session.status === 'authenticated' && session.mfaRequired;
+  const mfaRequired = session.mfaRequired;
   const loginOtpRequired = mfaRequired && !session.mfaEnabled;
   const mfaChallenge = mfaRequired && session.mfaEnabled;
   const errorBlock = error ? (

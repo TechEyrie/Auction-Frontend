@@ -88,6 +88,6 @@ export function clock(s: number): string {
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
   const p = (x: number) => (x < 10 ? '0' : '') + x;
-  if (d > 0) return d + 'd ' + h + 'h ' + p(m) + 'm';
+  if (d > 0) return d + 'd ' + h + 'h ' + p(m) + 'm ' + p(sec) + 's';
   return h + 'h ' + p(m) + 'm ' + p(sec) + 's';
 }

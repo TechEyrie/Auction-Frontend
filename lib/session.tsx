@@ -73,7 +73,7 @@ export type SessionValue = {
     returnTo?: string;
   }) => Promise<{ returnTo: string; mfaRequired: boolean; emailVerified: boolean }>;
   verifyEmail: (token: string) => Promise<void>;
-  resendVerificationEmail: () => Promise<void>;
+  resendVerificationEmail: (email?: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -218,14 +218,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           json: input,
           headers: await ensureCsrfHeaders(),
         });
-        const sessionBody = await refresh();
-        const emailVerified = sessionBody.user?.emailVerified === true;
-        // Stay on sign-in enroll when the session cookie is not yet visible to GET /session.
-        const mfaRequired =
-          emailVerified &&
-          (sessionBody.mfaRequired ||
-            (Boolean(result.user) && !sessionBody.user && result.user.roles.includes('customer')));
-        return { returnTo: result.returnTo, mfaRequired, emailVerified };
+        await refresh();
+        return { returnTo: result.returnTo, mfaRequired: false, emailVerified: false };
       },
       async verifyEmail(token) {
         await apiFetch<{ ok: boolean }>('/api/auth/email/verify', {
@@ -235,10 +229,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         });
         await refresh();
       },
-      async resendVerificationEmail() {
+      async resendVerificationEmail(email?: string) {
         await apiFetch<{ ok: boolean }>('/api/auth/email/resend', {
           method: 'POST',
-          json: {},
+          json: email ? { email } : {},
           headers: await ensureCsrfHeaders(),
         });
       },

@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Car,
+  Cpu,
   CircleDotDashed,
   Coffee,
   Disc2,
@@ -43,6 +44,7 @@ const ICON_COMPONENTS: Record<string, LucideIcon> = {
   home: House,
   car: Car,
   phone: Smartphone,
+  electronics: Cpu,
   gem: Gem,
   folder: Folder,
 };

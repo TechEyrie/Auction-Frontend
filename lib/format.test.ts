@@ -44,5 +44,5 @@ test('clock', () => {
   assert.equal(clock(59), '0h 00m 59s');
   assert.equal(clock(3600), '1h 00m 00s');
   assert.equal(clock(8040), '2h 14m 00s');
-  assert.equal(clock(266000), '3d 1h 53m');
+  assert.equal(clock(266000), '3d 1h 53m 20s');
 });

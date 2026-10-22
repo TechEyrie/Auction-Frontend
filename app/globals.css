@@ -642,6 +642,18 @@ html[data-theme='light'] {
   padding:0 12px;
   gap:8px;
 }
+.site-header__drawer-utilities .site-header__location-wrap,
+.site-header__drawer-utilities .site-header__lang-wrap{
+  width:100%;
+  max-width:none;
+  flex:none;
+}
+.site-header__drawer-utilities .site-header__location,
+.site-header__drawer-utilities .site-header__lang{
+  width:100%;
+  max-width:none;
+  justify-content:flex-start;
+}
 .site-header__location-panel{
   position:absolute;
   top:calc(100% + 6px);
