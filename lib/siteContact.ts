@@ -34,3 +34,25 @@ export function telHref(e164 = WHATSAPP_E164): string {
 export function mailtoHref(email = CONTACT_EMAIL): string {
   return `mailto:${email}`;
 }
+
+export type ProductWhatsAppPrefillInput = {
+  title: string;
+  methodLabel: string;
+  priceFormatted?: string;
+  productUrl: string;
+};
+
+/** Standard WhatsApp message body for a product detail link. */
+export function productWhatsAppPrefill(input: ProductWhatsAppPrefillInput): string {
+  const lines = [
+    'Hello, I am interested in this listing on Araq & Kahraman Auctions.',
+    '',
+    input.title,
+    `Type: ${input.methodLabel}`,
+  ];
+  if (input.priceFormatted) {
+    lines.push(`Price: ${input.priceFormatted}`);
+  }
+  lines.push(input.productUrl);
+  return lines.join('\n');
+}

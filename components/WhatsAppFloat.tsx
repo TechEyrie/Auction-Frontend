@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { whatsappChatUrl } from '../lib/siteContact';
 
 /** Official WhatsApp mark (viewBox 0 0 24 24). */
-function WhatsAppMark({ size = 30 }: { size?: number }) {
+export function WhatsAppMark({ size = 30 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path

@@ -398,6 +398,7 @@ export const PRODUCT_CMS_META: ChromeFieldMeta[] = [
   { key: 'product.related', label: 'Related listings heading', group: 'Related & checkout' },
   { key: 'product.continuePayment', label: 'Continue to payment button', group: 'Related & checkout' },
   { key: 'product.creatingOrder', label: 'Creating order (button loading)', group: 'Related & checkout' },
+  { key: 'product.whatsapp', label: 'WhatsApp button', group: 'Related & checkout' },
 ];
 
 /** Field order matches `ACCOUNT_LABEL_FIELDS` in `chromePages.ts`. */

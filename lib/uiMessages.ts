@@ -647,6 +647,7 @@ const EN = {
   'product.related': 'Related listings',
   'product.continuePayment': 'Continue to payment',
   'product.creatingOrder': 'Creating order…',
+  'product.whatsapp': 'Ask on WhatsApp',
 
   'lot.title': 'Opening product — Araq & Kahraman Auctions',
   'lot.opening': 'Opening product…',
@@ -1316,6 +1317,7 @@ const AR: Record<MessageKey, string> = {
   'product.related': 'إعلانات ذات صلة',
   'product.continuePayment': 'متابعة إلى الدفع',
   'product.creatingOrder': 'جارٍ إنشاء الطلب…',
+  'product.whatsapp': 'اسأل عبر واتساب',
 
   'lot.title': 'فتح المنتج — مزادات عراق وكهرمان',
   'lot.opening': 'جارٍ فتح المنتج…',

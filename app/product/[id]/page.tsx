@@ -7,6 +7,7 @@ import CheckoutDetailsFields, { type CheckoutDetails } from '../../../components
 import ProductListingCard from '../../../components/ProductListingCard';
 import SiteFooter from '../../../components/SiteFooter';
 import SiteHeader from '../../../components/SiteHeader';
+import { WhatsAppMark } from '../../../components/WhatsAppFloat';
 import { API_BASE_URL, apiFetch, ApiRequestError } from '../../../lib/api';
 import { css, PAGE_ROOT } from '../../../lib/css';
 import { useAsync } from '../../../lib/useAsync';
@@ -25,6 +26,7 @@ import {
   type PublicListing,
 } from '../../../lib/listings';
 import { useLive } from '../../../lib/live';
+import { productWhatsAppPrefill, whatsappChatUrl } from '../../../lib/siteContact';
 import '../product.css';
 
 type Category = { key: string; name: string; parentKey: string | null; depth: number };
@@ -404,6 +406,19 @@ export default function ProductPage() {
     () => (data ? localizedText(data.description, lang, '') : ''),
     [data, lang],
   );
+  const productWhatsAppHref = useMemo(() => {
+    if (!data) return whatsappChatUrl();
+    const path = productPath(data);
+    const productUrl = typeof window !== 'undefined' ? `${window.location.origin}${path}` : path;
+    return whatsappChatUrl(
+      productWhatsAppPrefill({
+        title: localizedText(data.title, lang, data.listingReference),
+        methodLabel: t(`method.${data.listingMethod}`),
+        priceFormatted: typeof data.priceMinor === 'number' ? fmtMinor(data.priceMinor) : undefined,
+        productUrl,
+      }),
+    );
+  }, [data, lang, t]);
   const media = data?.media ?? [];
   const shot = media[Math.min(shotIdx, Math.max(0, media.length - 1))] ?? null;
 
@@ -887,6 +902,17 @@ export default function ProductPage() {
                 </Link>
               </div>
             )}
+
+            <a
+              href={productWhatsAppHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={pt('product.whatsapp')}
+              style={css('display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 48px; padding: 0 18px; border-radius: 12px; background: #25D366; color: #FFFFFF; font-weight: 700; text-decoration: none; box-sizing: border-box; justify-self: start')}
+            >
+              <WhatsAppMark size={20} />
+              {pt('product.whatsapp')}
+            </a>
 
             <div style={css('display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px')}>
               <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
