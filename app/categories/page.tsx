@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import AudiencePicker from '../../components/AudiencePicker';
 import SiteFooter from '../../components/SiteFooter';
 import SiteHeader from '../../components/SiteHeader';
 import { apiFetch } from '../../lib/api';
@@ -13,7 +12,7 @@ import { useChromeTranslate } from '../../lib/siteChrome';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import { categoryByKey, categoryChildren, categoryRoots } from '../../lib/catalog';
 import { CategoryIcon } from '../../lib/categoryIcons';
-import { EMPTY_BROWSE, browseQuery, parseBrowseState, type ListingMethod } from '../../lib/listings';
+import { EMPTY_BROWSE, browseQuery, type ListingMethod } from '../../lib/listings';
 import type { MessageKey } from '../../lib/uiMessages';
 import { CategoryTreeExpandControl } from '../../components/CategoryTree';
 import '../../components/category-tree.css';
@@ -42,11 +41,8 @@ type Category = {
 function CategoriesContent() {
   const { lang } = useUiLocale();
   const ct = useChromeTranslate('categories');
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const audience = parseBrowseState(new URLSearchParams(searchParams.toString())).audience;
   const parentParam = firstValue(searchParams, 'parent').toLowerCase();
-  const [query, setQuery] = useState('');
   const [expandedRoots, setExpandedRoots] = useState<Set<string>>(() => new Set());
   const categories = useAsync<{ categories: Category[] }>(
     () => apiFetch<{ categories: Category[] }>(`/api/catalog/categories?locale=${lang}`, { cache: 'no-store' }),
@@ -54,13 +50,12 @@ function CategoriesContent() {
   );
 
   function browseHref(categoryKey: string): string {
-    const qs = browseQuery({ ...EMPTY_BROWSE, audience, category: categoryKey });
+    const qs = browseQuery({ ...EMPTY_BROWSE, category: categoryKey });
     return qs ? `/browse?${qs}` : '/browse';
   }
 
   function categoriesHref(parent?: string): string {
     const params = new URLSearchParams();
-    if (audience) params.set('audience', audience);
     if (parent) params.set('parent', parent);
     const qs = params.toString();
     return qs ? `/categories?${qs}` : '/categories';
@@ -70,24 +65,6 @@ function CategoriesContent() {
   const parentCat =
     parentParam && CATEGORY_KEY.test(parentParam) ? categoryByKey(all, parentParam) : undefined;
   const roots = categoryRoots(all);
-  const q = query.trim().toLowerCase();
-
-  function categoryMatches(category: Category): boolean {
-    return !q || category.name.toLowerCase().includes(q) || category.key.includes(q);
-  }
-
-  function visibleChildrenForRoot(root: Category): Category[] {
-    const kids = categoryChildren(all, root.key);
-    if (!q) return kids;
-    if (categoryMatches(root)) return kids;
-    return kids.filter(categoryMatches);
-  }
-
-  const visibleRoots = roots.filter((root) => {
-    if (!q) return true;
-    if (categoryMatches(root)) return true;
-    return visibleChildrenForRoot(root).length > 0;
-  });
 
   useEffect(() => {
     if (!parentCat) return;
@@ -101,16 +78,6 @@ function CategoriesContent() {
       else next.add(rootKey);
       return next;
     });
-  }
-
-  function pushCategories(next: { audience?: '' | typeof audience; parent?: string }): void {
-    const params = new URLSearchParams();
-    const nextAudience = next.audience !== undefined ? next.audience : audience;
-    if (nextAudience) params.set('audience', nextAudience);
-    const parent = next.parent !== undefined ? next.parent : parentParam;
-    if (parent && CATEGORY_KEY.test(parent)) params.set('parent', parent);
-    const qs = params.toString();
-    router.push(qs ? `/categories?${qs}` : '/categories');
   }
 
   return (
@@ -138,32 +105,10 @@ function CategoriesContent() {
               {ct('categories.lead')}
             </p>
           </div>
-          <div className="categories-search">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z M20 20l-4-4"></path>
-            </svg>
-            <label htmlFor="cq" className="sr">
-              {ct('categories.searchLabel')}
-            </label>
-            <input
-              id="cq"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={ct('categories.searchPlaceholder')}
-            />
-          </div>
         </div>
       </section>
 
       <section className="categories-body">
-        <div style={css('margin-bottom: 28px; max-width: 520px')}>
-          <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--mkt-muted)')}>{ct('categories.shopFor')}</p>
-          <AudiencePicker
-            value={audience}
-            onChange={(next) => pushCategories({ audience: next })}
-          />
-        </div>
         {categories.loading && (
           <p role="status" className="mkt-state" data-state="loading">
             {ct('categories.loading')}
@@ -179,30 +124,22 @@ function CategoriesContent() {
           </div>
         )}
 
-        {!categories.loading && !categories.error && visibleRoots.length === 0 && (
+        {!categories.loading && !categories.error && roots.length === 0 && (
           <div className="categories-empty">
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px")}>
-              {q ? ct('categories.emptySearch', { q }) : ct('categories.emptyTitle')}
+              {ct('categories.emptyTitle')}
             </h2>
             <p style={css('margin: 8px 0 0; color: var(--mkt-muted)')}>
-              {q ? (
-                <>
-                  {ct('categories.emptySearchHintPrefix')}
-                  <Link href="/browse" style={css('font-weight: 600')}>{ct('categories.emptySearchLink')}</Link>
-                  {ct('categories.emptySearchHintSuffix')}
-                </>
-              ) : (
-                ct('categories.emptyNone')
-              )}
+              {ct('categories.emptyNone')}
             </p>
           </div>
         )}
 
         <div className="categories-grid">
-          {visibleRoots.map((root) => {
-            const kids = visibleChildrenForRoot(root);
+          {roots.map((root) => {
+            const kids = categoryChildren(all, root.key);
             const highlight = parentCat?.key === root.key;
-            const isExpanded = expandedRoots.has(root.key) || (Boolean(q) && kids.length > 0);
+            const isExpanded = expandedRoots.has(root.key);
             return (
               <article
                 key={root.key}

@@ -37,30 +37,6 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{out
 }
 .categories-body{padding:40px var(--mkt-gutter-x) 24px}
 .categories-cta{padding:40px var(--mkt-gutter-x) 80px}
-.categories-search{
-  flex:0 1 420px;
-  min-width:0;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  height:54px;
-  padding:0 16px;
-  border:1px solid var(--mkt-border-strong);
-  border-radius:14px;
-  background:var(--mkt-bg);
-  color:var(--mkt-muted);
-}
-.categories-search input{
-  flex:1;
-  min-width:0;
-  height:48px;
-  border:0;
-  font:inherit;
-  font-size:16px;
-  background:transparent;
-  color:var(--mkt-text);
-  outline-offset:6px;
-}
 .categories-grid{
   display:grid;
   grid-template-columns:repeat(6,minmax(0,1fr));
