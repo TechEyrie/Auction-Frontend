@@ -27,6 +27,19 @@ type Row = {
   listingTitle: string;
   title?: { en: string | null; ar: string | null };
   listingReference: string;
+  lotReference?: string | null;
+  buyer?: {
+    userReference: string;
+    fullName: string | null;
+    phone: string | null;
+    email: string | null;
+  };
+  fulfillment?: {
+    fullName: string;
+    phone: string;
+    city: string;
+    address: string;
+  } | null;
   paymentState: string;
   paymentLabel: string;
   amountPaidMinor: number;
@@ -34,6 +47,11 @@ type Row = {
   createdAt: string;
   paidAt: string | null;
 };
+
+function initialFinanceSearch(): string {
+  if (typeof window === 'undefined') return '';
+  return new URLSearchParams(window.location.search).get('q') ?? '';
+}
 
 function financeSourceLabel(source: string | undefined, t: (key: MessageKey) => string): string {
   if (source === 'fixed_price') return t('admin.finance.buyNow');
@@ -51,7 +69,7 @@ function financePaymentLabel(paymentState: string, t: (key: MessageKey) => strin
 export default function AdminFinancePage() {
   const { t, lang } = useUiLocale();
   const session = useSession();
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(initialFinanceSearch);
   const [paymentState, setPaymentState] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
   const summary = useAsync<Summary>(() => apiFetch<Summary>('/api/admin/finance/summary'), []);
@@ -175,11 +193,13 @@ export default function AdminFinancePage() {
               <thead>
                 <tr>
                   <th scope="col">{t('admin.finance.colProduct')}</th>
+                  <th scope="col">{t('admin.finance.colBuyer')}</th>
                   <th scope="col">{t('admin.finance.colType')}</th>
                   <th scope="col">{t('admin.finance.colPayment')}</th>
                   <th scope="col">{t('admin.finance.colAmountPaid')}</th>
                   <th scope="col">{t('admin.finance.colCreated')}</th>
                   <th scope="col">{t('admin.finance.colPaidAt')}</th>
+                  <th scope="col">{t('admin.finance.colDelivery')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -195,6 +215,19 @@ export default function AdminFinancePage() {
                       </span>
                       <div className="adm-hint">{order.listingReference}</div>
                     </td>
+                    <td className="wrap">
+                      <span style={css('font-weight: 600')}>
+                        {order.buyer?.fullName ?? order.buyer?.userReference ?? '—'}
+                      </span>
+                      {order.buyer?.userReference && (
+                        <div className="adm-hint">{order.buyer.userReference}</div>
+                      )}
+                      {(order.buyer?.phone || order.buyer?.email) && (
+                        <div className="adm-hint">
+                          {[order.buyer.phone, order.buyer.email].filter(Boolean).join(' · ')}
+                        </div>
+                      )}
+                    </td>
                     <td>{financeSourceLabel(order.source, t)}</td>
                     <td>
                       <Badge tone={order.paymentState === 'paid' ? 'good' : order.paymentState === 'failed' ? 'bad' : 'warn'}>
@@ -206,6 +239,11 @@ export default function AdminFinancePage() {
                     </td>
                     <td>{fmtBusinessDateTime(order.createdAt)}</td>
                     <td>{order.paidAt ? fmtBusinessDateTime(order.paidAt) : '—'}</td>
+                    <td>
+                      {order.fulfillment?.city || order.fulfillment?.phone
+                        ? [order.fulfillment.city, order.fulfillment.phone].filter(Boolean).join(' · ')
+                        : t('admin.finance.noDelivery')}
+                    </td>
                   </tr>
                 ))}
               </tbody>

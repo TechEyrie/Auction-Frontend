@@ -357,311 +357,15 @@
   },
   {
     "key": "auth.pageTitle.signin",
-    "label": "Page title (sign-in)"
+    "label": "Browser tab"
   },
   {
     "key": "auth.logoAlt",
-    "label": "Logo alt text"
+    "label": "Logo image description"
   },
   {
     "key": "auth.tablistAria",
     "label": "Account tabs (aria)"
-  },
-  {
-    "key": "auth.hero.welcome",
-    "label": "Hero headline"
-  },
-  {
-    "key": "auth.hero.tagline",
-    "label": "Hero tagline"
-  },
-  {
-    "key": "auth.hero.bullet1",
-    "label": "Hero bullet 1"
-  },
-  {
-    "key": "auth.hero.bullet2",
-    "label": "Hero bullet 2"
-  },
-  {
-    "key": "auth.hero.bullet3",
-    "label": "Hero bullet 3"
-  },
-  {
-    "key": "auth.emailVerify.heading",
-    "label": "Verify email heading"
-  },
-  {
-    "key": "auth.verifyAndContinue",
-    "label": "Verify and continue"
-  },
-  {
-    "key": "auth.mfa.title",
-    "label": "Two-step verification title"
-  },
-  {
-    "key": "auth.mfa.intro",
-    "label": "Two-step verification intro"
-  },
-  {
-    "key": "auth.mfa.recoveryCode",
-    "label": "Recovery code label"
-  },
-  {
-    "key": "auth.mfa.verificationCode",
-    "label": "Verification code label"
-  },
-  {
-    "key": "auth.mfa.useAuthenticatorInstead",
-    "label": "Use authenticator instead"
-  },
-  {
-    "key": "auth.mfa.useRecoveryInstead",
-    "label": "Use recovery code instead"
-  },
-  {
-    "key": "auth.mfa.recoveryAccepted",
-    "label": "Recovery accepted notice"
-  },
-  {
-    "key": "auth.tab.signIn",
-    "label": "Tab: Sign in"
-  },
-  {
-    "key": "auth.tab.createAccount",
-    "label": "Tab: Create account"
-  },
-  {
-    "key": "auth.signIn.heading",
-    "label": "Sign-in form heading"
-  },
-  {
-    "key": "auth.signIn.submit",
-    "label": "Sign-in submit"
-  },
-  {
-    "key": "auth.field.email",
-    "label": "Email label"
-  },
-  {
-    "key": "auth.field.emailPlaceholder",
-    "label": "Email placeholder"
-  },
-  {
-    "key": "auth.field.password",
-    "label": "Password label"
-  },
-  {
-    "key": "auth.field.fullName",
-    "label": "Full name label"
-  },
-  {
-    "key": "auth.forgotPassword",
-    "label": "Forgot password link"
-  },
-  {
-    "key": "auth.password.show",
-    "label": "Show password"
-  },
-  {
-    "key": "auth.password.hide",
-    "label": "Hide password"
-  },
-  {
-    "key": "auth.keepSignedIn",
-    "label": "Keep me signed in"
-  },
-  {
-    "key": "auth.register.heading",
-    "label": "Register heading"
-  },
-  {
-    "key": "auth.terms.prefix",
-    "label": "Terms checkbox prefix"
-  },
-  {
-    "key": "auth.terms.link",
-    "label": "Terms link text"
-  },
-  {
-    "key": "auth.terms.and",
-    "label": "Terms checkbox “and”"
-  },
-  {
-    "key": "auth.terms.privacy",
-    "label": "Privacy link text"
-  },
-  {
-    "key": "auth.terms.suffix",
-    "label": "Terms checkbox suffix"
-  },
-  {
-    "key": "auth.register.submit",
-    "label": "Create account submit"
-  },
-  {
-    "key": "auth.switch.newHere",
-    "label": "Switch: New here?"
-  },
-  {
-    "key": "auth.switch.alreadyHave",
-    "label": "Switch: Already have account?"
-  },
-  {
-    "key": "auth.switch.createAccount",
-    "label": "Switch: Create an account"
-  },
-  {
-    "key": "auth.switch.signIn",
-    "label": "Switch: Sign in"
-  },
-  {
-    "key": "auth.pleaseWait",
-    "label": "Busy button text"
-  },
-  {
-    "key": "auth.login",
-    "label": "Sign in"
-  },
-  {
-    "key": "auth.signOut",
-    "label": "Sign out"
-  },
-  {
-    "key": "auth.backToSignIn",
-    "label": "Back to sign in"
-  },
-  {
-    "key": "auth.forgot.pageTitle",
-    "label": "Page title"
-  },
-  {
-    "key": "auth.forgot.hero.title",
-    "label": "Hero title"
-  },
-  {
-    "key": "auth.forgot.hero.lead",
-    "label": "Hero lead"
-  },
-  {
-    "key": "auth.forgot.success.title",
-    "label": "Success title"
-  },
-  {
-    "key": "auth.forgot.success.body",
-    "label": "Success message"
-  },
-  {
-    "key": "auth.forgot.form.title",
-    "label": "Form title"
-  },
-  {
-    "key": "auth.forgot.submit",
-    "label": "Send reset link"
-  },
-  {
-    "key": "auth.reset.pageTitle",
-    "label": "Page title"
-  },
-  {
-    "key": "auth.reset.hero.title",
-    "label": "Hero title"
-  },
-  {
-    "key": "auth.reset.hero.lead",
-    "label": "Hero lead"
-  },
-  {
-    "key": "auth.reset.loading",
-    "label": "Loading…"
-  },
-  {
-    "key": "auth.reset.invalid.title",
-    "label": "Invalid link title"
-  },
-  {
-    "key": "auth.reset.invalid.body",
-    "label": "Invalid link message"
-  },
-  {
-    "key": "auth.reset.requestNewLink",
-    "label": "Request a new link"
-  },
-  {
-    "key": "auth.reset.form.title",
-    "label": "Form title"
-  },
-  {
-    "key": "auth.reset.confirmPassword",
-    "label": "Confirm password label"
-  },
-  {
-    "key": "auth.reset.mismatch",
-    "label": "Passwords do not match"
-  },
-  {
-    "key": "auth.reset.submit",
-    "label": "Update password submit"
-  },
-  {
-    "key": "auth.account.mfa.title",
-    "label": "Authenticator section title"
-  },
-  {
-    "key": "auth.account.mfa.enabledIntro",
-    "label": "MFA enabled intro"
-  },
-  {
-    "key": "auth.account.mfa.replace",
-    "label": "Replace authenticator"
-  },
-  {
-    "key": "auth.account.mfa.currentCodeLabel",
-    "label": "Current code label"
-  },
-  {
-    "key": "auth.account.mfa.continue",
-    "label": "Continue"
-  },
-  {
-    "key": "auth.account.mfa.cancel",
-    "label": "Cancel"
-  },
-  {
-    "key": "auth.account.mfa.qrAlt",
-    "label": "QR code alt"
-  },
-  {
-    "key": "auth.account.mfa.manualKeyPrefix",
-    "label": "Manual key prefix"
-  },
-  {
-    "key": "auth.account.mfa.newCodeLabel",
-    "label": "New app code label"
-  },
-  {
-    "key": "auth.account.mfa.confirmNew",
-    "label": "Confirm new authenticator"
-  },
-  {
-    "key": "auth.account.mfa.saveRecovery",
-    "label": "Save recovery codes notice"
-  },
-  {
-    "key": "auth.account.mfa.done",
-    "label": "Done"
-  },
-  {
-    "key": "auth.login",
-    "label": "Sign in"
-  },
-  {
-    "key": "auth.signOut",
-    "label": "Sign out"
-  },
-  {
-    "key": "auth.pageTitle.signin",
-    "label": "Browser tab"
   },
   {
     "key": "auth.hero.welcome",
@@ -684,68 +388,56 @@
     "label": "Welcome bullet 3"
   },
   {
+    "key": "auth.emailVerify.heading",
+    "label": "Check-your-email heading"
+  },
+  {
+    "key": "auth.verifyAndContinue",
+    "label": "Verify and continue button"
+  },
+  {
+    "key": "auth.mfa.title",
+    "label": "Two-step verification title"
+  },
+  {
+    "key": "auth.mfa.intro",
+    "label": "Instructions under the title"
+  },
+  {
+    "key": "auth.mfa.recoveryCode",
+    "label": "Recovery code label"
+  },
+  {
+    "key": "auth.mfa.verificationCode",
+    "label": "Authenticator code label"
+  },
+  {
+    "key": "auth.mfa.useAuthenticatorInstead",
+    "label": "Use authenticator code instead"
+  },
+  {
+    "key": "auth.mfa.useRecoveryInstead",
+    "label": "Use a recovery code instead"
+  },
+  {
+    "key": "auth.mfa.recoveryAccepted",
+    "label": "Recovery code accepted notice"
+  },
+  {
     "key": "auth.tab.signIn",
     "label": "Sign in tab"
-  },
-  {
-    "key": "auth.signIn.heading",
-    "label": "Form title"
-  },
-  {
-    "key": "auth.field.email",
-    "label": "Email"
-  },
-  {
-    "key": "auth.field.emailPlaceholder",
-    "label": "Grey text inside the email box"
-  },
-  {
-    "key": "auth.field.password",
-    "label": "Password"
-  },
-  {
-    "key": "auth.password.show",
-    "label": "Show password"
-  },
-  {
-    "key": "auth.password.hide",
-    "label": "Hide password"
-  },
-  {
-    "key": "auth.forgotPassword",
-    "label": "Forgot password? link"
-  },
-  {
-    "key": "auth.keepSignedIn",
-    "label": "Keep me signed in"
-  },
-  {
-    "key": "auth.signIn.submit",
-    "label": "Sign in button"
-  },
-  {
-    "key": "auth.pleaseWait",
-    "label": "Button text while loading"
-  },
-  {
-    "key": "auth.switch.newHere",
-    "label": "“New here?”"
-  },
-  {
-    "key": "auth.switch.createAccount",
-    "label": "Create an account link"
   },
   {
     "key": "auth.tab.createAccount",
     "label": "Create account tab"
   },
   {
-    "key": "auth.register.heading",
+    "key": "auth.signIn.heading",
     "label": "Form title"
   },
   {
-    "key": "auth.field.fullName",
-    "label": "Full name"
+    "key": "auth.signIn.submit",
+    "label": "Sign in button"
   },
   {
     "key": "auth.field.email",
@@ -757,7 +449,15 @@
   },
   {
     "key": "auth.field.password",
-    "label": "Password"
+    "label": "New password"
+  },
+  {
+    "key": "auth.field.fullName",
+    "label": "Full name"
+  },
+  {
+    "key": "auth.forgotPassword",
+    "label": "Forgot password? link"
   },
   {
     "key": "auth.password.show",
@@ -766,6 +466,14 @@
   {
     "key": "auth.password.hide",
     "label": "Hide password"
+  },
+  {
+    "key": "auth.keepSignedIn",
+    "label": "Keep me signed in"
+  },
+  {
+    "key": "auth.register.heading",
+    "label": "Form title"
   },
   {
     "key": "auth.terms.prefix",
@@ -792,32 +500,40 @@
     "label": "Create account button"
   },
   {
-    "key": "auth.pleaseWait",
-    "label": "Button text while loading"
-  },
-  {
-    "key": "auth.emailVerify.heading",
-    "label": "Check-your-email heading"
-  },
-  {
-    "key": "auth.verifyAndContinue",
-    "label": "Verify button"
+    "key": "auth.switch.newHere",
+    "label": "“New here?”"
   },
   {
     "key": "auth.switch.alreadyHave",
     "label": "“Already have an account?”"
   },
   {
+    "key": "auth.switch.createAccount",
+    "label": "Create an account link"
+  },
+  {
     "key": "auth.switch.signIn",
     "label": "Sign in link"
   },
   {
-    "key": "auth.forgot.pageTitle",
-    "label": "Browser tab"
+    "key": "auth.pleaseWait",
+    "label": "Button text while loading"
   },
   {
-    "key": "auth.logoAlt",
-    "label": "Logo image description"
+    "key": "auth.login",
+    "label": "Sign in"
+  },
+  {
+    "key": "auth.signOut",
+    "label": "Sign out"
+  },
+  {
+    "key": "auth.backToSignIn",
+    "label": "Back to sign in link"
+  },
+  {
+    "key": "auth.forgot.pageTitle",
+    "label": "Browser tab"
   },
   {
     "key": "auth.forgot.hero.title",
@@ -828,30 +544,6 @@
     "label": "Line under the headline"
   },
   {
-    "key": "auth.forgot.form.title",
-    "label": "Form title"
-  },
-  {
-    "key": "auth.field.email",
-    "label": "Email"
-  },
-  {
-    "key": "auth.field.emailPlaceholder",
-    "label": "Grey text inside the email box"
-  },
-  {
-    "key": "auth.forgot.submit",
-    "label": "Send reset link button"
-  },
-  {
-    "key": "auth.pleaseWait",
-    "label": "Button text while loading"
-  },
-  {
-    "key": "auth.backToSignIn",
-    "label": "Back to sign in link"
-  },
-  {
     "key": "auth.forgot.success.title",
     "label": "Success heading"
   },
@@ -860,12 +552,16 @@
     "label": "Success message"
   },
   {
-    "key": "auth.reset.pageTitle",
-    "label": "Browser tab"
+    "key": "auth.forgot.form.title",
+    "label": "Form title"
   },
   {
-    "key": "auth.logoAlt",
-    "label": "Logo image description"
+    "key": "auth.forgot.submit",
+    "label": "Send reset link button"
+  },
+  {
+    "key": "auth.reset.pageTitle",
+    "label": "Browser tab"
   },
   {
     "key": "auth.reset.hero.title",
@@ -896,18 +592,6 @@
     "label": "Form title"
   },
   {
-    "key": "auth.field.password",
-    "label": "New password"
-  },
-  {
-    "key": "auth.password.show",
-    "label": "Show password"
-  },
-  {
-    "key": "auth.password.hide",
-    "label": "Hide password"
-  },
-  {
     "key": "auth.reset.confirmPassword",
     "label": "Confirm password"
   },
@@ -918,46 +602,6 @@
   {
     "key": "auth.reset.submit",
     "label": "Update password button"
-  },
-  {
-    "key": "auth.pleaseWait",
-    "label": "Button text while loading"
-  },
-  {
-    "key": "auth.mfa.title",
-    "label": "Two-step verification title"
-  },
-  {
-    "key": "auth.mfa.intro",
-    "label": "Instructions under the title"
-  },
-  {
-    "key": "auth.mfa.verificationCode",
-    "label": "Authenticator code label"
-  },
-  {
-    "key": "auth.mfa.recoveryCode",
-    "label": "Recovery code label"
-  },
-  {
-    "key": "auth.verifyAndContinue",
-    "label": "Verify and continue button"
-  },
-  {
-    "key": "auth.mfa.useRecoveryInstead",
-    "label": "Use a recovery code instead"
-  },
-  {
-    "key": "auth.mfa.useAuthenticatorInstead",
-    "label": "Use authenticator code instead"
-  },
-  {
-    "key": "auth.mfa.recoveryAccepted",
-    "label": "Recovery code accepted notice"
-  },
-  {
-    "key": "auth.pleaseWait",
-    "label": "Button text while loading"
   },
   {
     "key": "auth.account.mfa.title",
@@ -972,8 +616,24 @@
     "label": "Replace authenticator button"
   },
   {
+    "key": "auth.account.mfa.disable",
+    "label": "Turn off authenticator button"
+  },
+  {
+    "key": "auth.account.mfa.disableIntro",
+    "label": "Turn off MFA intro"
+  },
+  {
+    "key": "auth.account.mfa.disableConfirm",
+    "label": "Turn off confirm button"
+  },
+  {
     "key": "auth.account.mfa.currentCodeLabel",
     "label": "Current code from app"
+  },
+  {
+    "key": "auth.account.mfa.codeRequired",
+    "label": "Code required validation message"
   },
   {
     "key": "auth.account.mfa.continue",
@@ -982,6 +642,10 @@
   {
     "key": "auth.account.mfa.cancel",
     "label": "Cancel button"
+  },
+  {
+    "key": "auth.account.mfa.qrAlt",
+    "label": "QR code image description"
   },
   {
     "key": "auth.account.mfa.manualKeyPrefix",
@@ -1004,7 +668,1539 @@
     "label": "Done button"
   },
   {
-    "key": "auth.account.mfa.qrAlt",
-    "label": "QR code image description"
+    "key": "help.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "help.h1",
+    "label": "Page headline"
+  },
+  {
+    "key": "help.lead",
+    "label": "Intro line under the headline"
+  },
+  {
+    "key": "help.searchLabel",
+    "label": "Search box label"
+  },
+  {
+    "key": "help.searchPlaceholder",
+    "label": "Grey text inside the search box"
+  },
+  {
+    "key": "help.popularQuestions",
+    "label": "FAQs heading (no filter)"
+  },
+  {
+    "key": "help.searchResults",
+    "label": "FAQs heading (while searching)"
+  },
+  {
+    "key": "help.showAll",
+    "label": "Show all questions link"
+  },
+  {
+    "key": "help.emptyPrefix",
+    "label": "No results — text before the link"
+  },
+  {
+    "key": "help.emptyLink",
+    "label": "No results — link text"
+  },
+  {
+    "key": "help.emptySuffix",
+    "label": "No results — text after the link"
+  },
+  {
+    "key": "help.topic.buy",
+    "label": "Topic: Buying"
+  },
+  {
+    "key": "help.topic.sell",
+    "label": "Topic: Selling"
+  },
+  {
+    "key": "help.topic.bid",
+    "label": "Topic: Auctions & bidding"
+  },
+  {
+    "key": "help.topic.account",
+    "label": "Topic: Account"
+  },
+  {
+    "key": "help.topic.pay",
+    "label": "Topic: Payments & fees"
+  },
+  {
+    "key": "help.topic.safe",
+    "label": "Topic: Safety"
+  },
+  {
+    "key": "help.faq.0.q",
+    "label": "FAQ 1 — question"
+  },
+  {
+    "key": "help.faq.0.a",
+    "label": "FAQ 1 — answer"
+  },
+  {
+    "key": "help.faq.1.q",
+    "label": "FAQ 2 — question"
+  },
+  {
+    "key": "help.faq.1.a",
+    "label": "FAQ 2 — answer"
+  },
+  {
+    "key": "help.faq.2.q",
+    "label": "FAQ 3 — question"
+  },
+  {
+    "key": "help.faq.2.a",
+    "label": "FAQ 3 — answer"
+  },
+  {
+    "key": "help.faq.3.q",
+    "label": "FAQ 4 — question"
+  },
+  {
+    "key": "help.faq.3.a",
+    "label": "FAQ 4 — answer"
+  },
+  {
+    "key": "help.faq.4.q",
+    "label": "FAQ 5 — question"
+  },
+  {
+    "key": "help.faq.4.a",
+    "label": "FAQ 5 — answer"
+  },
+  {
+    "key": "help.faq.5.q",
+    "label": "FAQ 6 — question"
+  },
+  {
+    "key": "help.faq.5.a",
+    "label": "FAQ 6 — answer"
+  },
+  {
+    "key": "help.faq.6.q",
+    "label": "FAQ 7 — question"
+  },
+  {
+    "key": "help.faq.6.a",
+    "label": "FAQ 7 — answer"
+  },
+  {
+    "key": "help.faq.7.q",
+    "label": "FAQ 8 — question"
+  },
+  {
+    "key": "help.faq.7.a",
+    "label": "FAQ 8 — answer"
+  },
+  {
+    "key": "help.faq.8.q",
+    "label": "FAQ 9 — question"
+  },
+  {
+    "key": "help.faq.8.a",
+    "label": "FAQ 9 — answer"
+  },
+  {
+    "key": "help.faq.9.q",
+    "label": "FAQ 10 — question"
+  },
+  {
+    "key": "help.faq.9.a",
+    "label": "FAQ 10 — answer"
+  },
+  {
+    "key": "help.faq.10.q",
+    "label": "FAQ 11 — question"
+  },
+  {
+    "key": "help.faq.10.a",
+    "label": "FAQ 11 — answer"
+  },
+  {
+    "key": "help.faq.11.q",
+    "label": "FAQ 12 — question"
+  },
+  {
+    "key": "help.faq.11.a",
+    "label": "FAQ 12 — answer"
+  },
+  {
+    "key": "help.faq.12.q",
+    "label": "FAQ 13 — question"
+  },
+  {
+    "key": "help.faq.12.a",
+    "label": "FAQ 13 — answer"
+  },
+  {
+    "key": "help.faq.13.q",
+    "label": "FAQ 14 — question"
+  },
+  {
+    "key": "help.faq.13.a",
+    "label": "FAQ 14 — answer"
+  },
+  {
+    "key": "help.faq.14.q",
+    "label": "FAQ 15 — question"
+  },
+  {
+    "key": "help.faq.14.a",
+    "label": "FAQ 15 — answer"
+  },
+  {
+    "key": "help.safetyTitle",
+    "label": "Safety section heading"
+  },
+  {
+    "key": "help.safetyLead",
+    "label": "Safety section intro"
+  },
+  {
+    "key": "help.safety.0.t",
+    "label": "Tip 1 — title"
+  },
+  {
+    "key": "help.safety.0.b",
+    "label": "Tip 1 — body"
+  },
+  {
+    "key": "help.safety.1.t",
+    "label": "Tip 2 — title"
+  },
+  {
+    "key": "help.safety.1.b",
+    "label": "Tip 2 — body"
+  },
+  {
+    "key": "help.safety.2.t",
+    "label": "Tip 3 — title"
+  },
+  {
+    "key": "help.safety.2.b",
+    "label": "Tip 3 — body"
+  },
+  {
+    "key": "help.safety.3.t",
+    "label": "Tip 4 — title"
+  },
+  {
+    "key": "help.safety.3.b",
+    "label": "Tip 4 — body"
+  },
+  {
+    "key": "help.safety.4.t",
+    "label": "Tip 5 — title"
+  },
+  {
+    "key": "help.safety.4.b",
+    "label": "Tip 5 — body"
+  },
+  {
+    "key": "help.safety.5.t",
+    "label": "Tip 6 — title"
+  },
+  {
+    "key": "help.safety.5.b",
+    "label": "Tip 6 — body"
+  },
+  {
+    "key": "help.stillTitle",
+    "label": "Bottom callout heading"
+  },
+  {
+    "key": "help.stillLead",
+    "label": "Bottom callout line"
+  },
+  {
+    "key": "help.contactUs",
+    "label": "Contact us button"
+  },
+  {
+    "key": "about.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "about.kicker",
+    "label": "Gold kicker above headline"
+  },
+  {
+    "key": "about.h1",
+    "label": "Page headline"
+  },
+  {
+    "key": "about.lead",
+    "label": "Intro paragraph"
+  },
+  {
+    "key": "about.logoAlt",
+    "label": "Hero image alt text"
+  },
+  {
+    "key": "about.storyTitle",
+    "label": "Story section heading"
+  },
+  {
+    "key": "about.story1",
+    "label": "Story paragraph 1"
+  },
+  {
+    "key": "about.story2",
+    "label": "Story paragraph 2"
+  },
+  {
+    "key": "about.offerTitle",
+    "label": "Offers section heading"
+  },
+  {
+    "key": "about.offer1Title",
+    "label": "Card 1 — title"
+  },
+  {
+    "key": "about.offer1Body",
+    "label": "Card 1 — body"
+  },
+  {
+    "key": "about.offer1Link",
+    "label": "Card 1 — link text"
+  },
+  {
+    "key": "about.offer2Title",
+    "label": "Card 2 — title"
+  },
+  {
+    "key": "about.offer2Body",
+    "label": "Card 2 — body"
+  },
+  {
+    "key": "about.offer2Link",
+    "label": "Card 2 — link text"
+  },
+  {
+    "key": "about.offer3Title",
+    "label": "Card 3 — title"
+  },
+  {
+    "key": "about.offer3Body",
+    "label": "Card 3 — body"
+  },
+  {
+    "key": "about.offer3Link",
+    "label": "Card 3 — link text"
+  },
+  {
+    "key": "about.valuesTitle",
+    "label": "Values section heading"
+  },
+  {
+    "key": "about.value1Title",
+    "label": "Value 1 — title"
+  },
+  {
+    "key": "about.value1Body",
+    "label": "Value 1 — body"
+  },
+  {
+    "key": "about.value2Title",
+    "label": "Value 2 — title"
+  },
+  {
+    "key": "about.value2Body",
+    "label": "Value 2 — body"
+  },
+  {
+    "key": "about.value3Title",
+    "label": "Value 3 — title"
+  },
+  {
+    "key": "about.value3Body",
+    "label": "Value 3 — body"
+  },
+  {
+    "key": "about.value4Title",
+    "label": "Value 4 — title"
+  },
+  {
+    "key": "about.value4Body",
+    "label": "Value 4 — body"
+  },
+  {
+    "key": "about.careersKicker",
+    "label": "Careers kicker"
+  },
+  {
+    "key": "about.careersTitle",
+    "label": "Careers heading"
+  },
+  {
+    "key": "about.careersBody",
+    "label": "Careers paragraph"
+  },
+  {
+    "key": "about.careersSend",
+    "label": "Careers email CTA line"
+  },
+  {
+    "key": "about.getInTouch",
+    "label": "Get in touch button"
+  },
+  {
+    "key": "legal.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "legal.breadcrumb",
+    "label": "Breadcrumb label"
+  },
+  {
+    "key": "legal.updated",
+    "label": "Last updated line"
+  },
+  {
+    "key": "legal.tablistAria",
+    "label": "Tab list (aria-label)"
+  },
+  {
+    "key": "legal.tab.terms",
+    "label": "Terms tab label"
+  },
+  {
+    "key": "legal.tab.privacy",
+    "label": "Privacy tab label"
+  },
+  {
+    "key": "legal.toc",
+    "label": "Table of contents heading"
+  },
+  {
+    "key": "legal.questionsPrefix",
+    "label": "Footer note — before Contact link"
+  },
+  {
+    "key": "legal.questionsLink",
+    "label": "Footer note — Contact link text"
+  },
+  {
+    "key": "legal.termsTitle",
+    "label": "Terms page title"
+  },
+  {
+    "key": "legal.terms.0.h",
+    "label": "Terms §1 — heading"
+  },
+  {
+    "key": "legal.terms.0.b",
+    "label": "Terms §1 — body"
+  },
+  {
+    "key": "legal.terms.1.h",
+    "label": "Terms §2 — heading"
+  },
+  {
+    "key": "legal.terms.1.b",
+    "label": "Terms §2 — body"
+  },
+  {
+    "key": "legal.terms.2.h",
+    "label": "Terms §3 — heading"
+  },
+  {
+    "key": "legal.terms.2.b",
+    "label": "Terms §3 — body"
+  },
+  {
+    "key": "legal.terms.3.h",
+    "label": "Terms §4 — heading"
+  },
+  {
+    "key": "legal.terms.3.b",
+    "label": "Terms §4 — body"
+  },
+  {
+    "key": "legal.terms.4.h",
+    "label": "Terms §5 — heading"
+  },
+  {
+    "key": "legal.terms.4.b",
+    "label": "Terms §5 — body"
+  },
+  {
+    "key": "legal.terms.5.h",
+    "label": "Terms §6 — heading"
+  },
+  {
+    "key": "legal.terms.5.b",
+    "label": "Terms §6 — body"
+  },
+  {
+    "key": "legal.terms.6.h",
+    "label": "Terms §7 — heading"
+  },
+  {
+    "key": "legal.terms.6.b",
+    "label": "Terms §7 — body"
+  },
+  {
+    "key": "legal.terms.7.h",
+    "label": "Terms §8 — heading"
+  },
+  {
+    "key": "legal.terms.7.b",
+    "label": "Terms §8 — body"
+  },
+  {
+    "key": "legal.privacyTitle",
+    "label": "Privacy page title"
+  },
+  {
+    "key": "legal.privacy.0.h",
+    "label": "Privacy §1 — heading"
+  },
+  {
+    "key": "legal.privacy.0.b",
+    "label": "Privacy §1 — body"
+  },
+  {
+    "key": "legal.privacy.1.h",
+    "label": "Privacy §2 — heading"
+  },
+  {
+    "key": "legal.privacy.1.b",
+    "label": "Privacy §2 — body"
+  },
+  {
+    "key": "legal.privacy.2.h",
+    "label": "Privacy §3 — heading"
+  },
+  {
+    "key": "legal.privacy.2.b",
+    "label": "Privacy §3 — body"
+  },
+  {
+    "key": "legal.privacy.3.h",
+    "label": "Privacy §4 — heading"
+  },
+  {
+    "key": "legal.privacy.3.b",
+    "label": "Privacy §4 — body"
+  },
+  {
+    "key": "legal.privacy.4.h",
+    "label": "Privacy §5 — heading"
+  },
+  {
+    "key": "legal.privacy.4.b",
+    "label": "Privacy §5 — body"
+  },
+  {
+    "key": "legal.privacy.5.h",
+    "label": "Privacy §6 — heading"
+  },
+  {
+    "key": "legal.privacy.5.b",
+    "label": "Privacy §6 — body"
+  },
+  {
+    "key": "legal.privacy.6.h",
+    "label": "Privacy §7 — heading"
+  },
+  {
+    "key": "legal.privacy.6.b",
+    "label": "Privacy §7 — body"
+  },
+  {
+    "key": "legal.privacy.7.h",
+    "label": "Privacy §8 — heading"
+  },
+  {
+    "key": "legal.privacy.7.b",
+    "label": "Privacy §8 — body"
+  },
+  {
+    "key": "contact.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "contact.breadcrumb",
+    "label": "Breadcrumb label"
+  },
+  {
+    "key": "contact.h1",
+    "label": "Page headline"
+  },
+  {
+    "key": "contact.leadPrefix",
+    "label": "Intro — before Help link"
+  },
+  {
+    "key": "contact.leadLink",
+    "label": "Intro — Help centre link"
+  },
+  {
+    "key": "contact.successTitle",
+    "label": "Thank-you heading"
+  },
+  {
+    "key": "contact.successBody",
+    "label": "Thank-you message"
+  },
+  {
+    "key": "contact.successRef",
+    "label": "Thank-you reference line"
+  },
+  {
+    "key": "contact.sendAnother",
+    "label": "Send another message button"
+  },
+  {
+    "key": "contact.backHome",
+    "label": "Back to home link"
+  },
+  {
+    "key": "contact.formTitle",
+    "label": "Form panel heading"
+  },
+  {
+    "key": "contact.name",
+    "label": "Name field label"
+  },
+  {
+    "key": "contact.phone",
+    "label": "Phone field label"
+  },
+  {
+    "key": "contact.email",
+    "label": "Email field label"
+  },
+  {
+    "key": "contact.listingRef",
+    "label": "Listing reference label"
+  },
+  {
+    "key": "contact.listingPlaceholder",
+    "label": "Listing reference placeholder"
+  },
+  {
+    "key": "contact.subject",
+    "label": "Subject dropdown label"
+  },
+  {
+    "key": "contact.subject.0",
+    "label": "Subject option — A listing or seller"
+  },
+  {
+    "key": "contact.subject.1",
+    "label": "Subject option — Bidding or an auction I won"
+  },
+  {
+    "key": "contact.subject.2",
+    "label": "Subject option — Selling at auction"
+  },
+  {
+    "key": "contact.subject.3",
+    "label": "Subject option — Business auctions"
+  },
+  {
+    "key": "contact.subject.4",
+    "label": "Subject option — My account"
+  },
+  {
+    "key": "contact.subject.5",
+    "label": "Subject option — Report a problem"
+  },
+  {
+    "key": "contact.subject.6",
+    "label": "Subject option — Careers"
+  },
+  {
+    "key": "contact.subject.7",
+    "label": "Subject option — Something else"
+  },
+  {
+    "key": "contact.message",
+    "label": "Message field label"
+  },
+  {
+    "key": "contact.messageHint",
+    "label": "Message field hint"
+  },
+  {
+    "key": "contact.submit",
+    "label": "Send message button"
+  },
+  {
+    "key": "contact.sending",
+    "label": "Button text while sending"
+  },
+  {
+    "key": "contact.channel.phone",
+    "label": "Channel row — Phone (title)"
+  },
+  {
+    "key": "contact.channel.whatsapp",
+    "label": "Channel row — WhatsApp (title)"
+  },
+  {
+    "key": "contact.channel.email",
+    "label": "Channel row — Email (title)"
+  },
+  {
+    "key": "contact.channel.office",
+    "label": "Channel row — Office (title)"
+  },
+  {
+    "key": "contact.channel.hours",
+    "label": "Channel row — Opening hours (title)"
+  },
+  {
+    "key": "contact.hoursValue",
+    "label": "Opening hours text"
+  },
+  {
+    "key": "home.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "home.badge",
+    "label": "Hero badge"
+  },
+  {
+    "key": "home.heroLine1",
+    "label": "Headline line 1"
+  },
+  {
+    "key": "home.heroLine2",
+    "label": "Headline line 2"
+  },
+  {
+    "key": "home.heroLead",
+    "label": "Lead paragraph"
+  },
+  {
+    "key": "home.searchLabel",
+    "label": "Search label"
+  },
+  {
+    "key": "home.searchPlaceholder",
+    "label": "Search placeholder"
+  },
+  {
+    "key": "home.mensListings",
+    "label": "Men’s listings chip"
+  },
+  {
+    "key": "home.womensListings",
+    "label": "Women’s listings chip"
+  },
+  {
+    "key": "home.unisexListings",
+    "label": "Unisex listings chip"
+  },
+  {
+    "key": "home.popular",
+    "label": "Popular searches heading"
+  },
+  {
+    "key": "home.landCruiser",
+    "label": "Example search: Land Cruiser"
+  },
+  {
+    "key": "home.iphone",
+    "label": "Example search: iPhone"
+  },
+  {
+    "key": "home.auctionListings",
+    "label": "Auction listings chip"
+  },
+  {
+    "key": "home.usedItems",
+    "label": "Used items chip"
+  },
+  {
+    "key": "home.featuredAria",
+    "label": "Featured strip (aria)"
+  },
+  {
+    "key": "home.featuredListing",
+    "label": "Featured listing label"
+  },
+  {
+    "key": "home.latestListing",
+    "label": "Latest listing label"
+  },
+  {
+    "key": "home.published",
+    "label": "Published date prefix"
+  },
+  {
+    "key": "home.noImagePublished",
+    "label": "No image placeholder"
+  },
+  {
+    "key": "home.viewListing",
+    "label": "View listing link"
+  },
+  {
+    "key": "home.ad",
+    "label": "Ad slot label"
+  },
+  {
+    "key": "home.loadingPublished",
+    "label": "Loading published listings"
+  },
+  {
+    "key": "home.heroEmpty",
+    "label": "Empty hero listings message"
+  },
+  {
+    "key": "home.endingSoonTitle",
+    "label": "Section title"
+  },
+  {
+    "key": "home.endingSoonSub",
+    "label": "Section subtitle"
+  },
+  {
+    "key": "home.endingSoonEmpty",
+    "label": "Empty state"
+  },
+  {
+    "key": "home.endingSoonLoading",
+    "label": "Loading message"
+  },
+  {
+    "key": "home.endingSoonError",
+    "label": "Error message"
+  },
+  {
+    "key": "home.featuredCarouselTitle",
+    "label": "Section title"
+  },
+  {
+    "key": "home.featuredCarouselSub",
+    "label": "Section subtitle"
+  },
+  {
+    "key": "home.categoriesTitle",
+    "label": "Section title"
+  },
+  {
+    "key": "home.categoriesSub",
+    "label": "Section subtitle"
+  },
+  {
+    "key": "home.allCategoriesLink",
+    "label": "All categories link"
+  },
+  {
+    "key": "home.categoriesError",
+    "label": "Error message"
+  },
+  {
+    "key": "home.categoriesLoading",
+    "label": "Loading message"
+  },
+  {
+    "key": "home.categoriesEmpty",
+    "label": "Empty state"
+  },
+  {
+    "key": "home.auctionsTitle",
+    "label": "Section title"
+  },
+  {
+    "key": "home.auctionsSub",
+    "label": "Section subtitle"
+  },
+  {
+    "key": "home.auctionOverview",
+    "label": "Overview link"
+  },
+  {
+    "key": "home.auctionsError",
+    "label": "Error message"
+  },
+  {
+    "key": "home.auctionsLoading",
+    "label": "Loading message"
+  },
+  {
+    "key": "home.auctionsEmpty",
+    "label": "Empty state"
+  },
+  {
+    "key": "home.howTitle",
+    "label": "Section title"
+  },
+  {
+    "key": "home.howSubtitle",
+    "label": "Section subtitle"
+  },
+  {
+    "key": "home.howImageAlt",
+    "label": "Step image alt text"
+  },
+  {
+    "key": "home.stepsAria",
+    "label": "Steps carousel (aria)"
+  },
+  {
+    "key": "home.step1Title",
+    "label": "Step 1 title"
+  },
+  {
+    "key": "home.step1Desc",
+    "label": "Step 1 description"
+  },
+  {
+    "key": "home.step2Title",
+    "label": "Step 2 title"
+  },
+  {
+    "key": "home.step2Desc",
+    "label": "Step 2 description"
+  },
+  {
+    "key": "home.step3Title",
+    "label": "Step 3 title"
+  },
+  {
+    "key": "home.step3Desc",
+    "label": "Step 3 description"
+  },
+  {
+    "key": "home.step4Title",
+    "label": "Step 4 title"
+  },
+  {
+    "key": "home.step4Desc",
+    "label": "Step 4 description"
+  },
+  {
+    "key": "home.freshTitle",
+    "label": "Section title"
+  },
+  {
+    "key": "home.freshSub",
+    "label": "Section subtitle"
+  },
+  {
+    "key": "home.viewAll",
+    "label": "View all link"
+  },
+  {
+    "key": "home.listingsError",
+    "label": "Error message"
+  },
+  {
+    "key": "home.listingsLoading",
+    "label": "Loading message"
+  },
+  {
+    "key": "home.listingsEmpty",
+    "label": "Empty state"
+  },
+  {
+    "key": "home.sellTitle",
+    "label": "Sell CTA title"
+  },
+  {
+    "key": "home.sellBody",
+    "label": "Sell CTA body"
+  },
+  {
+    "key": "home.talkToTeam",
+    "label": "Contact team button"
+  },
+  {
+    "key": "home.trust1Title",
+    "label": "Trust block 1 title"
+  },
+  {
+    "key": "home.trust1Body",
+    "label": "Trust block 1 body"
+  },
+  {
+    "key": "home.trust2Title",
+    "label": "Trust block 2 title"
+  },
+  {
+    "key": "home.trust2Body",
+    "label": "Trust block 2 body"
+  },
+  {
+    "key": "home.trust3Title",
+    "label": "Trust block 3 title"
+  },
+  {
+    "key": "home.trust3Body",
+    "label": "Trust block 3 body"
+  },
+  {
+    "key": "browse.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "browse.breadcrumb",
+    "label": "Breadcrumb label"
+  },
+  {
+    "key": "browse.h1",
+    "label": "Page heading"
+  },
+  {
+    "key": "browse.lead",
+    "label": "Lead paragraph"
+  },
+  {
+    "key": "browse.searchLabel",
+    "label": "Search label"
+  },
+  {
+    "key": "browse.searchPlaceholder",
+    "label": "Search placeholder"
+  },
+  {
+    "key": "browse.showFilters",
+    "label": "Show filters button"
+  },
+  {
+    "key": "browse.hideFilters",
+    "label": "Hide filters button"
+  },
+  {
+    "key": "browse.activeSuffix",
+    "label": "Active filters suffix"
+  },
+  {
+    "key": "browse.filters",
+    "label": "Filters heading"
+  },
+  {
+    "key": "browse.clearAll",
+    "label": "Clear all filters"
+  },
+  {
+    "key": "browse.filterNew",
+    "label": "New listings filter"
+  },
+  {
+    "key": "browse.filterFeatured",
+    "label": "Featured filter"
+  },
+  {
+    "key": "browse.filterType",
+    "label": "Listing type filter"
+  },
+  {
+    "key": "browse.category",
+    "label": "Category label"
+  },
+  {
+    "key": "browse.categoriesError",
+    "label": "Categories load error"
+  },
+  {
+    "key": "browse.allCategories",
+    "label": "All categories option"
+  },
+  {
+    "key": "browse.subcategory",
+    "label": "Subcategory label"
+  },
+  {
+    "key": "browse.allSubcategories",
+    "label": "All subcategories option"
+  },
+  {
+    "key": "browse.noSubcategories",
+    "label": "No subcategories message"
+  },
+  {
+    "key": "browse.listingMethod",
+    "label": "Listing method label"
+  },
+  {
+    "key": "browse.condition",
+    "label": "Condition label"
+  },
+  {
+    "key": "browse.city",
+    "label": "City label"
+  },
+  {
+    "key": "browse.placement",
+    "label": "Placement label"
+  },
+  {
+    "key": "browse.featuredOnly",
+    "label": "Featured only toggle"
+  },
+  {
+    "key": "browse.auctionPromoTitle",
+    "label": "Auction promo title"
+  },
+  {
+    "key": "browse.auctionPromoBody",
+    "label": "Auction promo body"
+  },
+  {
+    "key": "browse.listing",
+    "label": "Singular “listing”"
+  },
+  {
+    "key": "browse.listings",
+    "label": "Plural “listings”"
+  },
+  {
+    "key": "browse.filtered",
+    "label": "Filtered count label"
+  },
+  {
+    "key": "browse.endingOn",
+    "label": "Ending on date label"
+  },
+  {
+    "key": "browse.sortBy",
+    "label": "Sort by label"
+  },
+  {
+    "key": "browse.sortRecent",
+    "label": "Sort: most recent"
+  },
+  {
+    "key": "browse.sortTitle",
+    "label": "Sort: title"
+  },
+  {
+    "key": "browse.sortFeatured",
+    "label": "Sort: featured"
+  },
+  {
+    "key": "browse.emptyTitle",
+    "label": "Empty state title"
+  },
+  {
+    "key": "browse.emptyFiltered",
+    "label": "No matches with filters"
+  },
+  {
+    "key": "browse.emptyNone",
+    "label": "No listings at all"
+  },
+  {
+    "key": "browse.clearFilters",
+    "label": "Clear filters button"
+  },
+  {
+    "key": "browse.searching",
+    "label": "Searching message"
+  },
+  {
+    "key": "browse.filtering",
+    "label": "Filtering message"
+  },
+  {
+    "key": "browse.loading",
+    "label": "Loading message"
+  },
+  {
+    "key": "browse.draft",
+    "label": "Draft badge"
+  },
+  {
+    "key": "browse.conditionNotStated",
+    "label": "Condition not stated"
+  },
+  {
+    "key": "browse.pagination",
+    "label": "Pagination (aria)"
+  },
+  {
+    "key": "browse.previous",
+    "label": "Previous page"
+  },
+  {
+    "key": "browse.next",
+    "label": "Next page"
+  },
+  {
+    "key": "auctions.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "auctions.breadcrumb",
+    "label": "Breadcrumb label"
+  },
+  {
+    "key": "auctions.h1",
+    "label": "Page heading"
+  },
+  {
+    "key": "auctions.lead",
+    "label": "Lead paragraph"
+  },
+  {
+    "key": "auctions.browseAll",
+    "label": "Browse all link"
+  },
+  {
+    "key": "auctions.ask",
+    "label": "Ask a question link"
+  },
+  {
+    "key": "auctions.howTitle",
+    "label": "How it works title"
+  },
+  {
+    "key": "auctions.how1",
+    "label": "Step 1"
+  },
+  {
+    "key": "auctions.how2a",
+    "label": "Step 2 (before link)"
+  },
+  {
+    "key": "auctions.how2link",
+    "label": "Step 2 link text"
+  },
+  {
+    "key": "auctions.how3",
+    "label": "Step 3"
+  },
+  {
+    "key": "auctions.liveTitle",
+    "label": "Live auctions heading"
+  },
+  {
+    "key": "auctions.record",
+    "label": "Singular “auction”"
+  },
+  {
+    "key": "auctions.records",
+    "label": "Plural “auctions”"
+  },
+  {
+    "key": "auctions.loading",
+    "label": "Loading message"
+  },
+  {
+    "key": "auctions.empty",
+    "label": "Empty state"
+  },
+  {
+    "key": "auctionCalendar.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "auctionCalendar.h1",
+    "label": "Page heading"
+  },
+  {
+    "key": "auctionCalendar.lead",
+    "label": "Lead paragraph"
+  },
+  {
+    "key": "auctionCalendar.tzNote",
+    "label": "Timezone note"
+  },
+  {
+    "key": "auctionCalendar.breadcrumb",
+    "label": "Breadcrumb label"
+  },
+  {
+    "key": "auctionCalendar.loading",
+    "label": "Loading message"
+  },
+  {
+    "key": "auctionCalendar.error",
+    "label": "Error message"
+  },
+  {
+    "key": "auctionCalendar.retry",
+    "label": "Retry button"
+  },
+  {
+    "key": "auctionCalendar.prev",
+    "label": "Previous month"
+  },
+  {
+    "key": "auctionCalendar.next",
+    "label": "Next month"
+  },
+  {
+    "key": "auctionCalendar.jumpToday",
+    "label": "Jump to today"
+  },
+  {
+    "key": "auctionCalendar.today",
+    "label": "Today label"
+  },
+  {
+    "key": "auctionCalendar.items",
+    "label": "Items on a day"
+  },
+  {
+    "key": "auctionCalendar.live",
+    "label": "Live badge"
+  },
+  {
+    "key": "categories.title",
+    "label": "Browser tab"
+  },
+  {
+    "key": "categories.breadcrumb",
+    "label": "Breadcrumb label"
+  },
+  {
+    "key": "categories.h1",
+    "label": "Page heading"
+  },
+  {
+    "key": "categories.lead",
+    "label": "Lead paragraph"
+  },
+  {
+    "key": "categories.ctaTitle",
+    "label": "Can't find heading"
+  },
+  {
+    "key": "categories.ctaLead",
+    "label": "Can't find description"
+  },
+  {
+    "key": "categories.ctaButton",
+    "label": "Contact the team button"
+  },
+  {
+    "key": "common.home",
+    "label": "Breadcrumb Home"
+  },
+  {
+    "key": "method.auction",
+    "label": "Auction"
+  },
+  {
+    "key": "method.fixed_price",
+    "label": "Fixed price"
+  },
+  {
+    "key": "method.enquiry",
+    "label": "Enquiry"
+  },
+  {
+    "key": "categories.searchLabel",
+    "label": "Search label"
+  },
+  {
+    "key": "categories.searchPlaceholder",
+    "label": "Search placeholder"
+  },
+  {
+    "key": "categories.shopFor",
+    "label": "Shop for heading"
+  },
+  {
+    "key": "categories.loading",
+    "label": "Loading message"
+  },
+  {
+    "key": "categories.retry",
+    "label": "Retry button"
+  },
+  {
+    "key": "categories.emptyTitle",
+    "label": "Empty state title"
+  },
+  {
+    "key": "categories.emptySearch",
+    "label": "No search results"
+  },
+  {
+    "key": "categories.emptyNone",
+    "label": "No categories"
+  },
+  {
+    "key": "categories.emptySearchHintPrefix",
+    "label": "Search hint (before link)"
+  },
+  {
+    "key": "categories.emptySearchLink",
+    "label": "Search hint link"
+  },
+  {
+    "key": "categories.emptySearchHintSuffix",
+    "label": "Search hint (after link)"
+  },
+  {
+    "key": "product.unavailable",
+    "label": "Unavailable title"
+  },
+  {
+    "key": "product.loadFailed",
+    "label": "Load failed title"
+  },
+  {
+    "key": "product.unavailableBody",
+    "label": "Unavailable message"
+  },
+  {
+    "key": "product.tryAgain",
+    "label": "Try again button"
+  },
+  {
+    "key": "product.browseLink",
+    "label": "Browse listings link"
+  },
+  {
+    "key": "product.tab.description",
+    "label": "Description tab"
+  },
+  {
+    "key": "product.tab.specifications",
+    "label": "Specifications tab"
+  },
+  {
+    "key": "product.tab.location",
+    "label": "Location tab"
+  },
+  {
+    "key": "product.detailsAria",
+    "label": "Details panel (aria)"
+  },
+  {
+    "key": "product.summaryAria",
+    "label": "Summary sidebar (aria)"
+  },
+  {
+    "key": "product.cover",
+    "label": "Cover photo label"
+  },
+  {
+    "key": "product.photo",
+    "label": "Photo label"
+  },
+  {
+    "key": "product.showPhoto",
+    "label": "Show photo (aria)"
+  },
+  {
+    "key": "product.related",
+    "label": "Related listings heading"
+  },
+  {
+    "key": "product.continuePayment",
+    "label": "Continue to payment button"
+  },
+  {
+    "key": "product.creatingOrder",
+    "label": "Creating order (button loading)"
+  },
+  {
+    "key": "account.h1",
+    "label": "Page heading"
+  },
+  {
+    "key": "account.loading",
+    "label": "Loading message"
+  },
+  {
+    "key": "account.retry",
+    "label": "Retry button"
+  },
+  {
+    "key": "account.signIn",
+    "label": "Sign in prompt link"
+  },
+  {
+    "key": "account.profile",
+    "label": "Profile section title"
+  },
+  {
+    "key": "account.noEmail",
+    "label": "No email on file"
+  },
+  {
+    "key": "account.noPhone",
+    "label": "No phone on file"
+  },
+  {
+    "key": "account.termsAccepted",
+    "label": "Terms accepted line"
+  },
+  {
+    "key": "account.termsNone",
+    "label": "Terms version fallback"
+  },
+  {
+    "key": "account.acceptTerms",
+    "label": "Accept terms button"
+  },
+  {
+    "key": "account.noTermsDoc",
+    "label": "No terms document message"
+  },
+  {
+    "key": "account.purchases",
+    "label": "Purchases section title"
+  },
+  {
+    "key": "account.purchasesLead",
+    "label": "Purchases intro"
+  },
+  {
+    "key": "account.noPurchasesPrefix",
+    "label": "No purchases (before browse link)"
+  },
+  {
+    "key": "account.noPurchasesBrowse",
+    "label": "Browse link text"
+  },
+  {
+    "key": "account.noPurchasesOr",
+    "label": "“or” between links"
+  },
+  {
+    "key": "account.noPurchasesAuctions",
+    "label": "Auctions link text"
+  },
+  {
+    "key": "account.purchasedItem",
+    "label": "Fallback order title"
+  },
+  {
+    "key": "account.enterDelivery",
+    "label": "Enter delivery button"
+  },
+  {
+    "key": "account.viewOrder",
+    "label": "View order button"
+  },
+  {
+    "key": "account.bids",
+    "label": "Bids section title"
+  },
+  {
+    "key": "account.noBidsPrefix",
+    "label": "No bids (before link)"
+  },
+  {
+    "key": "account.noBidsLink",
+    "label": "Live auctions link"
+  },
+  {
+    "key": "account.openListing",
+    "label": "Open listing link"
+  },
+  {
+    "key": "account.liveAuction",
+    "label": "Live auction link"
   }
 ]

@@ -13,7 +13,8 @@ import { useChromeTranslate } from '../../lib/siteChrome';
 import { useUiLocale } from '../../lib/UiLocaleProvider';
 import { categoryByKey, categoryChildren, categoryRoots } from '../../lib/catalog';
 import { CategoryIcon } from '../../lib/categoryIcons';
-import { EMPTY_BROWSE, METHOD_LABEL, browseQuery, parseBrowseState, type ListingMethod } from '../../lib/listings';
+import { EMPTY_BROWSE, browseQuery, parseBrowseState, type ListingMethod } from '../../lib/listings';
+import type { MessageKey } from '../../lib/uiMessages';
 import { CategoryTreeExpandControl } from '../../components/CategoryTree';
 import '../../components/category-tree.css';
 import './categories.css';
@@ -121,7 +122,7 @@ function CategoriesContent() {
         <div className="categories-hero__inner">
           <div>
             <nav aria-label="Breadcrumb" style={css('font-size: 14px; color: var(--mkt-muted); margin-bottom: 10px')}>
-              <Link href="/">Home</Link> <span aria-hidden="true">/</span>{' '}
+              <Link href="/">{ct('common.home')}</Link> <span aria-hidden="true">/</span>{' '}
               <Link href={categoriesHref()}>{ct('categories.breadcrumb')}</Link>
               {parentCat && (
                 <>
@@ -214,7 +215,7 @@ function CategoriesContent() {
                   </span>
                   <div style={css('min-width: 0; flex: 1')}>
                     <p className="mkt-hint" style={css('margin: 0 0 4px')}>
-                      {root.listingMethods.map((method) => METHOD_LABEL[method]).join(' · ')}
+                      {root.listingMethods.map((method) => ct(`method.${method}` as MessageKey)).join(' · ')}
                     </p>
                     {root.description && <p className="mkt-hint" style={css('margin: 0 0 8px')}>{root.description}</p>}
                     <nav className="category-tree category-tree--card" aria-label={root.name}>
@@ -245,7 +246,7 @@ function CategoriesContent() {
                           ) : null
                         ) : (
                           <Link href={browseHref(root.key)} style={css('display: inline-block; margin-top: 4px; font-weight: 600; font-size: 14px')}>
-                            View all →
+                            {ct('home.viewAll')}
                           </Link>
                         )}
                       </div>
@@ -262,14 +263,14 @@ function CategoriesContent() {
         <div className="categories-cta-panel">
           <div style={css('flex: 1 1 420px; min-width: 0')}>
             <h2 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(26px, 3vw, 34px); letter-spacing: -0.02em; font-weight: 700")}>
-              Can&apos;t find what you need?
+              {ct('categories.ctaTitle')}
             </h2>
             <p style={css('margin: 10px 0 0; font-size: 17px; color: var(--mkt-hero-feature-muted)')}>
-              Send us an enquiry and our team will look through the inventory with you.
+              {ct('categories.ctaLead')}
             </p>
           </div>
           <Link href="/contact" className="btn-primary" style={css('height: 52px; padding: 0 24px; border-radius: 12px; background: var(--mkt-gold); color: #FFFFFF; font-weight: 700; display: flex; align-items: center')}>
-            Contact the team
+            {ct('categories.ctaButton')}
           </Link>
         </div>
       </section>

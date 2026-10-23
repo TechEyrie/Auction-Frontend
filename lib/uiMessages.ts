@@ -627,6 +627,9 @@ const EN = {
   'categories.emptySearchHintPrefix': 'Try a shorter word, or ',
   'categories.emptySearchLink': 'search all listings',
   'categories.emptySearchHintSuffix': '.',
+  'categories.ctaTitle': "Can't find what you need?",
+  'categories.ctaLead': 'Send us an enquiry and our team will look through the inventory with you.',
+  'categories.ctaButton': 'Contact the team',
 
   'product.unavailable': 'This listing is not available',
   'product.loadFailed': 'The listing could not be loaded',
@@ -1293,6 +1296,9 @@ const AR: Record<MessageKey, string> = {
   'categories.emptySearchHintPrefix': 'جرّب كلمة أقصر، أو ',
   'categories.emptySearchLink': 'ابحث في كل الإعلانات',
   'categories.emptySearchHintSuffix': '.',
+  'categories.ctaTitle': 'هل لم تجد ما تحتاجه؟',
+  'categories.ctaLead': 'أرسل استفساراً وسنبحث في المخزون معك.',
+  'categories.ctaButton': 'تواصل مع الفريق',
 
   'product.unavailable': 'هذا الإعلان غير متاح',
   'product.loadFailed': 'تعذّر تحميل الإعلان',

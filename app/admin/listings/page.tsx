@@ -69,6 +69,7 @@ export default function AdminListingsPage() {
     return audience;
   };
   const mayManage = session.capabilities.includes('inventory.manage');
+  const mayViewFinance = session.capabilities.includes('finance.view');
 
   const [status, setStatus] = useState('');
   const [categoryKey, setCategoryKey] = useState('');
@@ -334,6 +335,7 @@ export default function AdminListingsPage() {
                 <tr>
                   <th scope="col">{t('admin.products.colProduct')}</th>
                   <th scope="col">{t('admin.products.colStatus')}</th>
+                  <th scope="col">{t('admin.products.colAvailability')}</th>
                   <th scope="col">{t('admin.products.colType')}</th>
                   <th scope="col">{t('admin.products.colAudience')}</th>
                   <th scope="col">{t('admin.products.colLive')}</th>
@@ -354,6 +356,11 @@ export default function AdminListingsPage() {
                       <Badge tone={STATUS_TONE[listing.status]}>{listing.status}</Badge>
                       {listing.moderation.state !== 'ok' && <Badge tone="bad">{listing.moderation.state}</Badge>}
                     </td>
+                    <td>
+                      <Badge tone={listing.availability === 'sold' ? 'warn' : 'good'}>
+                        {listing.availability === 'sold' ? t('admin.products.sold') : t('admin.products.available')}
+                      </Badge>
+                    </td>
                     <td>{methodLabel(lang, listing.listingMethod)}</td>
                     <td>{audienceChrome(listing.audience)}</td>
                     <td>
@@ -370,6 +377,14 @@ export default function AdminListingsPage() {
                         {listing.listingMethod === 'auction' && listing.liveLotReference && (
                           <Link href={`/admin/auctions?listing=${encodeURIComponent(listing.listingReference)}`} style={css('font-weight: 600; font-size: 14px')}>
                             {t('admin.products.viewBids')}
+                          </Link>
+                        )}
+                        {mayViewFinance && listing.availability === 'sold' && (
+                          <Link
+                            href={`/admin/finance?q=${encodeURIComponent(listing.listingReference)}`}
+                            style={css('font-weight: 600; font-size: 14px')}
+                          >
+                            {t('admin.products.viewOrder')}
                           </Link>
                         )}
                         {mayManage && listing.status !== 'published' && listing.status !== 'archived' && (
