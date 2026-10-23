@@ -186,10 +186,11 @@ const EN = {
   'auth.hero.bullet3': 'Questions go to our team. There is no in-app chat',
   'auth.emailVerify.heading': 'Verify your email',
   'auth.verifyAndContinue': 'Verify and continue',
-  'auth.mfa.title': 'Two-step verification',
-  'auth.mfa.intro': 'Enter the 6-digit code from your authenticator app to finish signing in.',
+  'auth.mfa.title': 'Open your authenticator app',
+  'auth.mfa.intro':
+    'Enter the 6-digit code from the authenticator app you set up for this account (Google Authenticator or similar). The code in your email will not work on this screen.',
   'auth.mfa.recoveryCode': 'Recovery code',
-  'auth.mfa.verificationCode': 'Verification code',
+  'auth.mfa.verificationCode': 'Authenticator code',
   'auth.mfa.useAuthenticatorInstead': 'Use an authenticator code instead',
   'auth.mfa.useRecoveryInstead': 'Use a recovery code instead',
   'auth.mfa.recoveryAccepted':
@@ -243,7 +244,12 @@ const EN = {
   'auth.account.mfa.enabledIntro':
     'Two-step verification is on for this account. To move to a new device, replace your authenticator with a fresh QR code.',
   'auth.account.mfa.replace': 'Replace authenticator',
+  'auth.account.mfa.disable': 'Turn off authenticator',
+  'auth.account.mfa.disableIntro':
+    'After you turn this off, sign-in uses the 6-digit code emailed to you instead of the authenticator app.',
+  'auth.account.mfa.disableConfirm': 'Turn off',
   'auth.account.mfa.currentCodeLabel': 'Current authenticator or recovery code',
+  'auth.account.mfa.codeRequired': 'Enter your authenticator or recovery code',
   'auth.account.mfa.continue': 'Continue',
   'auth.account.mfa.cancel': 'Cancel',
   'auth.account.mfa.qrAlt': 'Authenticator QR code',
@@ -908,7 +914,12 @@ const AR: Record<MessageKey, string> = {
   'auth.account.mfa.enabledIntro':
     'التحقّق بخطوتين مفعّل لهذا الحساب. لنقل جهاز جديد، استبدل المصادقة برمز QR جديد.',
   'auth.account.mfa.replace': 'استبدال المصادقة',
+  'auth.account.mfa.disable': 'إيقاف المصادقة',
+  'auth.account.mfa.disableIntro':
+    'بعد الإيقاف، ستستخدم رمزًا مكوّنًا من 6 أرقام يُرسل إلى بريدك عند تسجيل الدخول بدل تطبيق المصادقة.',
+  'auth.account.mfa.disableConfirm': 'إيقاف',
   'auth.account.mfa.currentCodeLabel': 'رمز المصادقة الحالي أو رمز الاسترداد',
+  'auth.account.mfa.codeRequired': 'أدخل رمز المصادقة أو رمز الاسترداد',
   'auth.account.mfa.continue': 'متابعة',
   'auth.account.mfa.cancel': 'إلغاء',
   'auth.account.mfa.qrAlt': 'رمز QR للمصادقة',

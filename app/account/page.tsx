@@ -50,6 +50,7 @@ export default function AccountPage() {
   const [mfaBusy, setMfaBusy] = useState(false);
   const [mfaError, setMfaError] = useState<string | null>(null);
   const [mfaReplaceOpen, setMfaReplaceOpen] = useState(false);
+  const [mfaDisableOpen, setMfaDisableOpen] = useState(false);
   const [mfaStep, setMfaStep] = useState<'verify' | 'qr' | 'recovery'>('verify');
   const [mfaCurrentCode, setMfaCurrentCode] = useState('');
   const [mfaNewCode, setMfaNewCode] = useState('');
@@ -107,12 +108,43 @@ export default function AccountPage() {
     setMfaError(null);
   };
 
-  const submitMfaReplaceStart = (e: FormEvent) => {
+  const resetMfaDisable = () => {
+    setMfaDisableOpen(false);
+    setMfaCurrentCode('');
+    setMfaError(null);
+  };
+
+  const submitMfaDisable = (e: FormEvent) => {
     e.preventDefault();
+    const code = mfaCurrentCode.trim();
+    if (!code) {
+      setMfaError(ct('auth.account.mfa.codeRequired'));
+      return;
+    }
     setMfaBusy(true);
     setMfaError(null);
     void session
-      .enrollMfa(mfaCurrentCode.trim())
+      .disableMfa(code)
+      .then(() => {
+        resetMfaDisable();
+      })
+      .catch((err: unknown) => {
+        setMfaError(err instanceof ApiRequestError ? err.body.message : 'Could not turn off authenticator');
+      })
+      .finally(() => setMfaBusy(false));
+  };
+
+  const submitMfaReplaceStart = (e: FormEvent) => {
+    e.preventDefault();
+    const code = mfaCurrentCode.trim();
+    if (!code) {
+      setMfaError(ct('auth.account.mfa.codeRequired'));
+      return;
+    }
+    setMfaBusy(true);
+    setMfaError(null);
+    void session
+      .enrollMfa(code)
       .then(async ({ secret, otpauthUrl }) => {
         setMfaSecret(secret);
         setMfaQrDataUrl(await otpauthQrDataUrl(otpauthUrl));
@@ -207,18 +239,49 @@ export default function AccountPage() {
                 <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>
                   {ct('auth.account.mfa.enabledIntro')}
                 </p>
-                {!mfaReplaceOpen ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMfaReplaceOpen(true);
-                      setMfaStep('verify');
-                      setMfaError(null);
-                    }}
-                    style={css('justify-self: start; height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}
-                  >
-                    {ct('auth.account.mfa.replace')}
-                  </button>
+                {!mfaReplaceOpen && !mfaDisableOpen ? (
+                  <div style={css('display: flex; flex-wrap: wrap; gap: 10px')}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMfaReplaceOpen(true);
+                        setMfaStep('verify');
+                        setMfaError(null);
+                      }}
+                      style={css('height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}
+                    >
+                      {ct('auth.account.mfa.replace')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMfaDisableOpen(true);
+                        setMfaError(null);
+                      }}
+                      style={css('height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}
+                    >
+                      {ct('auth.account.mfa.disable')}
+                    </button>
+                  </div>
+                ) : mfaDisableOpen ? (
+                  <>
+                    {mfaError ? <p role="alert" style={css('margin: 0; color: #8A3B05')}>{mfaError}</p> : null}
+                    <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>{ct('auth.account.mfa.disableIntro')}</p>
+                    <form onSubmit={submitMfaDisable} style={css('display: grid; gap: 12px')}>
+                      <div>
+                        <label htmlFor="mfa-disable-current" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>{ct('auth.account.mfa.currentCodeLabel')}</label>
+                        <input id="mfa-disable-current" className="field" inputMode="text" autoComplete="one-time-code" value={mfaCurrentCode} onChange={(e) => setMfaCurrentCode(e.target.value)} />
+                      </div>
+                      <div style={css('display: flex; flex-wrap: wrap; gap: 10px')}>
+                        <button type="submit" disabled={mfaBusy} style={css('height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                          {mfaBusy ? ct('auth.pleaseWait') : ct('auth.account.mfa.disableConfirm')}
+                        </button>
+                        <button type="button" onClick={resetMfaDisable} style={css('height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}>
+                          {ct('auth.account.mfa.cancel')}
+                        </button>
+                      </div>
+                    </form>
+                  </>
                 ) : (
                   <>
                     {mfaError ? <p role="alert" style={css('margin: 0; color: #8A3B05')}>{mfaError}</p> : null}

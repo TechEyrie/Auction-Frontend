@@ -79,6 +79,7 @@ export type SessionValue = {
   logout: () => Promise<void>;
   enrollMfa: (code?: string) => Promise<{ secret: string; otpauthUrl: string }>;
   confirmMfa: (code: string) => Promise<string[]>;
+  disableMfa: (code: string) => Promise<void>;
   completeMfa: (code: string) => Promise<void>;
   completeLoginOtp: (code: string) => Promise<void>;
   resendLoginOtp: () => Promise<void>;
@@ -198,6 +199,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         });
         await refresh();
         return result.recoveryCodes;
+      },
+      async disableMfa(code: string) {
+        await apiFetch<{ ok: boolean }>('/api/auth/mfa/disable', {
+          method: 'POST',
+          json: { code },
+          headers: await ensureCsrfHeaders(),
+        });
+        await refresh();
       },
       refresh: async () => {
         await refresh();
