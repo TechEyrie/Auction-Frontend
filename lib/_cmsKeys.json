@@ -608,6 +608,18 @@
     "label": "Section title"
   },
   {
+    "key": "auth.account.mfa.offIntro",
+    "label": "Intro when MFA is off"
+  },
+  {
+    "key": "auth.account.mfa.enable",
+    "label": "Turn on authenticator button"
+  },
+  {
+    "key": "auth.account.mfa.enableLead",
+    "label": "QR setup instructions"
+  },
+  {
     "key": "auth.account.mfa.enabledIntro",
     "label": "Intro when MFA is on"
   },
@@ -666,6 +678,10 @@
   {
     "key": "auth.account.mfa.done",
     "label": "Done button"
+  },
+  {
+    "key": "auth.account.mfa.emailNotVerified",
+    "label": "Verify email before enabling MFA"
   },
   {
     "key": "help.title",
@@ -2102,6 +2118,10 @@
   {
     "key": "product.creatingOrder",
     "label": "Creating order (button loading)"
+  },
+  {
+    "key": "product.whatsapp",
+    "label": "WhatsApp button"
   },
   {
     "key": "account.h1",

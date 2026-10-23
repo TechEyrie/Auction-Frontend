@@ -35,6 +35,7 @@ const SECTIONS: Array<{ labelKey: MessageKey; href: string; capability?: string 
   { labelKey: 'admin.nav.finance', href: '/admin/finance', capability: 'finance.view' },
   { labelKey: 'admin.nav.content', href: '/admin/content', capability: 'content.manage' },
   { labelKey: 'admin.nav.enquiries', href: '/admin/enquiries', capability: 'content.manage' },
+  { labelKey: 'admin.nav.emailLogs', href: '/admin/email-logs', capability: 'audit.view' },
 ];
 
 function EnrollPanel() {

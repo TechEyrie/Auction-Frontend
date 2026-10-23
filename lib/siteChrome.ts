@@ -193,6 +193,9 @@ export const AUTH_LABEL_FIELDS = [
   'auth.reset.mismatch',
   'auth.reset.submit',
   'auth.account.mfa.title',
+  'auth.account.mfa.offIntro',
+  'auth.account.mfa.enable',
+  'auth.account.mfa.enableLead',
   'auth.account.mfa.enabledIntro',
   'auth.account.mfa.replace',
   'auth.account.mfa.disable',
@@ -208,6 +211,7 @@ export const AUTH_LABEL_FIELDS = [
   'auth.account.mfa.confirmNew',
   'auth.account.mfa.saveRecovery',
   'auth.account.mfa.done',
+  'auth.account.mfa.emailNotVerified',
 ] as const;
 
 export const CHROME_DOC_KEYS = [
@@ -415,6 +419,9 @@ export const AUTH_FIELD_META: ChromeFieldMeta[] = [
   { key: 'auth.reset.mismatch', label: 'Passwords do not match', group: 'Reset password' },
   { key: 'auth.reset.submit', label: 'Update password submit', group: 'Reset password' },
   { key: 'auth.account.mfa.title', label: 'Authenticator section title', group: 'Account MFA' },
+  { key: 'auth.account.mfa.offIntro', label: 'MFA off intro', group: 'Account MFA' },
+  { key: 'auth.account.mfa.enable', label: 'Turn on authenticator button', group: 'Account MFA' },
+  { key: 'auth.account.mfa.enableLead', label: 'Enable flow QR step lead', group: 'Account MFA' },
   { key: 'auth.account.mfa.enabledIntro', label: 'MFA enabled intro', group: 'Account MFA' },
   { key: 'auth.account.mfa.replace', label: 'Replace authenticator', group: 'Account MFA' },
   { key: 'auth.account.mfa.disable', label: 'Turn off authenticator', group: 'Account MFA' },
@@ -430,6 +437,7 @@ export const AUTH_FIELD_META: ChromeFieldMeta[] = [
   { key: 'auth.account.mfa.confirmNew', label: 'Confirm new authenticator', group: 'Account MFA' },
   { key: 'auth.account.mfa.saveRecovery', label: 'Save recovery codes notice', group: 'Account MFA' },
   { key: 'auth.account.mfa.done', label: 'Done', group: 'Account MFA' },
+  { key: 'auth.account.mfa.emailNotVerified', label: 'Email not verified (enable MFA)', group: 'Account MFA' },
 ];
 
 export function authMetaForNav(group: string, extraKeys: readonly string[] = []): ChromeFieldMeta[] {
@@ -555,6 +563,9 @@ export const ACCOUNT_MFA_CMS_META: ChromeFieldMeta[] = [
   { key: 'auth.mfa.recoveryAccepted', label: 'Recovery code accepted notice', group: 'Sign-in challenge', hint: 'Use {remaining} for how many recovery codes are left.' },
   { key: 'auth.pleaseWait', label: 'Button text while loading', group: 'Sign-in challenge' },
   { key: 'auth.account.mfa.title', label: 'Section title', group: 'Account — authenticator' },
+  { key: 'auth.account.mfa.offIntro', label: 'Intro when MFA is off', group: 'Account — authenticator' },
+  { key: 'auth.account.mfa.enable', label: 'Turn on authenticator button', group: 'Account — authenticator' },
+  { key: 'auth.account.mfa.enableLead', label: 'QR setup instructions', group: 'Account — authenticator' },
   { key: 'auth.account.mfa.enabledIntro', label: 'Intro when MFA is on', group: 'Account — authenticator' },
   { key: 'auth.account.mfa.replace', label: 'Replace authenticator button', group: 'Account — authenticator' },
   { key: 'auth.account.mfa.disable', label: 'Turn off authenticator button', group: 'Account — authenticator' },
@@ -570,6 +581,7 @@ export const ACCOUNT_MFA_CMS_META: ChromeFieldMeta[] = [
   { key: 'auth.account.mfa.saveRecovery', label: 'Save your recovery codes notice', group: 'Account — authenticator' },
   { key: 'auth.account.mfa.done', label: 'Done button', group: 'Account — authenticator' },
   { key: 'auth.account.mfa.qrAlt', label: 'QR code image description', group: 'Screen readers (optional)' },
+  { key: 'auth.account.mfa.emailNotVerified', label: 'Verify email before enabling MFA', group: 'Account — authenticator' },
 ];
 
 const chromeCache: Partial<Record<ChromeDocKey, ChromeBody | null>> = {};

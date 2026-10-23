@@ -49,6 +49,7 @@ export default function AccountPage() {
   const [bidListingByAuctionId, setBidListingByAuctionId] = useState<Record<string, string>>({});
   const [mfaBusy, setMfaBusy] = useState(false);
   const [mfaError, setMfaError] = useState<string | null>(null);
+  const [mfaEnableOpen, setMfaEnableOpen] = useState(false);
   const [mfaReplaceOpen, setMfaReplaceOpen] = useState(false);
   const [mfaDisableOpen, setMfaDisableOpen] = useState(false);
   const [mfaStep, setMfaStep] = useState<'verify' | 'qr' | 'recovery'>('verify');
@@ -97,8 +98,30 @@ export default function AccountPage() {
     }
   }, [session.status, session.mfaRequired, router]);
 
+  const resetMfaEnable = () => {
+    setMfaEnableOpen(false);
+    setMfaStep('verify');
+    setMfaNewCode('');
+    setMfaSecret('');
+    setMfaQrDataUrl(null);
+    setMfaRecoveryCodes([]);
+    setMfaError(null);
+  };
+
+  const mfaApiError = (err: unknown, fallbackMessage: string) => {
+    if (err instanceof ApiRequestError) {
+      const details = err.body.details;
+      if (details?.reason === 'EMAIL_NOT_VERIFIED' || details?.code === 'EMAIL_NOT_VERIFIED') {
+        return ct('auth.account.mfa.emailNotVerified');
+      }
+      return err.body.message;
+    }
+    return fallbackMessage;
+  };
+
   const resetMfaReplace = () => {
     setMfaReplaceOpen(false);
+    setMfaEnableOpen(false);
     setMfaStep('verify');
     setMfaCurrentCode('');
     setMfaNewCode('');
@@ -106,6 +129,24 @@ export default function AccountPage() {
     setMfaQrDataUrl(null);
     setMfaRecoveryCodes([]);
     setMfaError(null);
+  };
+
+  const startMfaEnable = () => {
+    setMfaBusy(true);
+    setMfaError(null);
+    setMfaEnableOpen(true);
+    void session
+      .enrollMfa()
+      .then(async ({ secret, otpauthUrl }) => {
+        setMfaSecret(secret);
+        setMfaQrDataUrl(await otpauthQrDataUrl(otpauthUrl));
+        setMfaStep('qr');
+      })
+      .catch((err: unknown) => {
+        setMfaEnableOpen(false);
+        setMfaError(mfaApiError(err, ct('auth.account.mfa.enable')));
+      })
+      .finally(() => setMfaBusy(false));
   };
 
   const resetMfaDisable = () => {
@@ -129,7 +170,7 @@ export default function AccountPage() {
         resetMfaDisable();
       })
       .catch((err: unknown) => {
-        setMfaError(err instanceof ApiRequestError ? err.body.message : 'Could not turn off authenticator');
+        setMfaError(mfaApiError(err, ct('auth.account.mfa.disableConfirm')));
       })
       .finally(() => setMfaBusy(false));
   };
@@ -151,24 +192,29 @@ export default function AccountPage() {
         setMfaStep('qr');
       })
       .catch((err: unknown) => {
-        setMfaError(err instanceof ApiRequestError ? err.body.message : 'Could not start authenticator replacement');
+        setMfaError(mfaApiError(err, ct('auth.account.mfa.replace')));
       })
       .finally(() => setMfaBusy(false));
   };
 
-  const submitMfaReplaceConfirm = (e: FormEvent) => {
+  const submitMfaEnrollConfirm = (e: FormEvent) => {
     e.preventDefault();
+    const code = mfaNewCode.trim();
+    if (!code) {
+      setMfaError(ct('auth.account.mfa.codeRequired'));
+      return;
+    }
     setMfaBusy(true);
     setMfaError(null);
     void session
-      .confirmMfa(mfaNewCode.trim())
+      .confirmMfa(code)
       .then((codes) => {
         setMfaRecoveryCodes(codes);
         setMfaNewCode('');
         setMfaStep('recovery');
       })
       .catch((err: unknown) => {
-        setMfaError(err instanceof ApiRequestError ? err.body.message : 'That code was not accepted');
+        setMfaError(mfaApiError(err, ct('auth.account.mfa.confirmNew')));
       })
       .finally(() => setMfaBusy(false));
   };
@@ -233,9 +279,22 @@ export default function AccountPage() {
               {notice ? <p role="status">{notice}</p> : null}
             </section>
 
-            {session.mfaEnabled ? (
-              <section style={css('background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 16px; padding: 18px 20px; display: grid; gap: 12px; color: var(--mkt-text)')}>
-                <h2 style={css('margin: 0; font-size: 18px')}>{ct('auth.account.mfa.title')}</h2>
+            <section style={css('background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 16px; padding: 18px 20px; display: grid; gap: 12px; color: var(--mkt-text)')}>
+              <h2 style={css('margin: 0; font-size: 18px')}>{ct('auth.account.mfa.title')}</h2>
+              {mfaStep === 'recovery' && mfaRecoveryCodes.length > 0 ? (
+                <div style={css('display: grid; gap: 12px')}>
+                  <p style={css('margin: 0; font-size: 14px; color: var(--mkt-muted)')}>{ct('auth.account.mfa.saveRecovery')}</p>
+                  <ul style={css('margin: 0; padding: 16px; list-style: none; background: var(--mkt-surface-2); border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8; color: var(--mkt-text)')}>
+                    {mfaRecoveryCodes.map((code) => (
+                      <li key={code}>{code}</li>
+                    ))}
+                  </ul>
+                  <button type="button" onClick={resetMfaReplace} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                    {ct('auth.account.mfa.done')}
+                  </button>
+                </div>
+              ) : session.mfaEnabled ? (
+                <>
                 <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>
                   {ct('auth.account.mfa.enabledIntro')}
                 </p>
@@ -302,7 +361,7 @@ export default function AccountPage() {
                       </form>
                     ) : null}
                     {mfaStep === 'qr' ? (
-                      <form onSubmit={submitMfaReplaceConfirm} style={css('display: grid; gap: 12px')}>
+                      <form onSubmit={submitMfaEnrollConfirm} style={css('display: grid; gap: 12px')}>
                         {mfaQrDataUrl ? (
                           <img src={mfaQrDataUrl} alt={ct('auth.account.mfa.qrAlt')} width={200} height={200} style={css('border-radius: 12px; border: 1px solid var(--mkt-border)')} />
                         ) : null}
@@ -319,23 +378,58 @@ export default function AccountPage() {
                         </button>
                       </form>
                     ) : null}
-                    {mfaStep === 'recovery' ? (
-                      <div style={css('display: grid; gap: 12px')}>
-                        <p style={css('margin: 0; font-size: 14px; color: var(--mkt-muted)')}>{ct('auth.account.mfa.saveRecovery')}</p>
-                        <ul style={css('margin: 0; padding: 16px; list-style: none; background: var(--mkt-surface-2); border-radius: 12px; font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.8; color: var(--mkt-text)')}>
-                          {mfaRecoveryCodes.map((code) => (
-                            <li key={code}>{code}</li>
-                          ))}
-                        </ul>
-                        <button type="button" onClick={resetMfaReplace} style={css('justify-self: start; height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
-                          {ct('auth.account.mfa.done')}
-                        </button>
-                      </div>
-                    ) : null}
                   </>
                 )}
-              </section>
-            ) : null}
+                </>
+              ) : (
+                  <>
+                    {!mfaEnableOpen ? (
+                      <>
+                        <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>
+                          {ct('auth.account.mfa.offIntro')}
+                        </p>
+                        {mfaError ? <p role="alert" style={css('margin: 0; color: #8A3B05')}>{mfaError}</p> : null}
+                        <button
+                          type="button"
+                          disabled={mfaBusy}
+                          onClick={startMfaEnable}
+                          style={css('height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}
+                        >
+                          {mfaBusy ? ct('auth.pleaseWait') : ct('auth.account.mfa.enable')}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {mfaError ? <p role="alert" style={css('margin: 0; color: #8A3B05')}>{mfaError}</p> : null}
+                        {mfaStep === 'qr' ? (
+                          <form onSubmit={submitMfaEnrollConfirm} style={css('display: grid; gap: 12px')}>
+                            <p style={css('margin: 0; color: var(--mkt-muted); font-size: 14px')}>{ct('auth.account.mfa.enableLead')}</p>
+                            {mfaQrDataUrl ? (
+                              <img src={mfaQrDataUrl} alt={ct('auth.account.mfa.qrAlt')} width={200} height={200} style={css('border-radius: 12px; border: 1px solid var(--mkt-border)')} />
+                            ) : null}
+                            <p style={css('margin: 0; font-size: 14px; color: var(--mkt-muted); word-break: break-all')}>
+                              <span style={css('font-weight: 600; color: var(--mkt-text)')}>{ct('auth.account.mfa.manualKeyPrefix')}</span>
+                              {mfaSecret}
+                            </p>
+                            <div>
+                              <label htmlFor="mfa-enable-new" style={css('display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px')}>{ct('auth.account.mfa.newCodeLabel')}</label>
+                              <input id="mfa-enable-new" className="field" inputMode="numeric" maxLength={6} autoComplete="one-time-code" value={mfaNewCode} onChange={(e) => setMfaNewCode(e.target.value)} />
+                            </div>
+                            <div style={css('display: flex; flex-wrap: wrap; gap: 10px')}>
+                              <button type="submit" disabled={mfaBusy} style={css('height: 42px; padding: 0 14px; border: 0; border-radius: 10px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer')}>
+                                {mfaBusy ? ct('auth.pleaseWait') : ct('auth.account.mfa.confirmNew')}
+                              </button>
+                              <button type="button" onClick={resetMfaEnable} style={css('height: 42px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 10px; background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer')}>
+                                {ct('auth.account.mfa.cancel')}
+                              </button>
+                            </div>
+                          </form>
+                        ) : null}
+                      </>
+                    )}
+                  </>
+              )}
+            </section>
 
             <section style={css('display: grid; gap: 10px')}>
               <h2 style={css('margin: 0')}>{at('account.purchases')}</h2>

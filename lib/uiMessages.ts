@@ -241,6 +241,11 @@ const EN = {
   'auth.reset.mismatch': 'Passwords do not match',
   'auth.reset.submit': 'Update password',
   'auth.account.mfa.title': 'Authenticator',
+  'auth.account.mfa.offIntro':
+    'Add an authenticator app for stronger sign-in protection. You can also use emailed codes when authenticator is off.',
+  'auth.account.mfa.enable': 'Turn on authenticator',
+  'auth.account.mfa.enableLead':
+    'Scan the QR code with your authenticator app, or enter the manual key. Then enter the 6-digit code to finish.',
   'auth.account.mfa.enabledIntro':
     'Two-step verification is on for this account. To move to a new device, replace your authenticator with a fresh QR code.',
   'auth.account.mfa.replace': 'Replace authenticator',
@@ -258,6 +263,8 @@ const EN = {
   'auth.account.mfa.confirmNew': 'Confirm new authenticator',
   'auth.account.mfa.saveRecovery': 'Save these new recovery codes. Each works once if you lose your app.',
   'auth.account.mfa.done': 'Done',
+  'auth.account.mfa.emailNotVerified':
+    'Verify your email before turning on the authenticator. Check your inbox for the verification link, or sign in again to resend it.',
 
   'common.today': 'Today',
   'common.yesterday': 'Yesterday',
@@ -915,6 +922,11 @@ const AR: Record<MessageKey, string> = {
   'auth.reset.mismatch': 'كلمتا المرور غير متطابقتين',
   'auth.reset.submit': 'تحديث كلمة المرور',
   'auth.account.mfa.title': 'المصادقة',
+  'auth.account.mfa.offIntro':
+    'أضف تطبيق مصادقة لحماية أقوى عند تسجيل الدخول. يمكنك أيضًا استخدام الرموز المرسلة بالبريد عندما تكون المصادقة متوقفة.',
+  'auth.account.mfa.enable': 'تفعيل المصادقة',
+  'auth.account.mfa.enableLead':
+    'امسح رمز QR بتطبيق المصادقة، أو أدخل المفتاح اليدوي. ثم أدخل الرمز المكوّن من 6 أرقام لإكمال الإعداد.',
   'auth.account.mfa.enabledIntro':
     'التحقّق بخطوتين مفعّل لهذا الحساب. لنقل جهاز جديد، استبدل المصادقة برمز QR جديد.',
   'auth.account.mfa.replace': 'استبدال المصادقة',
@@ -932,6 +944,8 @@ const AR: Record<MessageKey, string> = {
   'auth.account.mfa.confirmNew': 'تأكيد المصادقة الجديدة',
   'auth.account.mfa.saveRecovery': 'احفظ رموز الاسترداد الجديدة. كل رمز يُستخدم مرة واحدة إذا فقدت التطبيق.',
   'auth.account.mfa.done': 'تم',
+  'auth.account.mfa.emailNotVerified':
+    'تحقّق من بريدك قبل تفعيل المصادقة. راجع صندوق الوارد للرابط، أو سجّل الدخول مجددًا لإعادة إرسال الرسالة.',
 
   'common.today': 'اليوم',
   'common.yesterday': 'أمس',
