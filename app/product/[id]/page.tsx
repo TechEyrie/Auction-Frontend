@@ -453,7 +453,7 @@ export default function ProductPage() {
           <h1 style={css("margin: 0 0 10px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 30px; font-weight: 700")}>
             {missing ? pt('product.unavailable') : pt('product.loadFailed')}
           </h1>
-          <p style={css('margin: 0 0 12px; color: #5B636B')}>
+          <p style={css('margin: 0 0 12px; color: var(--mkt-muted)')}>
             {missing
               ? pt('product.unavailableBody')
               : listing.error}
@@ -564,7 +564,7 @@ export default function ProductPage() {
                 alt={localizedText(shot.alt, lang) || localizedText(data.title, lang, 'Listing photo')}
               />
             ) : (
-              <span style={css('color: #5B636B')}>No image published for this listing</span>
+              <span style={css('color: var(--mkt-muted)')}>No image published for this listing</span>
             )}
             {shot && (
               <span style={css('position: absolute; left: 16px; bottom: 16px; padding: 6px 12px; border-radius: 999px; background: rgba(21,25,30,.72); color: #FFFFFF; font-size: 13px; font-weight: 600')}>
@@ -599,7 +599,7 @@ export default function ProductPage() {
                 role="tab"
                 aria-selected={tab === entry.id}
                 onClick={() => setTab(entry.id)}
-                style={css(`height: 56px; padding: 0 16px; border: 0; background: transparent; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; color: ${tab === entry.id ? '#15191E' : '#5B636B'}; box-shadow: inset 0 -3px 0 ${tab === entry.id ? '#9A6B12' : 'transparent'}`)}
+                style={css(`height: 56px; padding: 0 16px; border: 0; background: transparent; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; color: ${tab === entry.id ? 'var(--mkt-text)' : 'var(--mkt-muted)'}; box-shadow: inset 0 -3px 0 ${tab === entry.id ? '#9A6B12' : 'transparent'}`)}
               >
                 {entry.label}
               </button>
@@ -626,7 +626,7 @@ export default function ProductPage() {
                   <dl style={css('margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 32px')}>
                     {publicAttributes.map(([key, value]) => (
                       <div key={key} style={css('display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--mkt-border)')}>
-                        <dt style={css('color: #5B636B')}>{attributeLabels.get(key) ?? key}</dt>
+                        <dt style={css('color: var(--mkt-muted)')}>{attributeLabels.get(key) ?? key}</dt>
                         <dd style={css('margin: 0; font-weight: 600; text-align: right')}>{attributeText(value)}</dd>
                       </div>
                     ))}
@@ -644,7 +644,7 @@ export default function ProductPage() {
                   <p className="mkt-hint">This listing does not publish a location.</p>
                 ) : (
                   <>
-                    <strong style={css('color: #15191E')}>
+                    <strong style={css('color: var(--mkt-text)')}>
                       {data.location.label}
                       {data.location.areaKey && data.location.publicPrecision !== 'city' ? ` · ${data.location.areaKey}` : ''}
                     </strong>
@@ -657,7 +657,7 @@ export default function ProductPage() {
               </div>
             )}
           </div>
-          <p style={css('margin: 0; padding: 0 28px 20px; font-size: 14px; color: #5B636B')}>
+          <p style={css('margin: 0; padding: 0 28px 20px; font-size: 14px; color: var(--mkt-muted)')}>
             Something wrong with this ad?{' '}
             <Link href={`/contact?ref=${encodeURIComponent(data.listingReference)}`} style={css('font-weight: 600')}>
               Report it
@@ -669,7 +669,7 @@ export default function ProductPage() {
         <aside className="product-sidebar" aria-label={pt('product.summaryAria')}>
           <div className="product-sidebar-card product-sidebar-card--commerce">
             <div>
-              <div style={css('font-size: 13px; color: #5B636B; font-weight: 600')}>
+              <div style={css('font-size: 13px; color: var(--mkt-muted); font-weight: 600')}>
                 {METHOD_LABEL[data.listingMethod]}
                 {data.condition ? ` · ${data.condition.replace('_', ' ')}` : ''}
                 {data.audience ? ` · For ${AUDIENCE_LABEL[data.audience].toLowerCase()}` : ''}
@@ -677,7 +677,7 @@ export default function ProductPage() {
               <h1 style={css("margin: 6px 0 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2")}>
                 {displayTitle}
               </h1>
-              <p style={css('margin: 8px 0 0; font-size: 15px; font-weight: 600; color: #15191E')}>
+              <p style={css('margin: 8px 0 0; font-size: 15px; font-weight: 600; color: var(--mkt-text)')}>
                 {data.seller.displayName}
                 {data.seller.verificationBadge ? (
                   <span style={css('margin-left: 8px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #9A6B12')}>
@@ -685,7 +685,7 @@ export default function ProductPage() {
                   </span>
                 ) : null}
               </p>
-              <p style={css('margin: 6px 0 0; font-size: 14px; color: #5B636B')}>
+              <p style={css('margin: 6px 0 0; font-size: 14px; color: var(--mkt-muted)')}>
                 {data.location.label ?? 'Location not published'} · {postedLabel(data.publishedAt)} · Ad {data.listingReference}
               </p>
             </div>
@@ -734,14 +734,14 @@ export default function ProductPage() {
                 </div>
                 {displayBids.length > 0 ? (
                   <div>
-                    <div style={css('font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #5B636B; margin-bottom: 8px')}>
+                    <div style={css('font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mkt-muted); margin-bottom: 8px')}>
                       Recent bids
                     </div>
                     <ul style={css('list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px')}>
                       {displayBids.map((bid) => (
                         <li
                           key={bid.sequence}
-                          style={css('display: flex; justify-content: space-between; gap: 12px; align-items: baseline; background: rgba(255,255,255,.55); border-radius: 12px; padding: 12px 14px')}
+                          style={css('display: flex; justify-content: space-between; gap: 12px; align-items: baseline; background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 12px 14px')}
                         >
                           <span style={css('font-weight: 600')}>{bidDisplayLabel(bid)}</span>
                           <span style={css('text-align: right')}>
@@ -821,7 +821,7 @@ export default function ProductPage() {
                     Checkout — pay winning bid
                   </Link>
                 ) : null}
-                <p className="mkt-hint" role="status" style={css('margin: 0; font-size: 13px; color: #5B636B')}>
+                <p className="mkt-hint" role="status" style={css('margin: 0; font-size: 13px; color: var(--mkt-muted)')}>
                   {liveSocket ? 'Live bid updates enabled.' : 'Checking for new bids every 15 seconds.'}
                 </p>
               </div>
@@ -871,7 +871,7 @@ export default function ProductPage() {
                       <form onSubmit={(event) => void submitBuy(event)} style={css('display: grid; gap: 12px')}>
                         <div style={css('display: grid; gap: 4px')}>
                           <p style={css('margin: 0; font-weight: 700')}>Checkout details</p>
-                          <p style={css('margin: 0; font-size: 13px; color: #5B636B')}>Your name is filled from your profile. Choose a Qatar city or area, then add your address.</p>
+                          <p style={css('margin: 0; font-size: 13px; color: var(--mkt-muted)')}>Your name is filled from your profile. Choose a Qatar city or area, then add your address.</p>
                         </div>
                         <CheckoutDetailsFields value={buyForm} onChange={setBuyForm} idPrefix="buy" />
                         <button type="submit" disabled={buyBusy} style={css('height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}>
@@ -916,23 +916,23 @@ export default function ProductPage() {
 
             <div style={css('display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px')}>
               <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
-                <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Seller</div>
+                <div style={css('font-size: 12px; color: var(--mkt-muted); text-transform: uppercase; letter-spacing: .06em')}>Seller</div>
                 <div style={css('font-weight: 600')}>{data.seller.displayName}</div>
               </div>
               <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
-                <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Category</div>
+                <div style={css('font-size: 12px; color: var(--mkt-muted); text-transform: uppercase; letter-spacing: .06em')}>Category</div>
                 <div style={css('font-weight: 600')}>{category?.name ?? data.category.key}</div>
               </div>
               <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
-                <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Location</div>
+                <div style={css('font-size: 12px; color: var(--mkt-muted); text-transform: uppercase; letter-spacing: .06em')}>Location</div>
                 <div style={css('font-weight: 600')}>{data.location.label ?? 'Not published'}</div>
               </div>
               <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
-                <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Method</div>
+                <div style={css('font-size: 12px; color: var(--mkt-muted); text-transform: uppercase; letter-spacing: .06em')}>Method</div>
                 <div style={css('font-weight: 600')}>{METHOD_LABEL[data.listingMethod]}</div>
               </div>
               <div style={css('background: var(--mkt-bg); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 10px 12px')}>
-                <div style={css('font-size: 12px; color: #5B636B; text-transform: uppercase; letter-spacing: .06em')}>Images</div>
+                <div style={css('font-size: 12px; color: var(--mkt-muted); text-transform: uppercase; letter-spacing: .06em')}>Images</div>
                 <div style={css('font-weight: 600')}>{media.length}</div>
               </div>
             </div>
