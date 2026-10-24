@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../../lib/api';
 import { apiFetch } from '../../../lib/api';
 import { css } from '../../../lib/css';
@@ -48,9 +50,43 @@ type Row = {
   paidAt: string | null;
 };
 
-function initialFinanceSearch(): string {
-  if (typeof window === 'undefined') return '';
-  return new URLSearchParams(window.location.search).get('q') ?? '';
+type FinanceFilters = {
+  q: string;
+  paymentState: string;
+  source: string;
+  buyer: string;
+};
+
+function initialFinanceFilters(): FinanceFilters {
+  if (typeof window === 'undefined') {
+    return { q: '', paymentState: '', source: '', buyer: '' };
+  }
+  const params = new URLSearchParams(window.location.search);
+  return {
+    q: params.get('q') ?? '',
+    paymentState: params.get('paymentState') ?? '',
+    source: params.get('source') ?? '',
+    buyer: params.get('buyer') ?? '',
+  };
+}
+
+function financeQueryString(filters: FinanceFilters): string {
+  const params = new URLSearchParams({ page: '1', limit: '50' });
+  if (filters.q.trim()) params.set('q', filters.q.trim());
+  if (filters.paymentState) params.set('paymentState', filters.paymentState);
+  if (filters.source) params.set('source', filters.source);
+  if (filters.buyer.trim()) params.set('buyer', filters.buyer.trim());
+  return params.toString();
+}
+
+function financeSharePath(filters: FinanceFilters): string {
+  const params = new URLSearchParams();
+  if (filters.q.trim()) params.set('q', filters.q.trim());
+  if (filters.paymentState) params.set('paymentState', filters.paymentState);
+  if (filters.source) params.set('source', filters.source);
+  if (filters.buyer.trim()) params.set('buyer', filters.buyer.trim());
+  const qs = params.toString();
+  return qs ? `/admin/finance?${qs}` : '/admin/finance';
 }
 
 function financeSourceLabel(source: string | undefined, t: (key: MessageKey) => string): string {
@@ -69,16 +105,25 @@ function financePaymentLabel(paymentState: string, t: (key: MessageKey) => strin
 export default function AdminFinancePage() {
   const { t, lang } = useUiLocale();
   const session = useSession();
-  const [q, setQ] = useState(initialFinanceSearch);
-  const [paymentState, setPaymentState] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [q, setQ] = useState(() => initialFinanceFilters().q);
+  const [paymentState, setPaymentState] = useState(() => initialFinanceFilters().paymentState);
+  const [source, setSource] = useState(() => initialFinanceFilters().source);
+  const [buyer, setBuyer] = useState(() => initialFinanceFilters().buyer);
+
+  useEffect(() => {
+    setQ(searchParams.get('q') ?? '');
+    setPaymentState(searchParams.get('paymentState') ?? '');
+    setSource(searchParams.get('source') ?? '');
+    setBuyer(searchParams.get('buyer') ?? '');
+  }, [searchParams]);
   const [exportBusy, setExportBusy] = useState(false);
+  const filters: FinanceFilters = { q, paymentState, source, buyer };
   const summary = useAsync<Summary>(() => apiFetch<Summary>('/api/admin/finance/summary'), []);
   const orders = useAsync<{ orders: Row[]; total: number }>(
-    () =>
-      apiFetch(
-        `/api/admin/finance/orders?page=1&limit=50&q=${encodeURIComponent(q)}&paymentState=${encodeURIComponent(paymentState)}`,
-      ),
-    [q, paymentState],
+    () => apiFetch(`/api/admin/finance/orders?${financeQueryString(filters)}`),
+    [q, paymentState, source, buyer],
   );
 
   const awaiting = summary.data?.awaitingPaymentCount ?? summary.data?.unpaidWins;
@@ -101,6 +146,10 @@ export default function AdminFinancePage() {
     } finally {
       setExportBusy(false);
     }
+  }
+
+  function syncUrlFromFilters(): void {
+    router.replace(financeSharePath(filters), { scroll: false });
   }
 
   return (
@@ -154,6 +203,7 @@ export default function AdminFinancePage() {
           className="adm-filters"
           onSubmit={(event) => {
             event.preventDefault();
+            syncUrlFromFilters();
             orders.reload();
           }}
         >
@@ -168,12 +218,30 @@ export default function AdminFinancePage() {
             />
           </div>
           <div className="adm-filter">
+            <Label htmlFor="fin-buyer">{t('admin.field.buyer')}</Label>
+            <input
+              id="fin-buyer"
+              className="field"
+              value={buyer}
+              onChange={(event) => setBuyer(event.target.value)}
+              placeholder={t('admin.finance.buyerPlaceholder')}
+            />
+          </div>
+          <div className="adm-filter">
             <Label htmlFor="fin-pay">{t('admin.field.payment')}</Label>
             <select id="fin-pay" className="field" value={paymentState} onChange={(event) => setPaymentState(event.target.value)}>
               <option value="">{t('admin.common.any')}</option>
               <option value="paid">{t('admin.finance.paid')}</option>
               <option value="awaiting_payment">{t('admin.finance.awaitingPaymentOption')}</option>
               <option value="failed">{t('admin.finance.failed')}</option>
+            </select>
+          </div>
+          <div className="adm-filter">
+            <Label htmlFor="fin-source">{t('admin.field.source')}</Label>
+            <select id="fin-source" className="field" value={source} onChange={(event) => setSource(event.target.value)}>
+              <option value="">{t('admin.common.any')}</option>
+              <option value="auction">{t('admin.finance.sourceAuction')}</option>
+              <option value="fixed_price">{t('admin.finance.sourceFixedPrice')}</option>
             </select>
           </div>
           <div className="adm-actions">
@@ -213,14 +281,45 @@ export default function AdminFinancePage() {
                           order.listingTitle,
                         )}
                       </span>
-                      <div className="adm-hint">{order.listingReference}</div>
+                      <div className="adm-hint">{order.orderReference}</div>
+                      <div className="adm-hint">
+                        {order.listingReference}
+                        {order.lotReference ? ` · ${order.lotReference}` : ''}
+                      </div>
+                      <div style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; font-size: 13px')}>
+                        <Link href={`/product/${order.listingReference}`} style={css('font-weight: 600')}>
+                          {t('admin.finance.linkProduct')}
+                        </Link>
+                        <Link href={`/admin/listings/${order.listingReference}`} style={css('font-weight: 600')}>
+                          {t('admin.finance.linkListingAdmin')}
+                        </Link>
+                        {order.lotReference && (
+                          <Link href={`/lot/${order.lotReference}`} style={css('font-weight: 600')}>
+                            {t('admin.finance.linkLot')}
+                          </Link>
+                        )}
+                        <Link
+                          href={`/admin/auctions?listing=${encodeURIComponent(order.listingReference)}`}
+                          style={css('font-weight: 600')}
+                        >
+                          {t('admin.finance.linkAuctions')}
+                        </Link>
+                      </div>
                     </td>
                     <td className="wrap">
                       <span style={css('font-weight: 600')}>
                         {order.buyer?.fullName ?? order.buyer?.userReference ?? '—'}
                       </span>
                       {order.buyer?.userReference && (
-                        <div className="adm-hint">{order.buyer.userReference}</div>
+                        <div>
+                          <Link
+                            href={`/admin/finance?buyer=${encodeURIComponent(order.buyer.userReference)}`}
+                            className="adm-hint"
+                            style={css('font-weight: 600')}
+                          >
+                            {order.buyer.userReference}
+                          </Link>
+                        </div>
                       )}
                       {(order.buyer?.phone || order.buyer?.email) && (
                         <div className="adm-hint">

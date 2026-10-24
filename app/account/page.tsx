@@ -453,7 +453,7 @@ export default function AccountPage() {
                         <div style={css('display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: start')}>
                           <div style={css('display: grid; gap: 4px; min-width: 0')}>
                             <span style={css('font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #9A6B12')}>
-                              {orderSourceLabel(order.source)}
+                              {orderSourceLabel(order.source, at)}
                             </span>
                             <Link
                               href={productPath({ listingReference: order.listingReference })}
@@ -462,7 +462,7 @@ export default function AccountPage() {
                               {title}
                             </Link>
                             <span style={css('color: var(--mkt-muted); font-size: 14px')}>
-                              {fmtMinor(order.winningPriceMinor)} · {paymentStateLabel(order.paymentState)}
+                              {fmtMinor(order.winningPriceMinor)} · {paymentStateLabel(order.paymentState, at)}
                             </span>
                             <span style={css('color: var(--mkt-muted); font-size: 13px')}>{new Date(order.createdAt).toLocaleString()}</span>
                           </div>

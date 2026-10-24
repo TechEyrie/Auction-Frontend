@@ -16,14 +16,10 @@ import { useAsync } from '../lib/useAsync';
 import { useChromeTranslate } from '../lib/siteChrome';
 import { useUiLocale } from '../lib/UiLocaleProvider';
 import { localizedText, type UiLang } from '../lib/uiLocale';
-import { conditionLabel, methodLabel, type MessageKey } from '../lib/uiMessages';
+import { methodLabel, type MessageKey } from '../lib/uiMessages';
 import { useLive } from '../lib/live';
-import { fmtMinor } from '../lib/format';
 import {
-  listingCardPrice,
-  listingCardTitle,
   mediaUrl,
-  productPath,
   type ListingMethod,
   type Audience,
   type PublicListing,
@@ -56,20 +52,6 @@ function cardImage(listing: PublicListing, lang: UiLang, fallbackAlt: string): {
   };
 }
 
-type Translate = ReturnType<typeof useUiLocale>['t'];
-
-function postedLabel(iso: string | null, t: Translate): string {
-  if (!iso) return t('common.notPublished');
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return t('common.today');
-  if (days === 1) return t('common.yesterday');
-  return t('common.daysAgo', { n: days });
-}
-
-function startingOrPrice(price: { kind: string; minor: number }, t: Translate): string {
-  return price.kind === 'starting' ? t('common.starting', { price: fmtMinor(price.minor) }) : fmtMinor(price.minor);
-}
-
 export default function HomePage() {
   const router = useRouter();
   const { lang } = useUiLocale();
@@ -80,10 +62,6 @@ export default function HomePage() {
   const [heroAudience, setHeroAudience] = useState<'' | Audience>('');
   const placeKey = useUiPlaceQueryKey();
 
-  const featured = useAsync<ListingsResponse>(
-    () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?featured=true&limit=1'), { cache: 'no-store' }),
-    [placeKey],
-  );
   const featuredCarousel = useAsync<ListingsResponse>(
     () => apiFetch<ListingsResponse>(appendPlaceQuery('/api/listings?featured=true&sort=featured&limit=10'), { cache: 'no-store' }),
     [placeKey],
@@ -105,15 +83,12 @@ export default function HomePage() {
     [lang],
   );
   useLive(() => {
-    featured.reload({ soft: true });
     featuredCarousel.reload({ soft: true });
     endingSoon.reload({ soft: true });
     recent.reload({ soft: true });
     auctionListings.reload({ soft: true });
   });
 
-  const heroListing = featured.data?.listings[0] ?? recent.data?.listings[0] ?? null;
-  const heroImage = heroListing ? cardImage(heroListing, lang, t('common.listingImage')) : { url: null, alt: '' };
   const roots = (categories.data?.categories ?? []).filter((category) => category.parentKey === null);
   const recentListings = (recent.data?.listings ?? []).slice(0, 8);
   const auctionCards = (auctionListings.data?.listings ?? []).slice(0, 4);
@@ -125,81 +100,22 @@ export default function HomePage() {
       <title>{t('home.title')}</title>
       <SiteHeader home />
 
-      <section id="top" style={css('background: var(--mkt-surface); border-bottom: 1px solid var(--mkt-border)')}>
+      <section id="top" className="home-hero-band">
         <div className="home-hero">
-          <div style={css('flex: 999 1 560px; min-width: 0')}>
-            <p style={css('margin: 0 0 14px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--mkt-gold-soft); color: var(--mkt-gold); font-size: 13px; font-weight: 600')}>
-              {t('home.badge')}
-            </p>
-            <h1 style={css("margin: 0; font-family: 'Schibsted Grotesk', sans-serif; font-size: clamp(2rem, 8vw, 4.1rem); line-height: 1.05; letter-spacing: -0.035em; font-weight: 700; max-width: 14ch")}>
+          <div className="home-hero__copy">
+            <p className="home-hero__kicker">{t('home.badge')}</p>
+            <h1 className="home-hero__title">
               {t('home.heroLine1')}
-              <span style={css('color: var(--mkt-gold)')}>{t('home.heroLine2')}</span>
+              <span className="home-hero__title-accent">{t('home.heroLine2')}</span>
             </h1>
-            <p style={css('margin: 16px 0 24px; font-size: clamp(15px, 3.6vw, 19px); color: var(--mkt-muted); max-width: 46ch')}>
-              {t('home.heroLead')}
-            </p>
-            <form
-              role="search"
-              className="mkt-search"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const params = new URLSearchParams();
-                if (search.trim()) params.set('q', search.trim());
-                if (heroAudience) params.set('audience', heroAudience);
-                if (heroCategory) params.set('category', heroCategory);
-                router.push(params.toString() ? `/browse?${params.toString()}` : '/browse');
-              }}
-            >
-              <label htmlFor="q" className="sr">
-                {t('home.searchLabel')}
-              </label>
-              <div className="mkt-search__query">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true" style={css('color: var(--mkt-muted)')}>
-                  <path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z M20 20l-4-4"></path>
-                </svg>
-                <input
-                  id="q"
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder={t('home.searchPlaceholder')}
-                  autoComplete="off"
-                />
-              </div>
-              <CategoryMenu
-                value={heroCategory}
-                onChange={setHeroCategory}
-                options={roots.map((category) => ({ key: category.key, name: category.name }))}
-              />
-              <button type="submit" className="mkt-search__submit">
-                {t('common.search')}
-              </button>
-            </form>
-            <div style={css('margin-top: 22px; max-width: 520px')}>
-              <p style={css('margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--mkt-muted)')}>{t('common.shopFor')}</p>
-              <AudiencePicker
-                value={heroAudience}
-                onChange={(audience) => {
-                  setHeroAudience(audience);
-                  const params = new URLSearchParams();
-                  if (search.trim()) params.set('q', search.trim());
-                  if (audience) params.set('audience', audience);
-                  if (heroCategory) params.set('category', heroCategory);
-                  router.push(params.toString() ? `/browse?${params.toString()}` : '/browse');
-                }}
-              />
-            </div>
-            <div style={css('display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; align-items: center')}>
-              <Link href="/browse?audience=men" className="home-chip home-chip--gold">
-                {t('home.mensListings')}
-              </Link>
-              <Link href="/browse?audience=women" className="home-chip home-chip--gold">
-                {t('home.womensListings')}
-              </Link>
-              <Link href="/browse?audience=unisex" className="home-chip home-chip--gold">
-                {t('home.unisexListings')}
-              </Link>
-              <span style={css('font-size: 14px; color: var(--mkt-muted); margin-right: 4px')}>{t('home.popular')}</span>
+            <p className="home-hero__lead">{t('home.heroLead')}</p>
+            <nav className="home-hero__audience" aria-label={t('common.shopFor')}>
+              <Link href="/browse?audience=men">{t('home.mensListings')}</Link>
+              <Link href="/browse?audience=women">{t('home.womensListings')}</Link>
+              <Link href="/browse?audience=unisex">{t('home.unisexListings')}</Link>
+            </nav>
+            <div className="home-hero__popular">
+              <span className="home-hero__popular-label">{t('home.popular')}</span>
               <Link href="/browse?q=land+cruiser" className="home-chip">
                 {t('home.landCruiser')}
               </Link>
@@ -215,56 +131,62 @@ export default function HomePage() {
             </div>
           </div>
 
-          <aside aria-label={t('home.featuredAria')} className="home-hero-feature">
-            <div style={css('display: flex; justify-content: space-between; align-items: center')}>
-              <span style={css('font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mkt-hero-feature-accent)')}>
-                {featured.data?.listings.length ? t('home.featuredListing') : t('home.latestListing')}
-              </span>
-              <span style={css('font-size: 13px; color: #AEB5B0')}>{recent.data ? t('home.published', { n: recent.data.total }) : ''}</span>
+          <div className="home-hero-search">
+            <span className="home-hero-search__brackets" aria-hidden="true" />
+            <div className="home-hero-search__frame">
+              <form
+                role="search"
+                className="mkt-search"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const params = new URLSearchParams();
+                  if (search.trim()) params.set('q', search.trim());
+                  if (heroAudience) params.set('audience', heroAudience);
+                  if (heroCategory) params.set('category', heroCategory);
+                  router.push(params.toString() ? `/browse?${params.toString()}` : '/browse');
+                }}
+              >
+                <label htmlFor="q" className="sr">
+                  {t('home.searchLabel')}
+                </label>
+                <div className="mkt-search__query">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                    <path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14z M20 20l-4-4"></path>
+                  </svg>
+                  <input
+                    id="q"
+                    type="search"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder={t('home.searchPlaceholder')}
+                    autoComplete="off"
+                  />
+                </div>
+                <CategoryMenu
+                  value={heroCategory}
+                  onChange={setHeroCategory}
+                  options={roots.map((category) => ({ key: category.key, name: category.name }))}
+                />
+                <button type="submit" className="mkt-search__submit">
+                  {t('common.search')}
+                </button>
+              </form>
+              <div className="home-hero-search__shop">
+                <p className="home-hero-search__shop-label">{t('common.shopFor')}</p>
+                <AudiencePicker
+                  value={heroAudience}
+                  onChange={(audience) => {
+                    setHeroAudience(audience);
+                    const params = new URLSearchParams();
+                    if (search.trim()) params.set('q', search.trim());
+                    if (audience) params.set('audience', audience);
+                    if (heroCategory) params.set('category', heroCategory);
+                    router.push(params.toString() ? `/browse?${params.toString()}` : '/browse');
+                  }}
+                />
+              </div>
             </div>
-            {heroListing ? (
-              <>
-                <div className="home-hero-listing-media">
-                  {heroImage.url ? (
-                    <img src={heroImage.url} alt={heroImage.alt} />
-                  ) : (
-                    <span style={css('color: #AEB5B0; font-size: 14px')}>{t('home.noImagePublished')}</span>
-                  )}
-                </div>
-                <div>
-                  <h2 style={css("margin: 0 0 4px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase")}>
-                    <Link href={productPath(heroListing)} className="home-hero-feature__title">
-                      {listingCardTitle(heroListing, lang)}
-                    </Link>
-                  </h2>
-                  <p className="home-hero-listing-meta">
-                    {methodLabel(lang, heroListing.listingMethod)}
-                    {heroListing.condition ? ` · ${conditionLabel(lang, heroListing.condition)}` : ''} ·{' '}
-                    {heroListing.location.label ?? t('common.locationNotPublished')}
-                  </p>
-                  {(() => {
-                    const price = listingCardPrice(heroListing);
-                    if (!price) return null;
-                    return (
-                      <p style={css('margin: 10px 0 0; font-size: 20px; font-weight: 800; color: #F6B48A; letter-spacing: -0.01em')}>
-                        {startingOrPrice(price, t)}
-                      </p>
-                    );
-                  })()}
-                </div>
-                <Link href={productPath(heroListing)} className="home-hero-feature__cta">
-                  {t('home.viewListing')}
-                </Link>
-                <p style={css('margin: -6px 0 0; font-size: 13px; color: #AEB5B0; text-align: center')}>
-                  {t('home.ad', { ref: heroListing.listingReference, posted: postedLabel(heroListing.publishedAt, t) })}
-                </p>
-              </>
-            ) : (
-              <p style={css('margin: 0; font-size: 15px; color: #AEB5B0')}>
-                {recent.loading ? t('home.loadingPublished') : t('home.heroEmpty')}
-              </p>
-            )}
-          </aside>
+          </div>
         </div>
       </section>
 

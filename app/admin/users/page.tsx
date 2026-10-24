@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch, ApiRequestError } from '../../../lib/api';
 import { css } from '../../../lib/css';
@@ -43,6 +44,7 @@ export default function AdminUsersPage() {
   }, [load, session.capabilities]);
 
   const mayManage = session.capabilities.includes('users.manage');
+  const mayViewFinance = session.capabilities.includes('finance.view');
 
   async function setStatus(user: AdminUser, status: AdminUser['status']) {
     setError(null);
@@ -93,7 +95,15 @@ export default function AdminUsersPage() {
                       <Badge tone={user.status === 'active' ? 'good' : 'warn'}>{user.status}</Badge>
                     </td>
                     <td>{user.roles.includes('customer') && user.roles.length === 1 ? t('admin.users.customer') : t('admin.roleSuffix')}</td>
-                    <td>
+                    <td style={css('display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end')}>
+                      {mayViewFinance && (
+                        <Link
+                          href={`/admin/finance?buyer=${encodeURIComponent(user.publicReference)}`}
+                          className="adm-link-btn"
+                        >
+                          {t('admin.users.viewOrders')}
+                        </Link>
+                      )}
                       {mayManage && user.publicReference !== session.user?.publicReference && (
                         <button type="button" className="adm-link-btn" onClick={() => void setStatus(user, user.status === 'active' ? 'suspended' : 'active')}>
                           {user.status === 'active' ? t('admin.users.suspend') : t('admin.users.restore')}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { browseParentAndSub, categoryChildren } from '../lib/catalog';
 import { useChromeTranslate } from '../lib/siteChrome';
 import { useUiLocale } from '../lib/UiLocaleProvider';
@@ -96,30 +96,6 @@ export default function BrowseFilterBar({
       document.removeEventListener('mousedown', onPointer);
       document.removeEventListener('touchstart', onPointer);
     };
-  }, [openMenu]);
-
-  useLayoutEffect(() => {
-    if (!openMenu) return;
-    const panel = barRef.current?.querySelector<HTMLElement>('.browse-bar__panel');
-    const trigger = panel?.previousElementSibling as HTMLElement | undefined;
-    if (!panel || !trigger) return;
-    const margin = 14;
-    const tr = trigger.getBoundingClientRect();
-    panel.style.position = 'fixed';
-    panel.style.top = `${tr.bottom + 8}px`;
-    panel.style.left = `${margin}px`;
-    panel.style.right = 'auto';
-    panel.style.insetInlineStart = 'auto';
-    panel.style.insetInlineEnd = 'auto';
-    panel.style.transform = 'none';
-    const maxW = window.innerWidth - margin * 2;
-    const width = Math.min(Math.max(panel.offsetWidth, 200), maxW);
-    panel.style.width = `${width}px`;
-    panel.style.maxWidth = `${maxW}px`;
-    const rtl = document.documentElement.dir === 'rtl';
-    let left = rtl ? tr.right - width : tr.left;
-    left = Math.min(Math.max(margin, left), window.innerWidth - margin - width);
-    panel.style.left = `${left}px`;
   }, [openMenu]);
 
   const { parentKey: categoryParentKey, subcategoryKey } = browseParentAndSub(allCategories, state.category);

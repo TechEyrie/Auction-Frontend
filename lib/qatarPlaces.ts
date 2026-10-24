@@ -1,3 +1,7 @@
+import type { MessageKey } from './uiMessages';
+
+type LabelTranslate = (key: MessageKey, vars?: Record<string, string | number>) => string;
+
 /** Qatar cities and common places for checkout / delivery dropdowns. */
 export const QATAR_PLACES: readonly { value: string; label: string }[] = [
   { value: 'Doha', label: 'Doha' },
@@ -27,21 +31,21 @@ export function placeLabel(value: string): string {
 
 export { listingsQueryForPlace, placeToBrowsePatch } from './uiPlace';
 
-export function paymentStateLabel(state: string): string {
+export function paymentStateLabel(state: string, t: LabelTranslate): string {
   switch (state) {
     case 'awaiting_payment':
-      return 'Payment on delivery — details needed';
+      return t('account.order.pay.awaiting_payment');
     case 'paid':
-      return 'COD confirmed';
+      return t('account.order.pay.paid');
     case 'failed':
-      return 'Could not confirm order — try again';
+      return t('account.order.pay.failed');
     default:
       return state.replaceAll('_', ' ');
   }
 }
 
-export function orderSourceLabel(source: string | undefined): string {
-  if (source === 'fixed_price') return 'Buy now';
-  if (source === 'auction') return 'Auction win';
-  return 'Purchase';
+export function orderSourceLabel(source: string | undefined, t: LabelTranslate): string {
+  if (source === 'fixed_price') return t('account.order.source.fixed_price');
+  if (source === 'auction') return t('account.order.source.auction');
+  return t('account.order.source.default');
 }

@@ -8,7 +8,6 @@ import {
   nextPrayer,
   qatarDateKey,
 } from '../lib/prayerTimes';
-import { whatsappChatUrl } from '../lib/siteContact';
 import { useUiLocale } from '../lib/UiLocaleProvider';
 import type { MessageKey } from '../lib/uiMessages';
 
@@ -17,16 +16,11 @@ const DOHA = { lat: 25.2854, lon: 51.531, city: 'Doha', country: 'QA' };
 
 const ALADHAN_METHOD = 10;
 
-/** Placeholder social destinations until the client supplies official profiles. */
+/** Homepage social strip — official profiles only. */
 const SOCIAL = [
-  { id: 'facebook', label: 'Facebook', href: 'https://www.facebook.com/' },
-  { id: 'x', label: 'X', href: 'https://x.com/' },
-  { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/' },
-  { id: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/' },
-  { id: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/' },
-  { id: 'tiktok', label: 'TikTok', href: 'https://www.tiktok.com/' },
-  { id: 'whatsapp', label: 'WhatsApp', href: whatsappChatUrl() },
-  { id: 'snapchat', label: 'Snapchat', href: 'https://www.snapchat.com/' },
+  { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/vsvs8v/' },
+  { id: 'tiktok', label: 'TikTok', href: 'https://www.tiktok.com/@vsvs8s' },
+  { id: 'whatsapp', label: 'WhatsApp', href: 'https://wa.me/97472222028' },
 ] as const;
 
 type WeatherState = { tempC: number; labelKey: MessageKey; isDay: boolean } | null;
@@ -63,34 +57,10 @@ function SocialIcon({ id }: { id: (typeof SOCIAL)[number]['id'] }) {
     'aria-hidden': true as const,
   };
   switch (id) {
-    case 'facebook':
-      return (
-        <svg {...common}>
-          <path d="M14 8h3V5h-3c-2.2 0-4 1.8-4 4v2H8v3h2v7h3v-7h2.6L16 11h-3V9c0-.6.4-1 1-1z" />
-        </svg>
-      );
-    case 'x':
-      return (
-        <svg {...common}>
-          <path d="M4 4h4.4l4.1 5.7L17.3 4H20l-5.7 7.2L20 20h-4.4l-4.3-6L6.7 20H4l6-7.6L4 4z" />
-        </svg>
-      );
     case 'instagram':
       return (
         <svg {...common}>
           <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4zm5 4.5A4.5 4.5 0 1 0 16.5 12 4.5 4.5 0 0 0 12 7.5zm5.2-.9a1.1 1.1 0 1 0 1.1 1.1 1.1 1.1 0 0 0-1.1-1.1zM12 9.5A2.5 2.5 0 1 1 9.5 12 2.5 2.5 0 0 1 12 9.5z" />
-        </svg>
-      );
-    case 'linkedin':
-      return (
-        <svg {...common}>
-          <path d="M6.5 9H3.7v11h2.8V9zM5.1 3.5A1.6 1.6 0 1 0 5.1 6.7 1.6 1.6 0 0 0 5.1 3.5zM20.3 9.1c-1.5 0-2.5.8-2.9 1.6V9H14.6v11h2.8v-5.8c0-1.5.3-3 2.2-3s2 1.6 2 3.1V20h2.8v-6.4c0-3.2-1.7-4.5-3.1-4.5z" />
-        </svg>
-      );
-    case 'youtube':
-      return (
-        <svg {...common}>
-          <path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9A28 28 0 0 0 2 12a28 28 0 0 0 .4 4.8 2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9A28 28 0 0 0 22 12a28 28 0 0 0-.4-4.8zM10 15.2V8.8L15.5 12 10 15.2z" />
         </svg>
       );
     case 'tiktok':
@@ -103,12 +73,6 @@ function SocialIcon({ id }: { id: (typeof SOCIAL)[number]['id'] }) {
       return (
         <svg {...common}>
           <path d="M12 3a9 9 0 0 0-7.8 13.5L3 21l4.7-1.2A9 9 0 1 0 12 3zm0 1.7a7.3 7.3 0 0 1 6.2 11 7.3 7.3 0 0 1-8.4 1.7l-.5-.3-2.8.7.7-2.7-.3-.5A7.3 7.3 0 0 1 12 4.7zm4.1 9.5c-.2-.1-1.2-.6-1.4-.7s-.3-.1-.5.1-.5.7-.7.8-.3.2-.5.1a6 6 0 0 1-1.8-1.1 6.6 6.6 0 0 1-1.2-1.5c-.1-.2 0-.3.1-.4l.4-.4.1-.3c0-.1 0-.3-.1-.4s-.5-1.2-.7-1.6-.4-.4-.5-.4h-.4c-.1 0-.4.1-.5.3a1.8 1.8 0 0 0-.6 1.3 3.1 3.1 0 0 0 .7 1.7 7.1 7.1 0 0 0 2.7 2.5 9 9 0 0 0 1 .4 2.4 2.4 0 0 0 1.1.1 1.9 1.9 0 0 0 1.2-.8 1.5 1.5 0 0 0 .1-.8c0-.1-.2-.2-.4-.3z" />
-        </svg>
-      );
-    case 'snapchat':
-      return (
-        <svg {...common}>
-          <path d="M12 3c2.6 0 4.7 2 4.7 5.1 0 1.7.1 3.4.8 4.6.3.5.7.8 1.1 1 .4.2.6.5.4.8-.2.4-1 .6-1.6.8-.2.1-.3.2-.3.4 0 .5.6 1 1.1 1.3.4.2.5.5.3.7-.5.5-1.7.7-2.5.8-.3 0-.5.2-.6.5-.3.7-1.1 1.5-3.4 1.5s-3.1-.8-3.4-1.5c-.1-.3-.3-.5-.6-.5-.8-.1-2-.3-2.5-.8-.2-.2-.1-.5.3-.7.5-.3 1.1-.8 1.1-1.3 0-.2-.1-.3-.3-.4-.6-.2-1.4-.4-1.6-.8-.2-.3 0-.6.4-.8.4-.2.8-.5 1.1-1 .7-1.2.8-2.9.8-4.6C7.3 5 9.4 3 12 3z" />
         </svg>
       );
     default:

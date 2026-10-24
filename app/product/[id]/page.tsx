@@ -39,10 +39,13 @@ type PublicBidRow = {
   isMine?: boolean;
 };
 
-function bidDisplayLabel(bid: PublicBidRow): string {
+function bidDisplayLabel(
+  bid: PublicBidRow,
+  pt: (key: 'product.bid.you' | 'product.bid.youWithName' | 'product.bid.bidder', vars?: Record<string, string | number>) => string,
+): string {
   const name = bid.bidderLabel.trim();
-  if (bid.isMine) return name ? `${name} (You)` : 'You';
-  return name || 'Bidder';
+  if (bid.isMine) return name ? pt('product.bid.youWithName', { name }) : pt('product.bid.you');
+  return name || pt('product.bid.bidder');
 }
 
 function compareTopBids(a: PublicBidRow, b: PublicBidRow): number {
@@ -91,8 +94,9 @@ function liveTopBidLabel(
   startingBidMinor: number | null,
   currentAmountMinor: number | null,
   bidCount: number | null,
+  bidAmountsLoadingLabel: string,
 ): string {
-  if (typeof startingBidMinor !== 'number') return 'Bid amounts loading…';
+  if (typeof startingBidMinor !== 'number') return bidAmountsLoadingLabel;
   const hasBids =
     (bidCount ?? 0) > 0 ||
     (typeof currentAmountMinor === 'number' && currentAmountMinor > startingBidMinor);
@@ -182,12 +186,17 @@ export default function ProductPage() {
   const { lang, t } = useUiLocale();
   const pt = useChromeTranslate('product');
   const [amountQar, setAmountQar] = useState('');
-  const [bidMessage, setBidMessage] = useState<string | null>(null);
+  const [bidSuccess, setBidSuccess] = useState(false);
+  const [bidErrorMessage, setBidErrorMessage] = useState<string | null>(null);
   const [bidCooldownUntil, setBidCooldownUntil] = useState<number | null>(null);
+  const [bidCooldownBase, setBidCooldownBase] = useState<string | null>(null);
   const [auctionSecondsRemaining, setAuctionSecondsRemaining] = useState<number | null>(null);
   const [flashAmountMinor, setFlashAmountMinor] = useState<number | null>(null);
   const [flashBidCount, setFlashBidCount] = useState<number | null>(null);
   const [optimisticBids, setOptimisticBids] = useState<PublicBidRow[]>([]);
+  const [bidConfirmOpen, setBidConfirmOpen] = useState(false);
+  const [pendingBidAmountMinor, setPendingBidAmountMinor] = useState<number | null>(null);
+  const [bidSubmitting, setBidSubmitting] = useState(false);
   const router = useRouter();
   const productReturnTo = id ? `/product/${encodeURIComponent(id)}` : '/';
   const [buyOpen, setBuyOpen] = useState(false);
@@ -286,19 +295,18 @@ export default function ProductPage() {
     const tick = () => {
       if (Date.now() >= bidCooldownUntil) {
         setBidCooldownUntil(null);
-        setBidMessage(null);
+        setBidCooldownBase(null);
+        setBidErrorMessage(null);
         return;
       }
       const seconds = Math.ceil((bidCooldownUntil - Date.now()) / 1000);
-      setBidMessage((prev) => {
-        const base = prev?.split('. Try again')[0] ?? 'Wait before bidding again';
-        return `${base}. Try again in ${seconds}s.`;
-      });
+      const base = bidCooldownBase ?? pt('product.bid.waitBeforeBidding');
+      setBidErrorMessage(pt('product.bid.tryAgainIn', { base, seconds }));
     };
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [bidCooldownUntil]);
+  }, [bidCooldownUntil, bidCooldownBase, pt]);
 
   useEffect(() => {
     if (!buyOpen || buyPrefilled || session.status !== 'authenticated' || !session.user) return;
@@ -310,14 +318,22 @@ export default function ProductPage() {
     setBuyPrefilled(true);
   }, [buyOpen, buyPrefilled, session.status, session.user]);
 
-  const placeBid = async (event: FormEvent) => {
+  const closeBidConfirm = () => {
+    if (bidSubmitting) return;
+    setBidConfirmOpen(false);
+    setPendingBidAmountMinor(null);
+  };
+
+  const placeBid = (event: FormEvent) => {
     event.preventDefault();
     if (!liveLotRef || !liveAuction.data?.auction) return;
-    setBidMessage(null);
+    setBidSuccess(false);
+    setBidErrorMessage(null);
     setBidCooldownUntil(null);
+    setBidCooldownBase(null);
     const amountMinor = qarToMinor(Number(amountQar));
     if (!Number.isFinite(amountMinor) || amountMinor <= 0) {
-      setBidMessage('Enter an amount in QAR');
+      setBidErrorMessage(pt('product.bid.enterAmountQar'));
       return;
     }
     const live = liveAuction.data.auction;
@@ -330,28 +346,48 @@ export default function ProductPage() {
       live.incrementMinor,
     );
     if (amountMinor < minimumMinor) {
-      setBidMessage(
-        `Your bid must be at least ${fmtMinor(minimumMinor)} (current top bid plus ${fmtMinor(live.incrementMinor)} increment)`,
+      setBidErrorMessage(
+        pt('product.bid.minimumRequired', {
+          minimum: fmtMinor(minimumMinor),
+          increment: fmtMinor(live.incrementMinor),
+        }),
       );
       return;
     }
+    setPendingBidAmountMinor(amountMinor);
+    setBidConfirmOpen(true);
+  };
+
+  const submitConfirmedBid = async () => {
+    const amountMinor = pendingBidAmountMinor;
+    if (amountMinor === null || !liveLotRef || !liveAuction.data?.auction) return;
+    const live = liveAuction.data.auction;
+    setBidConfirmOpen(false);
+    setPendingBidAmountMinor(null);
+    setBidSubmitting(true);
     try {
-      await apiFetch(`/api/auctions/${encodeURIComponent(liveLotRef)}/bids`, {
+      const result = await apiFetch<{
+        bid: { sequence: number; amountMinor: number; bidderLabel: string } | null;
+        auction: { bidCount: number; currentAmountMinor: number | null } | null;
+      }>(`/api/auctions/${encodeURIComponent(liveLotRef)}/bids`, {
         method: 'POST',
         headers: { ...session.authHeaders(), 'idempotency-key': crypto.randomUUID() },
         json: { amountMinor, expectedVersion: live.version },
       });
       setAmountQar('');
-      setBidMessage('Bid accepted');
-      const nextSequence = effectiveBidCount + 1;
-      setFlashAmountMinor(amountMinor);
-      setFlashBidCount(nextSequence);
+      setBidSuccess(true);
+      setBidErrorMessage(null);
+      const nextSequence = result.bid?.sequence ?? (flashBidCount ?? live.bidCount) + 1;
+      const rowAmount = result.bid?.amountMinor ?? amountMinor;
+      const rowLabel = result.bid?.bidderLabel ?? session.user?.fullName ?? '';
+      setFlashAmountMinor(result.auction?.currentAmountMinor ?? rowAmount);
+      setFlashBidCount(result.auction?.bidCount ?? nextSequence);
       setOptimisticBids((prev) => {
         if (prev.some((row) => row.sequence === nextSequence)) return prev;
         const row: PublicBidRow = {
           sequence: nextSequence,
-          amountMinor,
-          bidderLabel: session.user?.fullName ?? '',
+          amountMinor: rowAmount,
+          bidderLabel: rowLabel,
           isMine: true,
           acceptedAt: new Date().toISOString(),
         };
@@ -360,27 +396,46 @@ export default function ProductPage() {
       await liveAuction.reload({ soft: true });
     } catch (err) {
       if (err instanceof ApiRequestError) {
-        setBidMessage(err.message);
+        setBidSuccess(false);
+        setBidErrorMessage(err.message);
         const retryAfterMs = err.body.details?.retryAfterMs;
         if (typeof retryAfterMs === 'number' && retryAfterMs > 0) {
+          setBidCooldownBase(err.message || pt('product.bid.waitBeforeBidding'));
           setBidCooldownUntil(Date.now() + retryAfterMs);
         }
       } else {
-        setBidMessage(err instanceof Error ? err.message : 'Bid was not accepted');
+        setBidSuccess(false);
+        setBidErrorMessage(err instanceof Error ? err.message : pt('product.bid.notAccepted'));
       }
       liveAuction.reload({ soft: true });
+    } finally {
+      setBidSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (!bidConfirmOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeBidConfirm();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [bidConfirmOpen, bidSubmitting]);
 
   useEffect(() => {
     setShotIdx(0);
     setTab('description');
     setAmountQar('');
-    setBidMessage(null);
+    setBidSuccess(false);
+    setBidErrorMessage(null);
     setBidCooldownUntil(null);
+    setBidCooldownBase(null);
     setFlashAmountMinor(null);
     setFlashBidCount(null);
     setOptimisticBids([]);
+    setBidConfirmOpen(false);
+    setPendingBidAmountMinor(null);
+    setBidSubmitting(false);
   }, [id]);
 
   const data = listing.data?.listing ?? null;
@@ -693,49 +748,54 @@ export default function ProductPage() {
             {isLiveAuction ? (
               <div className="live-auction-panel">
                 <div>
-                  <strong style={css('display: block; font-size: 15px')}>Live auction</strong>
+                  <strong style={css('display: block; font-size: 15px')}>{pt('product.auction.liveTitle')}</strong>
                   <p className="mkt-hint" style={css('color: var(--mkt-text); margin: 4px 0 0')}>
-                    Times shown in Qatar (Asia/Qatar).
+                    {pt('product.auction.timezoneHint')}
                   </p>
                 </div>
                 <div className="live-auction-stat-grid">
                   <div className="live-auction-stat">
-                    <div className="live-auction-stat-label">Starting price</div>
+                    <div className="live-auction-stat-label">{pt('product.auction.startingPrice')}</div>
                     <div className="live-auction-stat-value">
-                      {typeof startingBidMinor === 'number' ? fmtMinor(startingBidMinor) : 'Loading…'}
+                      {typeof startingBidMinor === 'number' ? fmtMinor(startingBidMinor) : pt('product.auction.loading')}
                     </div>
                   </div>
                   <div className="live-auction-stat">
-                    <div className="live-auction-stat-label">Current top bid</div>
+                    <div className="live-auction-stat-label">{pt('product.auction.currentTopBid')}</div>
                     <div className="live-auction-stat-value">
-                      {liveTopBidLabel(startingBidMinor, currentAmountMinor, bidCount)}
+                      {liveTopBidLabel(
+                        startingBidMinor,
+                        currentAmountMinor,
+                        bidCount,
+                        pt('product.auction.bidAmountsLoading'),
+                      )}
                     </div>
                   </div>
                   <div className="live-auction-stat live-auction-stat--wide">
-                    <div className="live-auction-stat-label">Time remaining</div>
+                    <div className="live-auction-stat-label">{pt('product.auction.timeRemaining')}</div>
                     <div className="live-auction-stat-value live-auction-stat-value--md">
                       {auctionEndsAt && auctionSecondsRemaining !== null
                         ? clock(auctionSecondsRemaining)
-                        : 'Loading…'}
+                        : pt('product.auction.loading')}
                     </div>
                   </div>
                   <div className="live-auction-stat">
-                    <div className="live-auction-stat-label">Starts</div>
+                    <div className="live-auction-stat-label">{pt('product.auction.starts')}</div>
                     <div className="live-auction-stat-value live-auction-stat-value--md">
-                      {auctionStartsAt ? fmtBusinessDateTime(auctionStartsAt) : 'Loading…'}
+                      {auctionStartsAt ? fmtBusinessDateTime(auctionStartsAt) : pt('product.auction.loading')}
                     </div>
                   </div>
                   <div className="live-auction-stat">
-                    <div className="live-auction-stat-label">Ends</div>
+                    <div className="live-auction-stat-label">{pt('product.auction.ends')}</div>
                     <div className="live-auction-stat-value live-auction-stat-value--md">
-                      {auctionEndsAt ? fmtBusinessDateTime(auctionEndsAt) : 'Loading…'}
+                      {auctionEndsAt ? fmtBusinessDateTime(auctionEndsAt) : pt('product.auction.loading')}
                     </div>
                   </div>
                 </div>
                 {displayBids.length > 0 ? (
                   <div>
                     <div style={css('font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mkt-muted); margin-bottom: 8px')}>
-                      Recent bids
+                      {pt('product.auction.recentBids')}
                     </div>
                     <ul style={css('list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px')}>
                       {displayBids.map((bid) => (
@@ -743,7 +803,7 @@ export default function ProductPage() {
                           key={bid.sequence}
                           style={css('display: flex; justify-content: space-between; gap: 12px; align-items: baseline; background: var(--mkt-surface); border: 1px solid var(--mkt-border); border-radius: 12px; padding: 12px 14px')}
                         >
-                          <span style={css('font-weight: 600')}>{bidDisplayLabel(bid)}</span>
+                          <span style={css('font-weight: 600')}>{bidDisplayLabel(bid, pt)}</span>
                           <span style={css('text-align: right')}>
                             <span style={css('display: block; font-weight: 700')}>{fmtMinor(bid.amountMinor)}</span>
                             <span className="mkt-hint" style={css('font-size: 13px')}>{relativeTimeLabel(bid.acceptedAt)}</span>
@@ -753,13 +813,13 @@ export default function ProductPage() {
                     </ul>
                   </div>
                 ) : liveAuction.loading ? (
-                  <p className="mkt-hint" role="status" style={css('margin: 0')}>Loading bid history…</p>
+                  <p className="mkt-hint" role="status" style={css('margin: 0')}>{pt('product.auction.loadingBidHistory')}</p>
                 ) : (
-                  <p className="mkt-hint" style={css('margin: 0')}>No bids yet — be the first.</p>
+                  <p className="mkt-hint" style={css('margin: 0')}>{pt('product.auction.noBidsYet')}</p>
                 )}
                 {auctionLive && session.user && !session.mfaRequired ? (
                   <form onSubmit={placeBid} style={css('display: grid; gap: 10px')}>
-                    <span style={css('font-size: 14px; font-weight: 600')}>Your bid (QAR)</span>
+                    <span style={css('font-size: 14px; font-weight: 600')}>{pt('product.auction.yourBidLabel')}</span>
                     <div className="live-auction-bid-row">
                       <input
                         value={amountQar}
@@ -767,27 +827,32 @@ export default function ProductPage() {
                         inputMode="decimal"
                         placeholder={minimumQarPlaceholder}
                         required
-                        aria-label="Your bid in QAR"
+                        aria-label={pt('product.auction.yourBidAria')}
                         style={css('height: 48px; padding: 0 14px; border: 1px solid var(--mkt-border-strong); border-radius: 12px; font: inherit; width: 100%; box-sizing: border-box; background: var(--mkt-surface); color: var(--mkt-text)')}
                       />
                       <button
                         type="submit"
-                        disabled={bidCooldownUntil !== null && Date.now() < bidCooldownUntil}
+                        disabled={
+                          bidSubmitting || (bidCooldownUntil !== null && Date.now() < bidCooldownUntil)
+                        }
                         className="btn-primary"
                         style={css('height: 48px; min-width: 0; width: 100%; padding: 0 22px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer; box-sizing: border-box')}
                       >
-                        Place bid
+                        {pt('product.auction.placeBid')}
                       </button>
                     </div>
                     {minimumMinor !== null && incrementMinor > 0 ? (
                       <p style={css('margin: 0; font-size: 14px; font-weight: 600; color: var(--mkt-text); line-height: 1.45')}>
                         {effectiveBidCountForMinimum === 0
-                          ? `Enter at least ${fmtMinor(minimumMinor)} (opening bid).`
-                          : `Minimum next bid: ${fmtMinor(minimumMinor)} (current + ${fmtMinor(incrementMinor)} increment).`}
+                          ? pt('product.auction.openingBidHint', { minimum: fmtMinor(minimumMinor) })
+                          : pt('product.auction.minimumNextBid', {
+                              minimum: fmtMinor(minimumMinor),
+                              increment: fmtMinor(incrementMinor),
+                            })}
                       </p>
                     ) : minimumMinor !== null ? (
                       <p style={css('margin: 0; font-size: 14px; font-weight: 600; color: var(--mkt-text); line-height: 1.45')}>
-                        Enter at least {fmtMinor(minimumMinor)}.
+                        {pt('product.auction.enterAtLeast', { minimum: fmtMinor(minimumMinor) })}
                       </p>
                     ) : null}
                   </form>
@@ -799,18 +864,16 @@ export default function ProductPage() {
                     style={css('display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700; box-sizing: border-box')}
                   >
                     {session.mfaRequired && !session.mfaEnabled
-                      ? 'Enter your email code to bid'
-                      : 'Sign in to place a bid'}
+                      ? pt('product.auction.emailCodeToBid')
+                      : pt('product.auction.signInToBid')}
                   </Link>
                 ) : null}
-                {bidMessage ? (
+                {bidSuccess || bidErrorMessage ? (
                   <p
                     role="status"
-                    style={css(
-                      `margin: 0; font-weight: 600${bidMessage === 'Bid accepted' ? '' : '; color: #B42318'}`,
-                    )}
+                    style={css(`margin: 0; font-weight: 600${bidSuccess ? '' : '; color: #B42318'}`)}
                   >
-                    {bidMessage}
+                    {bidSuccess ? pt('product.bid.accepted') : bidErrorMessage}
                   </p>
                 ) : null}
                 {!auctionLive && unpaidWinOrder ? (
@@ -818,11 +881,11 @@ export default function ProductPage() {
                     href={`/account/orders/${encodeURIComponent(unpaidWinOrder.orderReference)}`}
                     style={css('display: inline-flex; align-items: center; height: 48px; padding: 0 18px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}
                   >
-                    Checkout — pay winning bid
+                    {pt('product.auction.checkoutPayWin')}
                   </Link>
                 ) : null}
                 <p className="mkt-hint" role="status" style={css('margin: 0; font-size: 13px; color: var(--mkt-muted)')}>
-                  {liveSocket ? 'Live bid updates enabled.' : 'Checking for new bids every 15 seconds.'}
+                  {liveSocket ? pt('product.auction.liveUpdatesEnabled') : pt('product.auction.pollingHint')}
                 </p>
               </div>
             ) : data.listingMethod === 'auction' ? (
@@ -836,7 +899,7 @@ export default function ProductPage() {
                     href={`/account/orders/${encodeURIComponent(unpaidWinOrder.orderReference)}`}
                     style={css('display: inline-flex; align-items: center; height: 48px; margin-top: 12px; padding: 0 18px; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font-weight: 700')}
                   >
-                    Checkout — pay winning bid
+                    {pt('product.auction.checkoutPayWin')}
                   </Link>
                 ) : null}
               </div>
@@ -865,13 +928,13 @@ export default function ProductPage() {
                           setBuyOpen(true);
                         }}
                       >
-                        Buy now
+                        {pt('product.buyNow')}
                       </button>
                     ) : (
                       <form onSubmit={(event) => void submitBuy(event)} style={css('display: grid; gap: 12px')}>
                         <div style={css('display: grid; gap: 4px')}>
-                          <p style={css('margin: 0; font-weight: 700')}>Checkout details</p>
-                          <p style={css('margin: 0; font-size: 13px; color: var(--mkt-muted)')}>Your name is filled from your profile. Choose a Qatar city or area, then add your address.</p>
+                          <p style={css('margin: 0; font-weight: 700')}>{pt('product.checkoutDetailsTitle')}</p>
+                          <p style={css('margin: 0; font-size: 13px; color: var(--mkt-muted)')}>{pt('product.checkoutDetailsLead')}</p>
                         </div>
                         <CheckoutDetailsFields value={buyForm} onChange={setBuyForm} idPrefix="buy" />
                         <button type="submit" disabled={buyBusy} style={css('height: 48px; padding: 0 18px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer')}>
@@ -882,11 +945,11 @@ export default function ProductPage() {
                     )}
                   </>
                 ) : (
-                  <p className="mkt-hint" style={css('margin: 0')}>Price is not published for this listing yet.</p>
+                  <p className="mkt-hint" style={css('margin: 0')}>{pt('product.priceNotPublished')}</p>
                 )}
                 {unpaidWinOrder ? (
                   <Link href={`/account/orders/${encodeURIComponent(unpaidWinOrder.orderReference)}`} style={css('font-weight: 700')}>
-                    Complete your order →
+                    {pt('product.completeOrder')}
                   </Link>
                 ) : null}
               </div>
@@ -965,6 +1028,55 @@ export default function ProductPage() {
           </div>
         </section>
       )}
+
+      {bidConfirmOpen && pendingBidAmountMinor !== null ? (
+        <div
+          role="presentation"
+          onClick={closeBidConfirm}
+          style={css(
+            'position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box',
+          )}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="bid-confirm-title"
+            onClick={(event) => event.stopPropagation()}
+            style={css(
+              'background: var(--mkt-surface); border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; display: grid; gap: 16px; border: 1px solid var(--mkt-border); box-shadow: 0 12px 40px rgba(0,0,0,.18)',
+            )}
+          >
+            <h2 id="bid-confirm-title" style={css('margin: 0; font-size: 18px; font-weight: 700')}>
+              {pt('product.bid.confirmTitle')}
+            </h2>
+            <p style={css('margin: 0; font-size: 15px; line-height: 1.5; color: var(--mkt-text)')}>
+              {pt('product.bid.confirmBody', { amount: fmtMinor(pendingBidAmountMinor) })}
+            </p>
+            <div style={css('display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end')}>
+              <button
+                type="button"
+                disabled={bidSubmitting}
+                onClick={closeBidConfirm}
+                style={css(
+                  'height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--mkt-border-strong); background: var(--mkt-surface); color: var(--mkt-text); font: inherit; font-weight: 600; cursor: pointer',
+                )}
+              >
+                {pt('product.bid.confirmCancel')}
+              </button>
+              <button
+                type="button"
+                disabled={bidSubmitting}
+                onClick={() => void submitConfirmedBid()}
+                style={css(
+                  'height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: #9A6B12; color: #FFFFFF; font: inherit; font-weight: 700; cursor: pointer',
+                )}
+              >
+                {pt('product.bid.confirmSubmit')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <SiteFooter />
     </div>

@@ -11,6 +11,7 @@ import { css, PAGE_ROOT } from '../../../../lib/css';
 import { fmtMinor } from '../../../../lib/format';
 import { coverImage, mediaUrl, productPath, type PublicListing } from '../../../../lib/listings';
 import { orderSourceLabel, paymentStateLabel } from '../../../../lib/qatarPlaces';
+import { useChromeTranslate } from '../../../../lib/siteChrome';
 import { useSession } from '../../../../lib/session';
 import { useAsync } from '../../../../lib/useAsync';
 import '../checkout.css';
@@ -32,6 +33,7 @@ const emptyFulfillment = (): CheckoutDetails => ({ fullName: '', phone: '', city
 export default function AccountOrderPage() {
   const params = useParams<{ orderReference: string }>();
   const orderReference = typeof params?.orderReference === 'string' ? params.orderReference : '';
+  const at = useChromeTranslate('account');
   const session = useSession();
   const router = useRouter();
   const order = useAsync<{ order: Order }>(
@@ -92,17 +94,17 @@ export default function AccountOrderPage() {
         headers: session.authHeaders(),
         json: { orderReference },
       });
-      setMessage(result.message ?? 'Order confirmed for cash on delivery. Pay when the item is handed over.');
+      setMessage(result.message ?? at('account.checkout.confirmSuccess'));
       order.reload();
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Could not confirm your order. Try again.');
+      setMessage(err instanceof Error ? err.message : at('account.checkout.confirmError'));
     } finally {
       setBusy(false);
     }
   };
 
-  const title = order.data?.order.listingTitle?.trim() || 'Checkout';
-  const sourceLabel = orderSourceLabel(order.data?.order.source);
+  const title = order.data?.order.listingTitle?.trim() || at('account.checkout.defaultTitle');
+  const sourceLabel = orderSourceLabel(order.data?.order.source, at);
   const needsPayment =
     order.data?.order.paymentState === 'awaiting_payment' || order.data?.order.paymentState === 'failed';
   const cover = listing.data?.listing ? coverImage(listing.data.listing) : null;
@@ -113,21 +115,21 @@ export default function AccountOrderPage() {
       <SiteHeader />
       <main className="checkout-page">
         <nav className="checkout-crumb" aria-label="Breadcrumb">
-          <Link href="/account">Your account</Link>
+          <Link href="/account">{at('account.h1')}</Link>
           <span aria-hidden="true">/</span>
-          <span>Checkout</span>
+          <span>{at('account.checkout.breadcrumb')}</span>
         </nav>
 
         {order.error ? (
           <p role="alert" className="checkout-alert">
             {order.error}{' '}
             <button type="button" onClick={() => order.reload()} className="adm-link-btn" style={css('font: inherit; font-weight: 600; cursor: pointer; border: 0; background: transparent; color: var(--mkt-gold)')}>
-              Retry
+              {at('account.retry')}
             </button>
           </p>
         ) : null}
 
-        {!order.data && !order.error ? <p className="checkout-state">Loading your checkout…</p> : null}
+        {!order.data && !order.error ? <p className="checkout-state">{at('account.checkout.loading')}</p> : null}
 
         {order.data ? (
           <>
@@ -136,47 +138,47 @@ export default function AccountOrderPage() {
                 <p className="checkout-hero__kicker">{sourceLabel}</p>
                 <h1>{title}</h1>
                 <p>
-                  {needsPayment
-                    ? 'Enter your delivery details. You pay in cash when the item is handed over — no card is charged now.'
-                    : 'This order is confirmed for cash on delivery. Pay when you receive the item.'}
+                  {needsPayment ? at('account.checkout.heroNeedsPayment') : at('account.checkout.heroConfirmed')}
                 </p>
               </div>
-              <span className="checkout-hero__badge">{needsPayment ? 'Pay on delivery' : 'COD confirmed'}</span>
+              <span className="checkout-hero__badge">
+                {needsPayment ? at('account.checkout.badgePayOnDelivery') : at('account.checkout.badgeCodConfirmed')}
+              </span>
             </header>
 
             <div className="checkout-layout">
               <section className="checkout-panel">
                 <div>
                   <p className="checkout-status">
-                    {paymentStateLabel(order.data.order.paymentState)}
+                    {paymentStateLabel(order.data.order.paymentState, at)}
                     {' · '}
-                    <Link href={productPath({ listingReference: order.data.order.listingReference })}>View listing</Link>
+                    <Link href={productPath({ listingReference: order.data.order.listingReference })}>
+                      {at('account.checkout.viewListing')}
+                    </Link>
                   </p>
                 </div>
 
                 {needsPayment ? (
                   <form onSubmit={(event) => void pay(event)} style={css('display: grid; gap: 18px')}>
                     <div>
-                      <h2 className="checkout-panel__title">Delivery details</h2>
-                      <p className="checkout-panel__lede">
-                        Name, phone, city and address so our team can arrange handover in Qatar.
-                      </p>
+                      <h2 className="checkout-panel__title">{at('account.checkout.deliveryTitle')}</h2>
+                      <p className="checkout-panel__lede">{at('account.checkout.deliveryLead')}</p>
                     </div>
                     <CheckoutDetailsFields value={fulfillment} onChange={setFulfillment} idPrefix="order" />
-                    <div className="checkout-note">
-                      Submitting confirms your order for cash on delivery. You will pay the total when you receive the item.
-                    </div>
+                    <div className="checkout-note">{at('account.checkout.submitNote')}</div>
                     <button type="submit" disabled={busy} className="btn-primary checkout-submit">
-                      {busy ? 'Confirming…' : `Confirm order · ${fmtMinor(order.data.order.winningPriceMinor)} due on delivery`}
+                      {busy
+                        ? at('account.checkout.confirmBusy')
+                        : at('account.checkout.confirmButton', {
+                            amount: fmtMinor(order.data.order.winningPriceMinor),
+                          })}
                     </button>
                   </form>
                 ) : (
                   <div className="checkout-success">
                     <div className="checkout-success__icon" aria-hidden="true">✓</div>
-                    <h2>Order confirmed for cash on delivery</h2>
-                    <p>
-                      Thank you. Pay the total when the item is handed over. The listing is marked sold. You can find this order under Your purchases.
-                    </p>
+                    <h2>{at('account.checkout.successTitle')}</h2>
+                    <p>{at('account.checkout.successBody')}</p>
                     {order.data.order.fulfillment ? (
                       <p className="checkout-success__meta">
                         {order.data.order.fulfillment.fullName} · {order.data.order.fulfillment.city}
@@ -184,7 +186,7 @@ export default function AccountOrderPage() {
                       </p>
                     ) : null}
                     <Link href="/account" className="btn-primary checkout-submit" style={css('display: inline-flex; align-items: center; justify-content: center; width: auto; padding: 0 22px')}>
-                      Back to account
+                      {at('account.checkout.backToAccount')}
                     </Link>
                   </div>
                 )}
@@ -198,7 +200,7 @@ export default function AccountOrderPage() {
 
               <aside>
                 <div className="checkout-summary">
-                  <h2>Order summary</h2>
+                  <h2>{at('account.checkout.orderSummary')}</h2>
                   <div className="checkout-product">
                     <div className="checkout-product__media">
                       {imageSrc ? <img src={imageSrc} alt="" /> : null}
@@ -209,17 +211,17 @@ export default function AccountOrderPage() {
                     </div>
                   </div>
                   <div className="checkout-row">
-                    <span>Payment</span>
-                    <strong>Cash on delivery</strong>
+                    <span>{at('account.checkout.paymentLabel')}</span>
+                    <strong>{at('account.checkout.paymentCod')}</strong>
                   </div>
                   <div className="checkout-rule" />
                   <div className="checkout-total">
-                    <span>Total due</span>
+                    <span>{at('account.checkout.totalDue')}</span>
                     <strong>{fmtMinor(order.data.order.winningPriceMinor)}</strong>
                   </div>
                 </div>
                 <p className="checkout-aside-note" style={css('margin-top: 14px')}>
-                  Inspect before you settle in person. Our team helps arrange handover — contact details are never published on the listing.
+                  {at('account.checkout.asideNote')}
                 </p>
               </aside>
             </div>

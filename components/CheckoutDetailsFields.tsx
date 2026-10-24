@@ -2,6 +2,7 @@
 
 import { css } from '../lib/css';
 import { QATAR_PLACES } from '../lib/qatarPlaces';
+import { useChromeTranslate } from '../lib/siteChrome';
 
 export type CheckoutDetails = {
   fullName: string;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'checkout' }: Props) {
+  const at = useChromeTranslate('account');
   const cityOptions = QATAR_PLACES.some((place) => place.value === value.city)
     ? QATAR_PLACES
     : value.city.trim()
@@ -26,7 +28,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
   return (
     <div className="checkout-fields">
       <label className="checkout-label">
-        <span>Full name</span>
+        <span>{at('account.checkout.field.fullName')}</span>
         <input
           id={`${idPrefix}-fullName`}
           className="field"
@@ -40,7 +42,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
         />
       </label>
       <label className="checkout-label">
-        <span>Phone</span>
+        <span>{at('account.checkout.field.phone')}</span>
         <input
           id={`${idPrefix}-phone`}
           className="field"
@@ -55,7 +57,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
         />
       </label>
       <label className="checkout-label">
-        <span>City / area</span>
+        <span>{at('account.checkout.field.city')}</span>
         <select
           id={`${idPrefix}-city`}
           className="field"
@@ -66,7 +68,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
           style={css('cursor: pointer')}
         >
           <option value="" disabled>
-            Select a place in Qatar
+            {at('account.checkout.field.cityPlaceholder')}
           </option>
           {cityOptions.map((place) => (
             <option key={place.value} value={place.value}>
@@ -76,7 +78,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
         </select>
       </label>
       <label className="checkout-label">
-        <span>Address</span>
+        <span>{at('account.checkout.field.address')}</span>
         <textarea
           id={`${idPrefix}-address`}
           className="checkout-textarea"
@@ -87,7 +89,7 @@ export default function CheckoutDetailsFields({ value, onChange, idPrefix = 'che
           rows={3}
           value={value.address}
           onChange={(event) => onChange({ ...value, address: event.target.value })}
-          placeholder="Building, street, landmark"
+          placeholder={at('account.checkout.field.addressPlaceholder')}
         />
       </label>
     </div>
